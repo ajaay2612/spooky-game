@@ -1,0 +1,25 @@
+{
+  "enabled": true,
+  "name": "Documentation Sync on Source Changes",
+  "description": "Monitors source files (JS/TS/JSX/TSX and game assets like GLB/GLTF/shaders) and triggers documentation updates across STEERING.md, README.md, ARCHITECTURE.md, CHANGELOG.md, PERFORMANCE.md, GAME_DESIGN.md, and inline JSDoc comments when changes are detected",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.js",
+      "**/*.ts",
+      "**/*.jsx",
+      "**/*.tsx",
+      "**/*.glb",
+      "**/*.gltf",
+      "**/*.glsl",
+      "**/*.vert",
+      "**/*.frag",
+      "**/*.shader"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Source files have been modified. Analyze the changes and update the relevant documentation files:\n- STEERING.md for architectural decisions\n- README.md for user-facing features and API changes\n- ARCHITECTURE.md for system design patterns\n- CHANGELOG.md with versioned change history\n- PERFORMANCE.md with bundle size and metrics\n- GAME_DESIGN.md for gameplay mechanics and level design notes\nAlso generate or update inline code documentation (JSDoc comments) where appropriate."
+  }
+}

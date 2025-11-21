@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Package MCP Sync",
+  "description": "Monitors package.json for dependency changes and automatically loads/unloads corresponding MCP documentation servers, updating the MCP registry configuration to keep the environment clean",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "package.json"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The package.json file has been modified. Analyze the changes to identify any added or removed dependencies. For each added dependency, search for and load the corresponding MCP documentation server. For each removed dependency, unload its MCP documentation server. Update the MCP registry configuration file to reflect the current state of available documentation sources. Ensure the environment remains clean by removing MCPs for packages that are no longer present."
+  }
+}
