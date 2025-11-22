@@ -1,6 +1,7 @@
 {
-  "name": "babylon-fps-editor",
-  "version": "1.0.0",
+  "name": "spooky-game",
+  "version": "1.1.0",
+  "description": "A 3D first-person spooky game built with Babylon.js",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,6 +13,7 @@
     "@babylonjs/gui": "^7.31.0"
   },
   "devDependencies": {
-    "vite": "^5.4.11"
+    "vite": "^5.4.11",
+    "eslint": "^8.57.0"
   }
 }

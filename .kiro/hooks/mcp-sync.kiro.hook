@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "MCP Documentation Sync",
+  "description": "Automatically syncs MCP documentation servers when package.json dependencies change",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "package.json"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The package.json file has been modified. Analyze the dependency changes and manage MCP documentation servers:\n\n1. DETECT CHANGES:\n   - Identify newly added dependencies\n   - Identify removed dependencies\n   - Note any version updates\n\n2. LOAD NEW MCPs:\n   - For each added dependency, search for corresponding MCP documentation servers\n   - Load available MCP servers for new packages\n   - Configure them in the MCP registry (.kiro/settings/mcp.json)\n\n3. UNLOAD REMOVED MCPs:\n   - For each removed dependency, unload its MCP documentation server\n   - Remove from MCP registry configuration\n   - Clean up any cached documentation\n\n4. UPDATE REGISTRY:\n   - Update .kiro/settings/mcp.json to reflect current state\n   - Ensure only active package MCPs are loaded\n   - Keep environment clean and organized\n\nProvide a summary of MCP servers loaded, unloaded, and current active documentation sources."
+  }
+}

@@ -88,7 +88,10 @@
   - Position panel in top-right corner
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
-- [ ] 8. Implement object selection and property editing
+- [x] 8. Implement object selection and property editing
+
+
+
   - Add click detection for scene objects in InputHandler
   - Implement selectObject method with visual feedback (emissive color)
   - Create property panel in GUI for selected objects

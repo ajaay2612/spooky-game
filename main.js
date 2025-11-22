@@ -2,7 +2,6 @@ import * as BABYLON from '@babylonjs/core';
 import * as GUI from '@babylonjs/gui';
 
 // Entry point for the game
-console.log('Game initializing...');
 
 // Get canvas element
 const canvas = document.getElementById('renderCanvas');
@@ -22,7 +21,6 @@ let appState = {
 // Global function to update app status
 window.updateAppStatus = (updates) => {
   appState = { ...appState, ...updates };
-  console.log('App status updated:', appState);
 };
 
 // Global error handling
@@ -53,7 +51,6 @@ window.addEventListener('unhandledrejection', (event) => {
 
 // Initialize Babylon.js engine
 const engine = new BABYLON.Engine(canvas, true);
-console.log('Engine initialized');
 
 // Create scene with spooky atmosphere
 const scene = new BABYLON.Scene(engine);
@@ -62,8 +59,6 @@ const scene = new BABYLON.Scene(engine);
 scene.clearColor = new BABYLON.Color3(0.02, 0.02, 0.05); // Very dark blue-black
 scene.ambientColor = new BABYLON.Color3(0.1, 0.1, 0.15); // Dim ambient
 scene.collisionsEnabled = false; // Simple movement without collision
-
-console.log('Scene created with spooky atmosphere');
 
 // CameraController class
 class CameraController {
@@ -94,7 +89,6 @@ class CameraController {
     this.camera.keysLeft = [65]; // A
     this.camera.keysRight = [68]; // D
     
-    console.log('Camera controller initialized at eye level (1.6m)');
   }
 
   setupPointerLock() {
@@ -103,7 +97,6 @@ class CameraController {
       this.canvas.requestPointerLock();
     });
     
-    console.log('Pointer lock configured');
   }
 
   getCamera() {
@@ -117,9 +110,56 @@ class SceneManager {
     this.scene = scene;
     this.objects = [];
     this.selectedObject = null;
+    this.flickerObserver = null;
+    
+    // Material pools for reuse
+    this.boxMaterials = [];
+    this.sphereMaterials = [];
+    
+    // Master meshes for instancing
+    this.masterBox = null;
+    this.masterSphere = null;
+    
+    this.createMaterialPools();
+    this.createMasterMeshes();
     this.setupRoom();
     this.setupLights();
     this.addPlaceholderObjects();
+  }
+  
+  createMaterialPools() {
+    // Create 10 reusable materials for boxes and spheres
+    const colors = [
+      new BABYLON.Color3(0.8, 0.2, 0.2), // Red
+      new BABYLON.Color3(0.2, 0.8, 0.2), // Green
+      new BABYLON.Color3(0.2, 0.2, 0.8), // Blue
+      new BABYLON.Color3(0.8, 0.8, 0.2), // Yellow
+      new BABYLON.Color3(0.8, 0.2, 0.8), // Magenta
+      new BABYLON.Color3(0.2, 0.8, 0.8), // Cyan
+      new BABYLON.Color3(0.9, 0.5, 0.2), // Orange
+      new BABYLON.Color3(0.5, 0.2, 0.9), // Purple
+      new BABYLON.Color3(0.7, 0.7, 0.7), // Gray
+      new BABYLON.Color3(0.9, 0.9, 0.9), // White
+    ];
+    
+    colors.forEach((color, i) => {
+      const boxMat = new BABYLON.StandardMaterial(`boxMat_${i}`, this.scene);
+      boxMat.diffuseColor = color;
+      this.boxMaterials.push(boxMat);
+      
+      const sphereMat = new BABYLON.StandardMaterial(`sphereMat_${i}`, this.scene);
+      sphereMat.diffuseColor = color;
+      this.sphereMaterials.push(sphereMat);
+    });
+  }
+  
+  createMasterMeshes() {
+    // Create master meshes for instancing (hidden)
+    this.masterBox = BABYLON.MeshBuilder.CreateBox("masterBox", { size: 1 }, this.scene);
+    this.masterBox.isVisible = false;
+    
+    this.masterSphere = BABYLON.MeshBuilder.CreateSphere("masterSphere", { diameter: 1 }, this.scene);
+    this.masterSphere.isVisible = false;
   }
 
   setupRoom() {
@@ -193,7 +233,6 @@ class SceneManager {
     ceilingMat.diffuseColor = new BABYLON.Color3(0.1, 0.1, 0.12); // Almost black
     ceiling.material = ceilingMat;
     
-    console.log('Spooky room environment created');
   }
 
   setupLights() {
@@ -220,7 +259,7 @@ class SceneManager {
     let currentIntensity = 0.3;
     let flickerTimer = 0;
     
-    this.scene.registerBeforeRender(() => {
+    this.flickerObserver = this.scene.onBeforeRenderObservable.add(() => {
       flickerTimer++;
       
       // Change target intensity every 15 frames for smoother transitions
@@ -232,8 +271,6 @@ class SceneManager {
       currentIntensity += (targetIntensity - currentIntensity) * 0.1;
       pointLight.intensity = currentIntensity;
     });
-    
-    console.log('Atmospheric lighting configured with smooth flickering effect');
   }
 
   addPlaceholderObjects() {
@@ -242,48 +279,65 @@ class SceneManager {
     
     // Add a sphere
     this.addSphere(new BABYLON.Vector3(3, 1.5, 0));
-    
-    console.log('Placeholder objects added');
   }
 
   addBox(position = new BABYLON.Vector3(0, 1, 0)) {
-    const box = BABYLON.MeshBuilder.CreateBox(
-      `box_${Date.now()}`,
-      { size: 1 },
-      this.scene
-    );
+    // Create instance instead of new mesh
+    const box = this.masterBox.createInstance(`box_${Date.now()}`);
     box.position = position;
     
-    const material = new BABYLON.StandardMaterial(`boxMat_${Date.now()}`, this.scene);
-    material.diffuseColor = new BABYLON.Color3(
-      Math.random(),
-      Math.random(),
-      Math.random()
-    );
-    box.material = material;
+    // Reuse material from pool
+    const materialIndex = this.objects.length % this.boxMaterials.length;
+    box.material = this.boxMaterials[materialIndex];
     
     this.objects.push(box);
     return box;
   }
 
   addSphere(position = new BABYLON.Vector3(0, 1.5, 0)) {
-    const sphere = BABYLON.MeshBuilder.CreateSphere(
-      `sphere_${Date.now()}`,
-      { diameter: 1 },
-      this.scene
-    );
+    // Create instance instead of new mesh
+    const sphere = this.masterSphere.createInstance(`sphere_${Date.now()}`);
     sphere.position = position;
     
-    const material = new BABYLON.StandardMaterial(`sphereMat_${Date.now()}`, this.scene);
-    material.diffuseColor = new BABYLON.Color3(
-      Math.random(),
-      Math.random(),
-      Math.random()
-    );
-    sphere.material = material;
+    // Reuse material from pool
+    const materialIndex = this.objects.length % this.sphereMaterials.length;
+    sphere.material = this.sphereMaterials[materialIndex];
     
     this.objects.push(sphere);
     return sphere;
+  }
+  
+  removeObject(mesh) {
+    const index = this.objects.indexOf(mesh);
+    if (index > -1) {
+      this.objects.splice(index, 1);
+    }
+    
+    if (this.selectedObject === mesh) {
+      this.selectedObject = null;
+    }
+    
+    // Dispose instance (not material since it's shared)
+    mesh.dispose(false, true);
+  }
+  
+  dispose() {
+    // Dispose all objects
+    this.objects.forEach(obj => obj.dispose());
+    this.objects = [];
+    
+    // Dispose master meshes
+    if (this.masterBox) this.masterBox.dispose();
+    if (this.masterSphere) this.masterSphere.dispose();
+    
+    // Dispose material pools
+    this.boxMaterials.forEach(mat => mat.dispose());
+    this.sphereMaterials.forEach(mat => mat.dispose());
+    
+    // Unregister flicker animation
+    if (this.flickerObserver) {
+      this.scene.onBeforeRenderObservable.remove(this.flickerObserver);
+    }
   }
 
   selectObject(mesh) {
@@ -317,6 +371,7 @@ class GUIManager {
     this.sceneManager = sceneManager;
     this.advancedTexture = null;
     this.mainPanel = null;
+    this.propertyPanel = null;
     this.isVisible = true;
     
     this.setupGUI();
@@ -338,15 +393,24 @@ class GUIManager {
     // Add object creation buttons
     this.createButton("Add Box", () => {
       this.sceneManager.addBox();
-      console.log('Box added via GUI');
     });
     
     this.createButton("Add Sphere", () => {
       this.sceneManager.addSphere();
-      console.log('Sphere added via GUI');
     });
     
-    console.log('Developer GUI system initialized');
+    this.createButton("Delete Selected", () => {
+      const selected = this.sceneManager.getSelectedObject();
+      if (selected) {
+        this.sceneManager.removeObject(selected);
+        this.updateForSelectedObject(null);
+      }
+    });
+    
+    // Property editor panel (initially empty)
+    this.propertyPanel = new GUI.StackPanel();
+    this.propertyPanel.width = "280px";
+    this.mainPanel.addControl(this.propertyPanel);
   }
 
   createButton(text, onClick) {
@@ -365,10 +429,94 @@ class GUIManager {
     this.mainPanel.addControl(spacer);
   }
 
+  updateForSelectedObject(mesh) {
+    this.selectedObject = mesh;
+    
+    // Clear existing property controls
+    this.propertyPanel.clearControls();
+    
+    if (!mesh) return;
+    
+    // Add title
+    const title = new GUI.TextBlock();
+    title.text = "Selected Object";
+    title.height = "30px";
+    title.color = "white";
+    this.propertyPanel.addControl(title);
+    
+    // Position sliders
+    this.createSlider("X Position", mesh.position.x, -10, 10, (value) => {
+      mesh.position.x = value;
+    });
+    
+    this.createSlider("Y Position", mesh.position.y, 0, 5, (value) => {
+      mesh.position.y = value;
+    });
+    
+    this.createSlider("Z Position", mesh.position.z, -10, 10, (value) => {
+      mesh.position.z = value;
+    });
+    
+    // Color picker
+    this.createColorPicker(mesh);
+  }
+
+  createSlider(label, initialValue, min, max, onChange) {
+    const header = new GUI.TextBlock();
+    header.text = label;
+    header.height = "20px";
+    header.color = "white";
+    this.propertyPanel.addControl(header);
+    
+    const slider = new GUI.Slider();
+    slider.minimum = min;
+    slider.maximum = max;
+    slider.value = initialValue;
+    slider.height = "20px";
+    slider.width = "260px";
+    slider.color = "green";
+    slider.background = "gray";
+    slider.onValueChangedObservable.add(onChange);
+    this.propertyPanel.addControl(slider);
+    
+    // Spacer
+    const spacer = new GUI.Container();
+    spacer.height = "5px";
+    this.propertyPanel.addControl(spacer);
+  }
+
+  createColorPicker(mesh) {
+    const header = new GUI.TextBlock();
+    header.text = "Color";
+    header.height = "20px";
+    header.color = "white";
+    this.propertyPanel.addControl(header);
+    
+    // Simple RGB sliders for color picking
+    const currentColor = mesh.material.diffuseColor;
+    
+    this.createSlider("Red", currentColor.r, 0, 1, (value) => {
+      mesh.material.diffuseColor.r = value;
+    });
+    
+    this.createSlider("Green", currentColor.g, 0, 1, (value) => {
+      mesh.material.diffuseColor.g = value;
+    });
+    
+    this.createSlider("Blue", currentColor.b, 0, 1, (value) => {
+      mesh.material.diffuseColor.b = value;
+    });
+  }
+
   toggleVisibility() {
     this.isVisible = !this.isVisible;
     this.mainPanel.isVisible = this.isVisible;
-    console.log(`GUI visibility toggled: ${this.isVisible}`);
+  }
+  
+  dispose() {
+    if (this.advancedTexture) {
+      this.advancedTexture.dispose();
+    }
   }
 }
 
@@ -380,6 +528,19 @@ const sceneManager = new SceneManager(scene);
 
 // Initialize GUI manager
 const guiManager = new GUIManager(scene, sceneManager);
+
+// Set up object selection on click
+scene.onPointerDown = (evt, pickResult) => {
+  if (pickResult.hit && pickResult.pickedMesh) {
+    const mesh = pickResult.pickedMesh;
+    
+    // Only select objects we've added (not room geometry)
+    if (sceneManager.getObjects().includes(mesh)) {
+      sceneManager.selectObject(mesh);
+      guiManager.updateForSelectedObject(mesh);
+    }
+  }
+};
 
 // Scene error handling (only if observable exists)
 if (scene.onErrorObservable) {
@@ -416,4 +577,10 @@ window.addEventListener('resize', () => {
   engine.resize();
 });
 
-console.log('Render loop started');
+// Cleanup on page unload
+window.addEventListener('beforeunload', () => {
+  sceneManager.dispose();
+  guiManager.dispose();
+  scene.dispose();
+  engine.dispose();
+});
