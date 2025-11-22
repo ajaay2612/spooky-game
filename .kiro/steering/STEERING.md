@@ -463,6 +463,48 @@ describe('SceneManager', () => {
 
 ## Documentation Standards
 
+### Documentation Update Policy
+
+**CRITICAL RULE**: Always **update** documentation incrementally, never replace entire files.
+
+**Rationale**:
+- Preserves project history and evolution
+- Shows the journey of decisions and changes
+- Maintains context for future developers
+- Keeps track of what was tried and why
+
+**How to Update**:
+- Add new sections for new features
+- Append to existing sections with version notes
+- Update metrics with before/after comparisons
+- Add dated entries to CHANGELOG.md
+- Preserve old information with "Historical" or "Previous" labels
+
+**Examples**:
+```markdown
+## Performance Metrics
+
+### v1.1.0 (Current)
+- Draw calls: 5-17 (capped)
+- VRAM per object: 500 bytes
+
+### v1.0.0 (Historical)
+- Draw calls: 5-7+N (linear growth)
+- VRAM per object: 5 KB
+```
+
+**DON'T**:
+- Replace entire documents
+- Delete historical information
+- Overwrite version history
+- Remove old metrics
+
+**DO**:
+- Add new sections
+- Update current status
+- Preserve old information
+- Show evolution over time
+
 ### Code Comments
 
 **When to Comment**:
@@ -489,12 +531,20 @@ addBox(position) { }
 
 ### README Updates
 
+**Update Policy**: Incremental updates only - preserve history
+
 **Update When**:
-- Adding new features
-- Changing controls
-- Modifying architecture
-- Updating dependencies
-- Changing requirements
+- Adding new features (add to features list)
+- Changing controls (update controls section)
+- Modifying architecture (update architecture section)
+- Updating dependencies (update technology stack)
+- Changing requirements (update requirements section)
+
+**How to Update**:
+- Add version markers for significant changes
+- Keep roadmap items with completion status
+- Update metrics with version comparisons
+- Preserve historical context
 
 ### CHANGELOG Format
 
