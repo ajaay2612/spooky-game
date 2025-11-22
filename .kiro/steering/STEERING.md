@@ -558,6 +558,87 @@ addBox(position) { }
 - Fixed: Bug fixes
 - Security: Security fixes
 
+## Model Context Protocol (MCP) Management
+
+### MCP Server Strategy
+
+**Decision**: Keep most MCP servers disabled by default, enable only when needed for specific tasks
+
+**Rationale**:
+- Reduces cognitive load and context pollution
+- Improves response time and performance
+- Prevents unnecessary API calls
+- Allows focused, task-specific assistance
+- Easy to enable/disable as needed
+
+**Available MCP Servers**:
+The project has access to multiple MCP servers that can be enabled on-demand:
+- **Babylon.js Docs**: For 3D engine API reference and examples
+- **Vite Docs**: For build tool configuration and optimization
+- **AWS Docs**: For cloud deployment and infrastructure (if needed)
+- **Other documentation servers**: As required by specific tasks
+
+**Usage Guidelines**:
+
+**When to Enable MCPs**:
+- Working on specific framework features (enable relevant docs MCP)
+- Debugging framework-specific issues
+- Learning new APIs or patterns
+- Need authoritative documentation reference
+- Implementing complex framework features
+
+**When to Disable MCPs**:
+- General coding tasks that don't need framework docs
+- Working on business logic
+- Simple bug fixes
+- Documentation writing
+- Performance optimization (unless framework-specific)
+
+**How to Manage**:
+```json
+// .kiro/settings/mcp.json
+{
+  "mcpServers": {
+    "babylonjs-docs": {
+      "command": "uvx",
+      "args": ["mcp-server-babylonjs"],
+      "disabled": false,  // Enable when working on 3D features
+      "autoApprove": ["search_docs", "get_page"]
+    },
+    "vite-docs": {
+      "command": "uvx", 
+      "args": ["mcp-server-vite"],
+      "disabled": true,   // Disable when not needed
+      "autoApprove": []
+    }
+  }
+}
+```
+
+**Best Practices**:
+1. **Task-Based Activation**: Enable only MCPs relevant to current task
+2. **Disable After Use**: Turn off MCPs when task is complete
+3. **Document Usage**: Note which MCPs were helpful in KIRO_IMPACT.md
+4. **Performance First**: Fewer active MCPs = faster responses
+5. **Reconnect Automatically**: MCPs reconnect when config changes (no restart needed)
+
+**Current Active MCPs**:
+- Check `.kiro/settings/mcp.json` for currently enabled servers
+- Use MCP Server view in Kiro panel to see status
+- Command palette: "MCP" to manage servers
+
+**Example Workflow**:
+```
+Task: Implement new shader effect
+→ Enable: babylonjs-docs MCP
+→ Work on feature with docs assistance
+→ Complete feature
+→ Disable: babylonjs-docs MCP
+→ Document in KIRO_IMPACT.md which MCP was used
+```
+
+---
+
 ## Future Considerations
 
 ### TypeScript Migration

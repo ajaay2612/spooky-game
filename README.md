@@ -4,14 +4,32 @@ A 3D first-person spooky game built with Babylon.js. Features a dark atmospheric
 
 ## Features
 
-- **First-Person Camera**: WASD movement with mouse look (pointer lock)
-- **Spooky Atmosphere**: Dark environment with flickering lights and eerie ambiance
-- **Enclosed Room**: 20x20 unit space with oppressive walls and dim lighting
+### Dual Camera System
+- **Editor Camera**: ArcRotateCamera for scene editing with orbit controls
+- **Player Camera**: First-person UniversalCamera for gameplay testing
+- **Seamless Switching**: Toggle between modes with E key
 
-### Developer Tools (Development Mode)
-- **Object Creation**: Add boxes and spheres for testing
-- **Property Panel**: Adjust position and color of objects via GUI sliders
-- **Real-time Manipulation**: Select and modify objects in the scene
+### Scene Editor
+- **Object Creation**: Create primitives (Box, Sphere, Cylinder, Cone, Plane, Torus)
+- **Light System**: Add Point, Directional, Spot, and Hemispheric lights
+- **GLTF Import**: Import 3D models (.gltf, .glb files)
+- **Object Selection**: Visual highlighting with yellow outline
+- **Property Editing**: Real-time position, rotation, scale, and material editing
+- **Scene Hierarchy**: Tree view of all scene objects
+- **Save/Load**: Serialize and deserialize scenes to JSON
+
+### Object Manipulation
+- **Transform Controls**: Edit position, rotation (degrees), and scale via input fields
+- **Material Editor**: Adjust diffuse, specular, and emissive colors with RGB sliders
+- **Light Editor**: Control intensity and color of light sources
+- **Duplication**: Clone objects with Ctrl+D
+- **Deletion**: Remove objects with Delete key or GUI button
+- **Renaming**: Edit object names directly in property panel
+
+### Spooky Atmosphere
+- **Dark Environment**: Oppressive 20x20 unit enclosed room
+- **Flickering Lights**: Dynamic point light with eerie yellow-orange glow
+- **Dim Ambient**: Low-intensity hemispheric lighting for tension
 
 ## Quick Start
 
@@ -31,25 +49,53 @@ npm run preview
 
 ## Controls
 
-- **WASD**: Move camera
-- **Mouse**: Look around (click canvas to lock pointer)
-- **Left Click**: Select objects
-- **GUI Buttons**: Add Box, Add Sphere, Delete Selected
-- **Property Sliders**: Adjust position (X, Y, Z) and color (RGB) of selected objects
+### Editor Mode (Default)
+- **Right Mouse Button**: Rotate camera (ArcRotateCamera)
+- **Middle Mouse Button**: Pan camera
+- **Mouse Wheel**: Zoom in/out
+- **Left Click**: Select objects in scene
+- **E Key**: Toggle between Editor and Play mode
+- **Delete Key**: Delete selected object
+- **Ctrl+D**: Duplicate selected object
+- **Ctrl+S**: Save scene to JSON file
+- **Ctrl+O**: Load scene from JSON file
+- **F Key**: Focus camera on selected object
+- **Escape**: Deselect current object
+
+### Play Mode
+- **WASD**: Move camera (first-person)
+- **Mouse**: Look around (pointer lock enabled)
+- **E Key**: Return to Editor mode
+
+### GUI Panels
+- **Object Palette** (Left): Create primitives (Box, Sphere, Cylinder, Cone, Plane, Torus), lights, and import GLTF models
+- **Property Panel** (Right): Edit position, rotation, scale, and material properties of selected objects
+- **Scene Hierarchy** (Left Bottom): View and select all objects in the scene
 
 ## Architecture
 
 ### Core Classes
 
-- **CameraController**: Manages first-person camera with WASD controls and pointer lock
-- **SceneManager**: Handles scene setup, room geometry, lighting, and object management
-- **GUIManager**: Creates and manages the developer GUI panel with buttons and property editors
+#### Editor System
+- **EditorManager**: Main orchestrator for editor mode, handles keyboard shortcuts and mode switching
+- **CameraManager**: Manages dual camera system (Editor ArcRotateCamera + Player UniversalCamera)
+- **SelectionManager**: Handles object selection with visual highlighting using HighlightLayer
+- **SerializationManager**: Scene save/load functionality with JSON serialization
+
+#### UI Components
+- **ObjectPalette**: Left panel for creating primitives, lights, and importing models
+- **PropertyPanel**: Right panel for editing object properties (transform, material, lights)
+- **SceneHierarchy**: Left bottom panel showing tree view of all scene objects
+
+#### Scene System
+- **ObjectFactory**: Centralized object creation with consistent configuration and material pooling
 
 ### Scene Structure
 
-- **Room**: 20x20 unit enclosed space with floor, walls, and ceiling
+- **Room**: 20x20 unit enclosed space with floor, walls, and ceiling (static, non-editable)
 - **Lighting**: Dim hemispheric light + flickering point light for atmosphere
-- **Objects**: Dynamically created boxes and spheres with random colors
+- **Objects**: User-created primitives, lights, and imported models
+- **Cameras**: Dual camera system (editor + player) with seamless switching
 
 ## Performance
 
@@ -94,15 +140,29 @@ curl -X POST http://localhost:5173/status -H "Content-Type: application/json" -d
 
 ```
 spooky-game/
-├── index.html              # Entry HTML
-├── main.js                 # Main application code
-├── style.css               # Minimal styles
-├── vite.config.js          # Vite configuration with status server
-├── package.json            # Dependencies
-├── PERFORMANCE.md          # Performance metrics and analysis
-├── ARCHITECTURE.md         # System design documentation
-├── GAME_DESIGN.md          # Gameplay mechanics and design
-└── CHANGELOG.md            # Version history
+├── index.html                      # Entry HTML with Babylon.js CDN
+├── main.js                         # Main application entry point
+├── style.css                       # Minimal styles
+├── vite.config.js                  # Vite configuration with status server
+├── package.json                    # Dependencies
+├── src/
+│   ├── editor/
+│   │   ├── EditorManager.js        # Main editor orchestrator
+│   │   ├── CameraManager.js        # Dual camera system
+│   │   ├── SelectionManager.js     # Object selection with highlighting
+│   │   ├── SerializationManager.js # Scene save/load
+│   │   ├── ObjectPalette.js        # Object creation UI
+│   │   ├── PropertyPanel.js        # Property editing UI
+│   │   └── SceneHierarchy.js       # Scene tree view UI
+│   └── scene/
+│       └── ObjectFactory.js        # Centralized object creation
+├── docs/
+│   ├── PERFORMANCE.md              # Performance metrics and analysis
+│   ├── ARCHITECTURE.md             # System design documentation
+│   ├── GAME_DESIGN.md              # Gameplay mechanics and design
+│   ├── CHANGELOG.md                # Version history
+│   └── STEERING.md                 # Architectural decisions and standards
+└── PRE_PUSH_VALIDATION_REPORT.md   # Comprehensive validation report
 ```
 
 ## Security
@@ -136,13 +196,28 @@ MIT
 
 ## Roadmap
 
+### Completed ✅
 - [x] Implement material pooling (performance) ✅ v1.1.0
 - [x] Add resource disposal methods (memory leaks) ✅ v1.1.0
 - [x] Enable mesh instancing (VRAM optimization) ✅ v1.1.0
 - [x] Add object deletion feature ✅ v1.1.0
-- [ ] Implement save/load scene functionality
-- [ ] Add more object types (cylinders, cones, custom meshes)
-- [ ] Physics integration (collision detection)
-- [ ] Texture support
-- [ ] Lighting controls in GUI
-- [ ] Performance monitoring GUI (FPS, draw calls)
+- [x] Implement save/load scene functionality ✅ v1.1.0
+- [x] Add more object types (cylinders, cones, torus, plane) ✅ v1.1.0
+- [x] Lighting controls in GUI ✅ v1.1.0
+- [x] Dual camera system (editor + player) ✅ v1.1.0
+- [x] Scene hierarchy panel ✅ v1.1.0
+- [x] GLTF model import ✅ v1.1.0
+- [x] Object duplication ✅ v1.1.0
+- [x] Transform gizmos (position, rotation, scale) ✅ v1.1.0
+
+### Planned 🎯
+- [ ] Physics integration (collision detection, gravity)
+- [ ] Texture support and texture editor
+- [ ] Performance monitoring GUI (FPS, draw calls, memory)
+- [ ] Undo/Redo system
+- [ ] Multi-selection support
+- [ ] Transform gizmos (visual handles)
+- [ ] Grid and snapping
+- [ ] Prefab system
+- [ ] Animation timeline
+- [ ] Post-processing effects

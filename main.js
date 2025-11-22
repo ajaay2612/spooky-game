@@ -1,586 +1,404 @@
-import * as BABYLON from '@babylonjs/core';
-import * as GUI from '@babylonjs/gui';
+// Spooky Game - Main JavaScript File
+// This file contains all game logic and Babylon.js setup
 
-// Entry point for the game
+import { EditorManager } from './src/editor/EditorManager.js';
+import { ObjectPalette } from './src/editor/ObjectPalette.js';
+import { PropertyPanel } from './src/editor/PropertyPanel.js';
+import { SceneHierarchy } from './src/editor/SceneHierarchy.js';
 
-// Get canvas element
-const canvas = document.getElementById('renderCanvas');
+// Global variables
+let engine = null;
+let scene = null;
+let fpsDisplay = null;
+let loadStartTime = Date.now();
+let editorManager = null;
 
-// Application state for status tracking
-let appState = {
-  status: 'active',
-  errors: [],
-  scene: {
-    objectCount: 0,
-    rendering: true,
-    fps: 0
-  },
-  startTime: Date.now()
-};
-
-// Global function to update app status
-window.updateAppStatus = (updates) => {
-  appState = { ...appState, ...updates };
-};
-
-// Global error handling
-window.addEventListener('error', (event) => {
-  console.error('Application error:', event.error);
-  const errorInfo = {
-    message: event.error?.message || 'Unknown error',
-    timestamp: Date.now(),
-    stack: event.error?.stack || ''
-  };
-  appState.status = 'error';
-  appState.errors.push(errorInfo);
-  window.updateAppStatus({ status: 'error', errors: appState.errors });
+// Wait for DOM to be fully loaded
+window.addEventListener('DOMContentLoaded', () => {
+  initializeGame();
 });
 
-// Catch unhandled promise rejections
-window.addEventListener('unhandledrejection', (event) => {
-  console.error('Unhandled promise rejection:', event.reason);
-  const errorInfo = {
-    message: event.reason?.message || String(event.reason),
-    timestamp: Date.now(),
-    stack: event.reason?.stack || ''
+// Note: F key is now handled by EditorManager for focus functionality
+// FPS counter is always visible (can be toggled in future if needed)
+
+// Camera setup is now handled by CameraManager in EditorManager
+
+/**
+ * Create room environment geometry
+ * @param {BABYLON.Scene} scene - The Babylon.js scene
+ */
+function createRoomEnvironment(scene) {
+  // Create floor mesh (20x20 ground plane at y=0)
+  const floor = BABYLON.MeshBuilder.CreateGround(
+    "floor",
+    { width: 20, height: 20 },
+    scene
+  );
+  floor.position.y = 0;
+
+  // Create ceiling mesh (20x20 plane at y=3)
+  const ceiling = BABYLON.MeshBuilder.CreateGround(
+    "ceiling",
+    { width: 20, height: 20 },
+    scene
+  );
+  ceiling.position.y = 3;
+  // Rotate ceiling to face downward
+  ceiling.rotation.z = Math.PI;
+
+  // Create four wall meshes to enclose the room
+  // Walls are 3 meters high and properly aligned
+
+  // North wall (positive Z)
+  const wallNorth = BABYLON.MeshBuilder.CreateBox(
+    "wallNorth",
+    { width: 20, height: 3, depth: 0.5 },
+    scene
+  );
+  wallNorth.position = new BABYLON.Vector3(0, 1.5, 10);
+
+  // South wall (negative Z)
+  const wallSouth = BABYLON.MeshBuilder.CreateBox(
+    "wallSouth",
+    { width: 20, height: 3, depth: 0.5 },
+    scene
+  );
+  wallSouth.position = new BABYLON.Vector3(0, 1.5, -10);
+
+  // East wall (positive X)
+  const wallEast = BABYLON.MeshBuilder.CreateBox(
+    "wallEast",
+    { width: 0.5, height: 3, depth: 20 },
+    scene
+  );
+  wallEast.position = new BABYLON.Vector3(10, 1.5, 0);
+
+  // West wall (negative X)
+  const wallWest = BABYLON.MeshBuilder.CreateBox(
+    "wallWest",
+    { width: 0.5, height: 3, depth: 20 },
+    scene
+  );
+  wallWest.position = new BABYLON.Vector3(-10, 1.5, 0);
+
+  console.log('Room environment geometry created');
+
+  return {
+    floor,
+    ceiling,
+    walls: [wallNorth, wallSouth, wallEast, wallWest]
   };
-  appState.status = 'error';
-  appState.errors.push(errorInfo);
-  window.updateAppStatus({ status: 'error', errors: appState.errors });
-});
-
-// Initialize Babylon.js engine
-const engine = new BABYLON.Engine(canvas, true);
-
-// Create scene with spooky atmosphere
-const scene = new BABYLON.Scene(engine);
-
-// Spooky atmosphere configuration
-scene.clearColor = new BABYLON.Color3(0.02, 0.02, 0.05); // Very dark blue-black
-scene.ambientColor = new BABYLON.Color3(0.1, 0.1, 0.15); // Dim ambient
-scene.collisionsEnabled = false; // Simple movement without collision
-
-// CameraController class
-class CameraController {
-  constructor(scene, canvas) {
-    this.scene = scene;
-    this.canvas = canvas;
-    this.camera = null;
-    this.moveSpeed = 0.5;
-    this.setupCamera();
-    this.setupPointerLock();
-  }
-
-  setupCamera() {
-    // Universal Camera for first-person controls
-    this.camera = new BABYLON.UniversalCamera(
-      "playerCamera",
-      new BABYLON.Vector3(0, 1.6, -5), // Eye level at 1.6m
-      this.scene
-    );
-    
-    this.camera.attachControl(this.canvas, true);
-    this.camera.speed = this.moveSpeed;
-    this.camera.angularSensibility = 2000;
-    
-    // Set up WASD keys
-    this.camera.keysUp = [87]; // W
-    this.camera.keysDown = [83]; // S
-    this.camera.keysLeft = [65]; // A
-    this.camera.keysRight = [68]; // D
-    
-  }
-
-  setupPointerLock() {
-    // Request pointer lock on canvas click
-    this.canvas.addEventListener('click', () => {
-      this.canvas.requestPointerLock();
-    });
-    
-  }
-
-  getCamera() {
-    return this.camera;
-  }
 }
 
-// SceneManager class
-class SceneManager {
-  constructor(scene) {
-    this.scene = scene;
-    this.objects = [];
-    this.selectedObject = null;
-    this.flickerObserver = null;
-    
-    // Material pools for reuse
-    this.boxMaterials = [];
-    this.sphereMaterials = [];
-    
-    // Master meshes for instancing
-    this.masterBox = null;
-    this.masterSphere = null;
-    
-    this.createMaterialPools();
-    this.createMasterMeshes();
-    this.setupRoom();
-    this.setupLights();
-    this.addPlaceholderObjects();
-  }
-  
-  createMaterialPools() {
-    // Create 10 reusable materials for boxes and spheres
-    const colors = [
-      new BABYLON.Color3(0.8, 0.2, 0.2), // Red
-      new BABYLON.Color3(0.2, 0.8, 0.2), // Green
-      new BABYLON.Color3(0.2, 0.2, 0.8), // Blue
-      new BABYLON.Color3(0.8, 0.8, 0.2), // Yellow
-      new BABYLON.Color3(0.8, 0.2, 0.8), // Magenta
-      new BABYLON.Color3(0.2, 0.8, 0.8), // Cyan
-      new BABYLON.Color3(0.9, 0.5, 0.2), // Orange
-      new BABYLON.Color3(0.5, 0.2, 0.9), // Purple
-      new BABYLON.Color3(0.7, 0.7, 0.7), // Gray
-      new BABYLON.Color3(0.9, 0.9, 0.9), // White
-    ];
-    
-    colors.forEach((color, i) => {
-      const boxMat = new BABYLON.StandardMaterial(`boxMat_${i}`, this.scene);
-      boxMat.diffuseColor = color;
-      this.boxMaterials.push(boxMat);
-      
-      const sphereMat = new BABYLON.StandardMaterial(`sphereMat_${i}`, this.scene);
-      sphereMat.diffuseColor = color;
-      this.sphereMaterials.push(sphereMat);
-    });
-  }
-  
-  createMasterMeshes() {
-    // Create master meshes for instancing (hidden)
-    this.masterBox = BABYLON.MeshBuilder.CreateBox("masterBox", { size: 1 }, this.scene);
-    this.masterBox.isVisible = false;
-    
-    this.masterSphere = BABYLON.MeshBuilder.CreateSphere("masterSphere", { diameter: 1 }, this.scene);
-    this.masterSphere.isVisible = false;
-  }
+/**
+ * Apply materials and colors for spooky atmosphere
+ * @param {Object} roomMeshes - Object containing floor, ceiling, and walls meshes
+ * @param {BABYLON.Scene} scene - The Babylon.js scene
+ */
+function applySpookyMaterials(roomMeshes, scene) {
+  // Create StandardMaterial for floor with dark gray color (#1a1a1a)
+  const floorMaterial = new BABYLON.StandardMaterial("floorMat", scene);
+  floorMaterial.diffuseColor = new BABYLON.Color3(0.1, 0.1, 0.1); // #1a1a1a in RGB (26/255 ≈ 0.1)
+  floorMaterial.specularColor = new BABYLON.Color3(0.01, 0.01, 0.01); // Low specular for matte appearance
+  roomMeshes.floor.material = floorMaterial;
 
-  setupRoom() {
-    // Floor - dark, worn appearance
-    const floor = BABYLON.MeshBuilder.CreateGround(
-      "floor",
-      { width: 20, height: 20 },
-      this.scene
-    );
-    const floorMat = new BABYLON.StandardMaterial("floorMat", this.scene);
-    floorMat.diffuseColor = new BABYLON.Color3(0.15, 0.12, 0.1); // Dark brown
-    floorMat.specularColor = new BABYLON.Color3(0.05, 0.05, 0.05); // Minimal shine
-    floor.material = floorMat;
+  // Create StandardMaterial for ceiling with very dark gray color (#0d0d0d)
+  const ceilingMaterial = new BABYLON.StandardMaterial("ceilingMat", scene);
+  ceilingMaterial.diffuseColor = new BABYLON.Color3(0.05, 0.05, 0.05); // #0d0d0d in RGB (13/255 ≈ 0.05)
+  ceilingMaterial.specularColor = new BABYLON.Color3(0.01, 0.01, 0.01); // Low specular for matte appearance
+  roomMeshes.ceiling.material = ceilingMaterial;
 
-    // Walls (4 planes) - dark, oppressive
-    const wallHeight = 5;
-    const roomSize = 20;
-    
-    // Back wall
-    const backWall = BABYLON.MeshBuilder.CreatePlane(
-      "backWall",
-      { width: roomSize, height: wallHeight },
-      this.scene
-    );
-    backWall.position = new BABYLON.Vector3(0, wallHeight / 2, roomSize / 2);
-    
-    // Front wall
-    const frontWall = BABYLON.MeshBuilder.CreatePlane(
-      "frontWall",
-      { width: roomSize, height: wallHeight },
-      this.scene
-    );
-    frontWall.position = new BABYLON.Vector3(0, wallHeight / 2, -roomSize / 2);
-    frontWall.rotation.y = Math.PI;
-    
-    // Left wall
-    const leftWall = BABYLON.MeshBuilder.CreatePlane(
-      "leftWall",
-      { width: roomSize, height: wallHeight },
-      this.scene
-    );
-    leftWall.position = new BABYLON.Vector3(-roomSize / 2, wallHeight / 2, 0);
-    leftWall.rotation.y = Math.PI / 2;
-    
-    // Right wall
-    const rightWall = BABYLON.MeshBuilder.CreatePlane(
-      "rightWall",
-      { width: roomSize, height: wallHeight },
-      this.scene
-    );
-    rightWall.position = new BABYLON.Vector3(roomSize / 2, wallHeight / 2, 0);
-    rightWall.rotation.y = -Math.PI / 2;
+  // Create StandardMaterial for walls with dark brown/gray color (#2a2a2a)
+  const wallMaterial = new BABYLON.StandardMaterial("wallMat", scene);
+  wallMaterial.diffuseColor = new BABYLON.Color3(0.165, 0.165, 0.165); // #2a2a2a in RGB (42/255 ≈ 0.165)
+  wallMaterial.specularColor = new BABYLON.Color3(0.01, 0.01, 0.01); // Low specular for matte appearance
 
-    // Apply spooky wall material - dark gray with slight green tint
-    const wallMat = new BABYLON.StandardMaterial("wallMat", this.scene);
-    wallMat.diffuseColor = new BABYLON.Color3(0.2, 0.25, 0.2); // Dark greenish-gray
-    wallMat.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
-    [backWall, frontWall, leftWall, rightWall].forEach(wall => {
-      wall.material = wallMat;
-    });
-
-    // Ceiling - very dark, barely visible
-    const ceiling = BABYLON.MeshBuilder.CreateGround(
-      "ceiling",
-      { width: roomSize, height: roomSize },
-      this.scene
-    );
-    ceiling.position.y = wallHeight;
-    ceiling.rotation.z = Math.PI;
-    const ceilingMat = new BABYLON.StandardMaterial("ceilingMat", this.scene);
-    ceilingMat.diffuseColor = new BABYLON.Color3(0.1, 0.1, 0.12); // Almost black
-    ceiling.material = ceilingMat;
-    
-  }
-
-  setupLights() {
-    // Very dim hemispheric light for minimal ambient lighting
-    const hemiLight = new BABYLON.HemisphericLight(
-      "hemiLight",
-      new BABYLON.Vector3(0, 1, 0),
-      this.scene
-    );
-    hemiLight.intensity = 0.15; // Very dim
-    hemiLight.groundColor = new BABYLON.Color3(0.05, 0.05, 0.1); // Dark blue ground
-
-    // Flickering point light for eerie atmosphere
-    const pointLight = new BABYLON.PointLight(
-      "pointLight",
-      new BABYLON.Vector3(0, 4, 0),
-      this.scene
-    );
-    pointLight.intensity = 0.3; // Dim, barely illuminating
-    pointLight.diffuse = new BABYLON.Color3(0.8, 0.7, 0.5); // Sickly yellow-orange
-    
-    // Add smooth flickering animation to the point light
-    let targetIntensity = 0.3;
-    let currentIntensity = 0.3;
-    let flickerTimer = 0;
-    
-    this.flickerObserver = this.scene.onBeforeRenderObservable.add(() => {
-      flickerTimer++;
-      
-      // Change target intensity every 15 frames for smoother transitions
-      if (flickerTimer % 15 === 0) {
-        targetIntensity = 0.3 + (Math.random() - 0.5) * 0.2;
-      }
-      
-      // Smoothly interpolate towards target intensity
-      currentIntensity += (targetIntensity - currentIntensity) * 0.1;
-      pointLight.intensity = currentIntensity;
-    });
-  }
-
-  addPlaceholderObjects() {
-    // Add a box
-    this.addBox(new BABYLON.Vector3(-3, 1, 0));
-    
-    // Add a sphere
-    this.addSphere(new BABYLON.Vector3(3, 1.5, 0));
-  }
-
-  addBox(position = new BABYLON.Vector3(0, 1, 0)) {
-    // Create instance instead of new mesh
-    const box = this.masterBox.createInstance(`box_${Date.now()}`);
-    box.position = position;
-    
-    // Reuse material from pool
-    const materialIndex = this.objects.length % this.boxMaterials.length;
-    box.material = this.boxMaterials[materialIndex];
-    
-    this.objects.push(box);
-    return box;
-  }
-
-  addSphere(position = new BABYLON.Vector3(0, 1.5, 0)) {
-    // Create instance instead of new mesh
-    const sphere = this.masterSphere.createInstance(`sphere_${Date.now()}`);
-    sphere.position = position;
-    
-    // Reuse material from pool
-    const materialIndex = this.objects.length % this.sphereMaterials.length;
-    sphere.material = this.sphereMaterials[materialIndex];
-    
-    this.objects.push(sphere);
-    return sphere;
-  }
-  
-  removeObject(mesh) {
-    const index = this.objects.indexOf(mesh);
-    if (index > -1) {
-      this.objects.splice(index, 1);
-    }
-    
-    if (this.selectedObject === mesh) {
-      this.selectedObject = null;
-    }
-    
-    // Dispose instance (not material since it's shared)
-    mesh.dispose(false, true);
-  }
-  
-  dispose() {
-    // Dispose all objects
-    this.objects.forEach(obj => obj.dispose());
-    this.objects = [];
-    
-    // Dispose master meshes
-    if (this.masterBox) this.masterBox.dispose();
-    if (this.masterSphere) this.masterSphere.dispose();
-    
-    // Dispose material pools
-    this.boxMaterials.forEach(mat => mat.dispose());
-    this.sphereMaterials.forEach(mat => mat.dispose());
-    
-    // Unregister flicker animation
-    if (this.flickerObserver) {
-      this.scene.onBeforeRenderObservable.remove(this.flickerObserver);
-    }
-  }
-
-  selectObject(mesh) {
-    // Deselect previous
-    if (this.selectedObject && this.selectedObject.material) {
-      this.selectedObject.material.emissiveColor = new BABYLON.Color3(0, 0, 0);
-    }
-    
-    // Select new
-    this.selectedObject = mesh;
-    if (mesh && mesh.material) {
-      mesh.material.emissiveColor = new BABYLON.Color3(0.2, 0.2, 0);
-    }
-    
-    return mesh;
-  }
-
-  getSelectedObject() {
-    return this.selectedObject;
-  }
-
-  getObjects() {
-    return this.objects;
-  }
-}
-
-// GUIManager class
-class GUIManager {
-  constructor(scene, sceneManager) {
-    this.scene = scene;
-    this.sceneManager = sceneManager;
-    this.advancedTexture = null;
-    this.mainPanel = null;
-    this.propertyPanel = null;
-    this.isVisible = true;
-    
-    this.setupGUI();
-  }
-
-  setupGUI() {
-    // Create full screen GUI
-    this.advancedTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-    
-    // Create main panel
-    this.mainPanel = new GUI.StackPanel();
-    this.mainPanel.width = "300px";
-    this.mainPanel.horizontalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
-    this.mainPanel.verticalAlignment = GUI.Control.VERTICAL_ALIGNMENT_TOP;
-    this.mainPanel.top = "10px";
-    this.mainPanel.left = "-10px";
-    this.advancedTexture.addControl(this.mainPanel);
-    
-    // Add object creation buttons
-    this.createButton("Add Box", () => {
-      this.sceneManager.addBox();
-    });
-    
-    this.createButton("Add Sphere", () => {
-      this.sceneManager.addSphere();
-    });
-    
-    this.createButton("Delete Selected", () => {
-      const selected = this.sceneManager.getSelectedObject();
-      if (selected) {
-        this.sceneManager.removeObject(selected);
-        this.updateForSelectedObject(null);
-      }
-    });
-    
-    // Property editor panel (initially empty)
-    this.propertyPanel = new GUI.StackPanel();
-    this.propertyPanel.width = "280px";
-    this.mainPanel.addControl(this.propertyPanel);
-  }
-
-  createButton(text, onClick) {
-    const buttonName = `btn_${text.replace(/\s+/g, '_')}_${Date.now()}`;
-    const button = GUI.Button.CreateSimpleButton(buttonName, text);
-    button.width = "280px";
-    button.height = "40px";
-    button.color = "white";
-    button.background = "green";
-    button.onPointerClickObservable.add(onClick);
-    this.mainPanel.addControl(button);
-    
-    // Add spacing
-    const spacer = new GUI.Container();
-    spacer.height = "5px";
-    this.mainPanel.addControl(spacer);
-  }
-
-  updateForSelectedObject(mesh) {
-    this.selectedObject = mesh;
-    
-    // Clear existing property controls
-    this.propertyPanel.clearControls();
-    
-    if (!mesh) return;
-    
-    // Add title
-    const title = new GUI.TextBlock();
-    title.text = "Selected Object";
-    title.height = "30px";
-    title.color = "white";
-    this.propertyPanel.addControl(title);
-    
-    // Position sliders
-    this.createSlider("X Position", mesh.position.x, -10, 10, (value) => {
-      mesh.position.x = value;
-    });
-    
-    this.createSlider("Y Position", mesh.position.y, 0, 5, (value) => {
-      mesh.position.y = value;
-    });
-    
-    this.createSlider("Z Position", mesh.position.z, -10, 10, (value) => {
-      mesh.position.z = value;
-    });
-    
-    // Color picker
-    this.createColorPicker(mesh);
-  }
-
-  createSlider(label, initialValue, min, max, onChange) {
-    const header = new GUI.TextBlock();
-    header.text = label;
-    header.height = "20px";
-    header.color = "white";
-    this.propertyPanel.addControl(header);
-    
-    const slider = new GUI.Slider();
-    slider.minimum = min;
-    slider.maximum = max;
-    slider.value = initialValue;
-    slider.height = "20px";
-    slider.width = "260px";
-    slider.color = "green";
-    slider.background = "gray";
-    slider.onValueChangedObservable.add(onChange);
-    this.propertyPanel.addControl(slider);
-    
-    // Spacer
-    const spacer = new GUI.Container();
-    spacer.height = "5px";
-    this.propertyPanel.addControl(spacer);
-  }
-
-  createColorPicker(mesh) {
-    const header = new GUI.TextBlock();
-    header.text = "Color";
-    header.height = "20px";
-    header.color = "white";
-    this.propertyPanel.addControl(header);
-    
-    // Simple RGB sliders for color picking
-    const currentColor = mesh.material.diffuseColor;
-    
-    this.createSlider("Red", currentColor.r, 0, 1, (value) => {
-      mesh.material.diffuseColor.r = value;
-    });
-    
-    this.createSlider("Green", currentColor.g, 0, 1, (value) => {
-      mesh.material.diffuseColor.g = value;
-    });
-    
-    this.createSlider("Blue", currentColor.b, 0, 1, (value) => {
-      mesh.material.diffuseColor.b = value;
-    });
-  }
-
-  toggleVisibility() {
-    this.isVisible = !this.isVisible;
-    this.mainPanel.isVisible = this.isVisible;
-  }
-  
-  dispose() {
-    if (this.advancedTexture) {
-      this.advancedTexture.dispose();
-    }
-  }
-}
-
-// Initialize camera controller
-const cameraController = new CameraController(scene, canvas);
-
-// Initialize scene manager
-const sceneManager = new SceneManager(scene);
-
-// Initialize GUI manager
-const guiManager = new GUIManager(scene, sceneManager);
-
-// Set up object selection on click
-scene.onPointerDown = (evt, pickResult) => {
-  if (pickResult.hit && pickResult.pickedMesh) {
-    const mesh = pickResult.pickedMesh;
-    
-    // Only select objects we've added (not room geometry)
-    if (sceneManager.getObjects().includes(mesh)) {
-      sceneManager.selectObject(mesh);
-      guiManager.updateForSelectedObject(mesh);
-    }
-  }
-};
-
-// Scene error handling (only if observable exists)
-if (scene.onErrorObservable) {
-  scene.onErrorObservable.add((error) => {
-    console.error('Scene error:', error);
-    const errorInfo = {
-      message: error?.message || 'Scene error',
-      timestamp: Date.now(),
-      stack: ''
-    };
-    appState.status = 'error';
-    appState.errors.push(errorInfo);
-    window.updateAppStatus({ status: 'error', errors: appState.errors });
+  // Apply material to all wall meshes
+  roomMeshes.walls.forEach(wall => {
+    wall.material = wallMaterial;
   });
+
+  console.log('Spooky materials applied to room meshes');
 }
 
-// Update app status with scene info
-window.updateAppStatus({
-  scene: {
-    objectCount: sceneManager.getObjects().length,
-    rendering: true,
-    fps: 0
+/**
+ * Implement atmospheric lighting system for spooky atmosphere
+ * @param {BABYLON.Scene} scene - The Babylon.js scene
+ */
+function setupAtmosphericLighting(scene) {
+  // Create HemisphericLight with low intensity (0.3)
+  // Position light from above with slight blue tint
+  const hemisphericLight = new BABYLON.HemisphericLight(
+    "hemisphericLight",
+    new BABYLON.Vector3(0, 1, 0), // Direction from above
+    scene
+  );
+
+  // Configure light color for spooky atmosphere with slight blue tint
+  hemisphericLight.intensity = 0.3; // Low intensity for dim, spooky atmosphere
+  hemisphericLight.diffuse = new BABYLON.Color3(0.5, 0.5, 0.6); // Slight blue tint (more blue in the third component)
+  hemisphericLight.specular = new BABYLON.Color3(0.1, 0.1, 0.15); // Subtle specular with blue tint
+  hemisphericLight.groundColor = new BABYLON.Color3(0.1, 0.1, 0.1); // Dark ground color
+
+  // Optionally add PointLight for focal illumination
+  const pointLight = new BABYLON.PointLight(
+    "pointLight",
+    new BABYLON.Vector3(0, 2, 0), // Center of room, slightly elevated
+    scene
+  );
+
+  // Configure point light for warm focal illumination
+  pointLight.intensity = 0.5; // Moderate intensity
+  pointLight.diffuse = new BABYLON.Color3(1.0, 0.7, 0.4); // Warm orange/yellow color (like a dim bulb)
+  pointLight.specular = new BABYLON.Color3(0.5, 0.35, 0.2); // Warm specular
+  pointLight.range = 15; // Light range in units
+
+  console.log('Atmospheric lighting system initialized');
+
+  return {
+    hemisphericLight,
+    pointLight
+  };
+}
+
+/**
+ * Check browser compatibility and WebGL support
+ * @returns {Object} Compatibility check results
+ */
+function checkBrowserCompatibility() {
+  const results = {
+    webglSupported: false,
+    webgl2Supported: false,
+    browserName: 'Unknown',
+    browserVersion: 'Unknown',
+    compatible: false,
+    warnings: []
+  };
+
+  // Detect browser
+  const userAgent = navigator.userAgent;
+  if (userAgent.indexOf('Chrome') > -1 && userAgent.indexOf('Edg') === -1) {
+    results.browserName = 'Chrome';
+  } else if (userAgent.indexOf('Firefox') > -1) {
+    results.browserName = 'Firefox';
+  } else if (userAgent.indexOf('Edg') > -1) {
+    results.browserName = 'Edge';
+  } else if (userAgent.indexOf('Safari') > -1) {
+    results.browserName = 'Safari';
   }
-});
 
-// Set up render loop
-engine.runRenderLoop(() => {
-  scene.render();
-  appState.scene.fps = engine.getFps();
-});
+  // Check WebGL support
+  const canvas = document.createElement('canvas');
+  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  const gl2 = canvas.getContext('webgl2');
 
-// Handle window resize
-window.addEventListener('resize', () => {
-  engine.resize();
-});
+  if (gl) {
+    results.webglSupported = true;
+  }
 
-// Cleanup on page unload
-window.addEventListener('beforeunload', () => {
-  sceneManager.dispose();
-  guiManager.dispose();
-  scene.dispose();
-  engine.dispose();
-});
+  if (gl2) {
+    results.webgl2Supported = true;
+  }
+
+  // Determine compatibility
+  if (results.webgl2Supported) {
+    results.compatible = true;
+    console.log('✓ WebGL 2.0 supported');
+  } else if (results.webglSupported) {
+    results.compatible = true;
+    results.warnings.push('WebGL 2.0 not supported, falling back to WebGL 1.0');
+    console.warn('⚠ WebGL 2.0 not supported, using WebGL 1.0 fallback');
+  } else {
+    results.compatible = false;
+    console.error('✗ WebGL not supported');
+  }
+
+  // Browser compatibility warnings
+  const recommendedBrowsers = ['Chrome', 'Firefox', 'Edge'];
+  if (!recommendedBrowsers.includes(results.browserName)) {
+    results.warnings.push(`Browser ${results.browserName} may not be fully supported. Recommended: Chrome, Firefox, or Edge`);
+  }
+
+  console.log(`Browser: ${results.browserName}, WebGL: ${results.webglSupported}, WebGL2: ${results.webgl2Supported}`);
+
+  return results;
+}
+
+/**
+ * Create FPS counter display
+ */
+function createFPSCounter() {
+  const fpsDiv = document.createElement('div');
+  fpsDiv.id = 'fps-counter';
+  fpsDiv.style.cssText = `
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #00ff00;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    z-index: 1000;
+    min-width: 80px;
+  `;
+  fpsDiv.textContent = 'FPS: --';
+  document.body.appendChild(fpsDiv);
+  return fpsDiv;
+}
+
+/**
+ * Update FPS counter display
+ */
+function updateFPSCounter() {
+  if (fpsDisplay && engine) {
+    const fps = engine.getFps().toFixed(0);
+    fpsDisplay.textContent = `FPS: ${fps}`;
+
+    // Color code based on performance
+    if (fps >= 50) {
+      fpsDisplay.style.color = '#00ff00'; // Green - good
+    } else if (fps >= 30) {
+      fpsDisplay.style.color = '#ffff00'; // Yellow - acceptable
+    } else {
+      fpsDisplay.style.color = '#ff0000'; // Red - poor
+    }
+  }
+}
+
+/**
+ * Measure and log load time
+ */
+function measureLoadTime() {
+  const loadTime = (Date.now() - loadStartTime) / 1000;
+  console.log(`Game loaded in ${loadTime.toFixed(2)} seconds`);
+
+  if (loadTime > 5) {
+    console.warn(`⚠ Load time (${loadTime.toFixed(2)}s) exceeds target of 5 seconds`);
+  } else {
+    console.log(`✓ Load time within target (< 5 seconds)`);
+  }
+
+  return loadTime;
+}
+
+/**
+ * Initialize the game engine and scene
+ */
+function initializeGame() {
+  try {
+    // Check browser compatibility and WebGL support
+    const compatibility = checkBrowserCompatibility();
+
+    if (!compatibility.compatible) {
+      displayError('WebGL is not supported in your browser. Please use a modern browser like Chrome, Firefox, or Edge.');
+      return;
+    }
+
+    // Display warnings if any
+    if (compatibility.warnings.length > 0) {
+      compatibility.warnings.forEach(warning => {
+        console.warn(warning);
+      });
+    }
+
+    // Get canvas element
+    const canvas = document.getElementById('renderCanvas');
+
+    // Error handling: Canvas not found
+    if (!canvas) {
+      console.error('Canvas element not found');
+      displayError('Failed to initialize: Canvas element not found');
+      return;
+    }
+
+    // Error handling: Engine creation failure
+    try {
+      // Initialize Babylon.js engine from canvas element
+      // Use WebGL 2 if available, fallback to WebGL 1
+      engine = new BABYLON.Engine(canvas, true, {
+        preserveDrawingBuffer: true,
+        stencil: true,
+        disableWebGL2Support: !compatibility.webgl2Supported
+      });
+    } catch (error) {
+      console.error('Failed to create Babylon.js engine:', error);
+      displayError('WebGL not supported or failed to initialize. Please use a modern browser.');
+      return;
+    }
+
+    // Create scene instance with dark background color
+    scene = new BABYLON.Scene(engine);
+    scene.clearColor = new BABYLON.Color3(0.01, 0.01, 0.02); // Very dark blue for spooky atmosphere
+
+    // Create room environment geometry
+    const roomMeshes = createRoomEnvironment(scene);
+
+    // Apply materials and colors for spooky atmosphere
+    applySpookyMaterials(roomMeshes, scene);
+
+    // Setup atmospheric lighting system
+    setupAtmosphericLighting(scene);
+
+    // Create GUI texture for editor UI
+    const guiTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+    // Initialize Editor Manager
+    editorManager = new EditorManager(scene, canvas);
+    editorManager.initialize(guiTexture);
+
+    // Initialize UI components
+    editorManager.objectPalette = new ObjectPalette(editorManager, guiTexture);
+    editorManager.propertyPanel = new PropertyPanel(editorManager, guiTexture);
+    editorManager.sceneHierarchy = new SceneHierarchy(editorManager, guiTexture);
+
+    // Start in editor mode
+    editorManager.enterEditorMode();
+
+    // Implement window resize handler for responsive canvas
+    window.addEventListener('resize', () => {
+      engine.resize();
+    });
+
+    console.log('Spooky Game - Engine and scene initialized successfully');
+
+    // Create FPS counter (optional - can be toggled)
+    fpsDisplay = createFPSCounter();
+
+    // Measure and log load time
+    measureLoadTime();
+
+    // Implement engine.runRenderLoop with scene.render()
+    // Add try-catch error handling in render loop
+    engine.runRenderLoop(() => {
+      try {
+        scene.render();
+        updateFPSCounter();
+      } catch (error) {
+        console.error('Render error:', error);
+        // Don't stop the render loop, just log the error
+      }
+    });
+
+  } catch (error) {
+    console.error('Unexpected error during initialization:', error);
+    displayError('An unexpected error occurred during initialization');
+  }
+}
+
+/**
+ * Display error message to user
+ * @param {string} message - Error message to display
+ */
+function displayError(message) {
+  // Create error display element if it doesn't exist
+  let errorDiv = document.getElementById('error-message');
+  if (!errorDiv) {
+    errorDiv = document.createElement('div');
+    errorDiv.id = 'error-message';
+    errorDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #ff0000; color: #ffffff; padding: 20px; border-radius: 5px; font-family: Arial, sans-serif; z-index: 1000;';
+    document.body.appendChild(errorDiv);
+  }
+  errorDiv.textContent = message;
+}

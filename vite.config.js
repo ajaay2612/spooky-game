@@ -33,7 +33,17 @@ function statusServerPlugin() {
           req.on('end', () => {
             try {
               const updates = JSON.parse(body);
-              appState = { ...appState, ...updates };
+              
+              // Merge updates into appState
+              if (updates.status) appState.status = updates.status;
+              if (updates.errors) {
+                // Append new errors to existing array
+                appState.errors = [...appState.errors, ...updates.errors];
+              }
+              if (updates.scene) {
+                appState.scene = { ...appState.scene, ...updates.scene };
+              }
+              
               res.setHeader('Content-Type', 'application/json');
               res.end(JSON.stringify({ success: true }));
             } catch (error) {
