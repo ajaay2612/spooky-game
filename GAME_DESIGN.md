@@ -320,6 +320,51 @@ West│   20×20 space   │East
 - **Ribbon**: Trails, paths, ropes
 - **Tube**: Pipes, cables, tracks
 
+## Transform Gizmos (v1.1.0)
+
+### Gizmo Controls
+
+**Property Panel Integration**:
+- Gizmo buttons appear at top of Transform section
+- "Move" button: Activates position gizmo
+- "Scale" button: Activates scale gizmo
+- Active button highlighted in blue (#4a9eff)
+- Click again to deactivate
+
+**Uniform Scaling Checkbox**:
+- Appears below Scale button when active
+- "Lock Aspect Ratio" label
+- Checked: Uniform scaling (center handle only)
+- Unchecked: Non-uniform scaling (axis handles)
+- Real-time gizmo update on toggle
+
+### Gizmo Interaction
+
+**Move Gizmo**:
+1. Click "Move" button in Property Panel
+2. Colored axis handles appear on selected object
+3. Drag red (X), green (Y), or blue (Z) handle
+4. Object moves along selected axis
+5. Position updates in real-time
+6. Manual input fields also update
+
+**Scale Gizmo**:
+1. Click "Scale" button in Property Panel
+2. Scale handles appear on selected object
+3. If uniform mode: Drag center handle to scale proportionally
+4. If non-uniform mode: Drag axis handles independently
+5. Toggle "Lock Aspect Ratio" to switch modes
+6. Scale updates in real-time
+7. Manual input fields also update
+
+### Gizmo Behavior
+
+**Coordinate Space**: Local (follows object rotation)
+**Attachment**: Automatic to selected object
+**Detachment**: Automatic when object deselected
+**Visibility**: Only visible when gizmo active
+**Performance**: Minimal overhead (~0.1ms per frame)
+
 ## User Interface
 
 ### GUI Layout (v1.1.0)
@@ -518,6 +563,45 @@ West│   20×20 space   │East
 - Compact, scrollable layout
 
 ## Mechanics (Implemented - v1.1.0)
+
+### Transform Gizmos ✅
+
+**Gizmo System**: Babylon.js GizmoManager for interactive manipulation
+
+**Available Gizmos**:
+- Move Gizmo: Position objects with visual axis handles
+- Scale Gizmo: Scale objects with uniform or non-uniform modes
+
+**Activation**:
+- Click "Move" or "Scale" button in Property Panel
+- Click again to deactivate
+- Only one gizmo active at a time
+
+**Move Gizmo**:
+- Red handle: X-axis movement
+- Green handle: Y-axis movement
+- Blue handle: Z-axis movement
+- Drag handles to move object
+- Real-time position updates
+
+**Scale Gizmo**:
+- Two modes: Uniform and Non-uniform
+- Uniform mode: Center handle scales all axes proportionally
+- Non-uniform mode: Individual axis handles (X, Y, Z)
+- "Lock Aspect Ratio" checkbox toggles mode
+- Real-time scale updates
+
+**Gizmo Behavior**:
+- Attached to selected object only
+- Automatically detached when object deselected
+- Local coordinate space (follows object rotation)
+- Visual feedback with colored handles
+
+**UI Integration**:
+- Gizmo buttons in Property Panel (top of Transform section)
+- Active gizmo highlighted in blue
+- Uniform scaling checkbox (visible when Scale active)
+- Seamless integration with manual input fields
 
 ### Object Deletion ✅
 

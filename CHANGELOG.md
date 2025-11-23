@@ -80,6 +80,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - ObjectPalette: Create primitives, lights, and import GLTF models
   - PropertyPanel: Edit transform, material, and light properties
   - SceneHierarchy: Tree view of all scene objects
+- **Transform Gizmos**: Interactive visual manipulation tools
+  - Move Gizmo: Position objects with visual handles
+  - Scale Gizmo: Scale objects with uniform/non-uniform modes
+  - Uniform Scaling: Lock aspect ratio checkbox for proportional scaling
+  - Gizmo toggle buttons in Property Panel
 - **Object Factory**: Centralized object creation with material pooling
 - **Keyboard Shortcuts**: E (mode toggle), Delete, Ctrl+D, Ctrl+S, Ctrl+O, F, Escape
 - **Object Types**: Cylinder, Cone, Plane, Torus primitives
@@ -121,11 +126,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 5-10x performance improvement with 100+ objects
 
 ### Documentation
-- **README.md**: Added dual camera system, complete keyboard shortcuts (E, Delete, Ctrl+D, Ctrl+S, Ctrl+O, F, Escape), three-panel UI system, all 6 primitives and 4 light types, GLTF import, save/load features, editor vs play mode controls, updated roadmap with completed items
-- **GAME_DESIGN.md**: Added detailed dual camera specifications (ArcRotateCamera + UniversalCamera), complete UI panel descriptions (ObjectPalette, PropertyPanel, SceneHierarchy), object creation/selection/editing workflows, all object types documented, separated implemented vs planned mechanics, keyboard shortcuts and accessibility features
-- **ARCHITECTURE.md**: Updated with new class structure and editor system components
-- **PERFORMANCE.md**: Updated with v1.1.0 performance metrics and improvements
-- **PRE_PUSH_VALIDATION_REPORT.md**: Added comprehensive validation report (95/100 score) covering code quality, security, performance, and build verification
+- **README.md**: Added transform gizmos (Move, Scale), uniform scaling feature, camera focus (F key), updated bundle size (37.45 KB app code), updated roadmap with rotation gizmo as next planned feature
+- **GAME_DESIGN.md**: Added transform gizmo mechanics (Move, Scale with uniform mode), gizmo UI controls in Property Panel, interactive manipulation workflows
+- **CHANGELOG.md**: Added transform gizmo features to v1.1.0 release notes
+- **PRE_PUSH_VALIDATION_REPORT.md**: Comprehensive pre-push validation with code quality, security, performance, and build verification (current run)
 
 ---
 

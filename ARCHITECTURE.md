@@ -17,9 +17,318 @@ Spooky Game is a single-page application built with Babylon.js 3D engine and Vit
 └──────────────┴──────────────┴──────────────┴────────────┘
 ```
 
-## Core Components
+## Core Components (v1.1.0)
 
-### 1. Application State (`appState`)
+### Editor System Architecture
+
+The application now uses a modular class-based architecture with clear separation of concerns:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                     Browser (Canvas)                     │
+├─────────────────────────────────────────────────────────┤
+│                    Babylon.js Engine                     │
+├──────────────┬──────────────┬──────────────┬────────────┤
+│ EditorManager│ CameraManager│ SelectionMgr │ ObjectFctry│
+│ (Orchestrate)│ (Dual Camera)│ (Highlight)  │ (Creation) │
+├──────────────┼──────────────┼──────────────┼────────────┤
+│ ObjectPalette│ PropertyPanel│SceneHierarchy│ Serializer │
+│ (Create UI)  │ (Edit UI)    │ (Tree UI)    │ (Save/Load)│
+├──────────────┴──────────────┴──────────────┴────────────┤
+│              Babylon.js GizmoManager                     │
+│         (Move Gizmo, Scale Gizmo, Rotation Gizmo)        │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 1. EditorManager
+
+**Purpose**: Main orchestrator for editor mode and keyboard shortcuts
+
+**Properties**:
+- `scene`: Babylon.js scene reference
+- `canvas`: HTML canvas element
+- `isEditorMode`: Boolean flag for current mode
+- `selectionManager`: SelectionManager instance
+- `cameraManager`: CameraManager instance
+- `objectFactory`: ObjectFactory instance
+- `serializationManager`: SerializationManager instance
+- `gizmoManager`: Babylon.js GizmoManager instance
+- `activeGizmo`: Current gizmo mode ('move', 'scale', or null)
+- `objectPalette`: ObjectPalette UI component
+- `propertyPanel`: PropertyPanel UI component
+- `sceneHierarchy`: SceneHierarchy UI component
+
+**Methods**:
+- `initialize(guiTexture)`: Setup all components
+- `initializeGizmos()`: Create and configure GizmoManager
+- `setGizmoMode(mode)`: Activate/deactivate gizmos
+- `updateScaleGizmoUniformMode(uniform)`: Toggle uniform scaling
+- `setupKeyboardShortcuts()`: Register keyboard event handlers
+- `toggleMode()`: Switch between editor and play mode
+- `enterEditorMode()`: Activate editor camera and UI
+- `enterPlayMode()`: Activate player camera, hide UI
+- `deleteSelected()`: Delete selected object
+- `duplicateSelected()`: Clone selected object
+- `saveScene()`: Trigger scene serialization
+- `loadScene()`: Trigger scene deserialization
+- `focusOnSelected()`: Focus camera on selected object
+- `updateGizmoAttachment()`: Reattach gizmo to selected object
+- `dispose()`: Cleanup resources
+
+**Keyboard Shortcuts**:
+- E: Toggle editor/play mode
+- Delete: Delete selected object
+- Ctrl+D: Duplicate selected object
+- Ctrl+S: Save scene to file
+- Ctrl+O: Load scene from file
+- F: Focus camera on selected
+- Escape: Deselect object
+
+### 2. CameraManager
+
+**Purpose**: Manages dual camera system (editor + player)
+
+**Properties**:
+- `scene`: Babylon.js scene reference
+- `canvas`: HTML canvas element
+- `editorCamera`: ArcRotateCamera instance
+- `playerCamera`: UniversalCamera instance
+- `activeCamera`: Current active camera
+
+**Methods**:
+- `initialize()`: Create both cameras
+- `createEditorCamera()`: Setup ArcRotateCamera
+- `createPlayerCamera()`: Setup UniversalCamera
+- `switchToEditorCamera()`: Activate editor camera
+- `switchToPlayerCamera()`: Activate player camera
+
+**Editor Camera (ArcRotateCamera)**:
+- Alpha: π/2, Beta: π/3, Radius: 15
+- Target: (0, 1.5, 0)
+- Radius limits: 2-100
+- Beta limits: 0.1 to π/2
+- Right-click rotation, middle-click pan, scroll zoom
+
+**Player Camera (UniversalCamera)**:
+- Position: (0, 1.6, -5) - eye level
+- Speed: 0.1 units per frame
+- WASD movement keys
+- Pointer lock for mouse look
+
+### 3. SelectionManager
+
+**Purpose**: Handles object selection with visual highlighting
+
+**Properties**:
+- `scene`: Babylon.js scene reference
+- `selectedObject`: Currently selected object
+- `highlightLayer`: Babylon.js HighlightLayer
+- `selectionCallbacks`: Array of callback functions
+
+**Methods**:
+- `initialize()`: Create HighlightLayer
+- `setupPicking(canvas)`: Enable mouse picking
+- `selectObject(object)`: Select and highlight object
+- `deselectObject()`: Clear selection
+- `addSelectionCallback(callback)`: Register callback
+- `dispose()`: Cleanup resources
+
+**Selection Behavior**:
+- Left-click to select objects
+- Yellow outline highlight (HighlightLayer)
+- Callbacks triggered on selection change
+- Filters internal meshes (names starting with _)
+
+### 4. SerializationManager
+
+**Purpose**: Scene save/load functionality
+
+**Properties**:
+- `scene`: Babylon.js scene reference
+
+**Methods**:
+- `serializeScene()`: Convert scene to JSON
+- `deserializeScene(jsonData)`: Recreate scene from JSON
+- `saveToFile(filename)`: Download JSON file
+- `loadFromFile(file)`: Upload and parse JSON file
+- `clearScene()`: Remove user-created objects
+- `getMeshType(mesh)`: Determine mesh type from name
+- `getLightType(light)`: Determine light type from class
+- `serializeMaterial(material)`: Extract material properties
+- `applyMaterialData(material, data)`: Apply material properties
+
+**JSON Format**:
+```json
+{
+  "version": "1.0",
+  "objects": [
+    {
+      "type": "mesh",
+      "meshType": "box",
+      "name": "box_0",
+      "position": [0, 1, 0],
+      "rotation": [0, 0, 0],
+      "scaling": [1, 1, 1],
+      "material": {
+        "diffuseColor": [1, 0, 0],
+        "specularColor": [1, 1, 1],
+        "emissiveColor": [0, 0, 0]
+      }
+    }
+  ]
+}
+```
+
+### 5. ObjectFactory
+
+**Purpose**: Centralized object creation with material pooling
+
+**Properties**:
+- `scene`: Babylon.js scene reference
+- `objectCounter`: Auto-increment counter for naming
+
+**Methods**:
+- `createPrimitive(type)`: Create mesh (box, sphere, cylinder, cone, plane, torus)
+- `createLight(type)`: Create light (point, directional, spot, hemispheric)
+- `importGLTF(url)`: Load GLTF/GLB model
+- `duplicateObject(object)`: Clone mesh or light
+- `getLightType(light)`: Determine light type
+
+**Object Creation**:
+- Default position: (0, 1, 0)
+- Random colors for primitives
+- Default intensity: 0.5 for lights
+- Auto-naming: `{type}_{counter}`
+
+### 6. ObjectPalette (UI Component)
+
+**Purpose**: Left panel for creating objects
+
+**Properties**:
+- `editor`: EditorManager reference
+- `guiTexture`: Babylon.js GUI texture
+- `panel`: StackPanel container
+- `scrollViewer`: ScrollViewer for scrolling
+- `isVisible`: Visibility state
+
+**Methods**:
+- `initialize()`: Create UI panel
+- `createSectionHeader(text)`: Create section title
+- `createButton(text, onClick)`: Create button
+- `createPrimitiveSection()`: Add primitive buttons
+- `createLightSection()`: Add light buttons
+- `createModelSection()`: Add GLTF import button
+- `openGLTFImport()`: File picker for GLTF
+- `show()`: Show panel
+- `hide()`: Hide panel
+
+**UI Layout**:
+- Position: Top-left corner
+- Width: 240px, Height: 45% of screen
+- Sections: Primitives, Lights, Models
+- Scrollable content
+
+### 7. PropertyPanel (UI Component)
+
+**Purpose**: Right panel for editing object properties
+
+**Properties**:
+- `editor`: EditorManager reference
+- `guiTexture`: Babylon.js GUI texture
+- `panel`: StackPanel container
+- `scrollViewer`: ScrollViewer for scrolling
+- `currentObject`: Selected object
+- `activeGizmoMode`: Current gizmo ('move', 'scale', or null)
+- `uniformScaling`: Boolean for aspect ratio lock
+- `moveButton`: Move gizmo button
+- `scaleButton`: Scale gizmo button
+- `uniformScaleCheckbox`: Checkbox for uniform scaling
+
+**Methods**:
+- `initialize()`: Create UI panel
+- `updateForObject(object)`: Rebuild UI for object
+- `clearControls()`: Remove all controls
+- `createHeader(object)`: Object name header
+- `createTransformSection(object)`: Position, rotation, scale controls
+- `createGizmoButtons(object)`: Move and Scale gizmo buttons
+- `toggleGizmoMode(mode)`: Activate/deactivate gizmo
+- `updateGizmoButtonStates()`: Update button highlights
+- `createMaterialSection(object)`: Color sliders
+- `createLightSection(object)`: Intensity and color controls
+- `createDeleteButton()`: Delete button
+- `addSectionHeader(text)`: Section title
+- `addVector3Control(label, value, onChange)`: Input field
+- `addColorControl(label, color, onChange)`: RGB sliders
+- `show()`: Show panel
+- `hide()`: Hide panel
+
+**UI Layout**:
+- Position: Top-right corner
+- Width: 320px, Height: 600px
+- Sections: Gizmos, Transform, Material/Light, Delete
+- Scrollable content
+
+**Gizmo Integration**:
+- Move and Scale buttons at top of Transform section
+- Active button highlighted in blue (#4a9eff)
+- Uniform scaling checkbox (visible when Scale active)
+- Real-time gizmo updates
+
+### 8. SceneHierarchy (UI Component)
+
+**Purpose**: Left-bottom panel showing object tree
+
+**Properties**:
+- `editor`: EditorManager reference
+- `guiTexture`: Babylon.js GUI texture
+- `panel`: StackPanel container
+- `scrollViewer`: ScrollViewer for scrolling
+- `objectButtons`: Map of object to button
+- `isVisible`: Visibility state
+
+**Methods**:
+- `initialize()`: Create UI panel
+- `refresh()`: Rebuild object list
+- `addSection(title, objects)`: Add section with objects
+- `createObjectButton(object)`: Create button for object
+- `highlightSelected(object)`: Update button highlights
+- `show()`: Show panel
+- `hide()`: Hide panel
+
+**UI Layout**:
+- Position: Bottom-left corner
+- Width: 240px, Height: 45% of screen
+- Sections: Meshes, Lights
+- Scrollable content
+
+### 9. Babylon.js GizmoManager
+
+**Purpose**: Interactive visual manipulation tools
+
+**Properties**:
+- `scene`: Babylon.js scene reference
+- `positionGizmoEnabled`: Boolean for move gizmo
+- `scaleGizmoEnabled`: Boolean for scale gizmo
+- `rotationGizmoEnabled`: Boolean for rotation gizmo (not yet used)
+- `usePointerToAttachGizmos`: False (manual attachment)
+- `gizmoCoordinatesMode`: Local coordinate space
+
+**Methods**:
+- `attachToMesh(mesh)`: Attach gizmo to mesh
+- `dispose()`: Cleanup resources
+
+**Gizmo Types**:
+- **Position Gizmo**: Red (X), Green (Y), Blue (Z) axis handles
+- **Scale Gizmo**: Uniform (center) or non-uniform (axis) handles
+- **Rotation Gizmo**: Not yet implemented
+
+**Gizmo Behavior**:
+- Only one gizmo active at a time
+- Attached to selected object only
+- Local coordinate space (follows object rotation)
+- Real-time property updates
+
+### 10. Application State (`appState`) [Legacy]
 
 Global state object tracking application health and metrics.
 

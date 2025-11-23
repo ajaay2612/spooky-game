@@ -23,6 +23,11 @@ export class EditorManager {
     
     // GUI reference
     this.guiTexture = null;
+    
+    // Gizmo system
+    this.gizmoManager = null;
+    this.activeGizmo = null;
+    
   }
   
   initialize(guiTexture) {
@@ -40,10 +45,116 @@ export class EditorManager {
     // Setup mouse picking for selection
     this.selectionManager.setupPicking(this.canvas);
     
+    // Initialize gizmo system
+    this.initializeGizmos();
+    
+    // Add selection callback to update gizmos
+    this.selectionManager.addSelectionCallback((object) => {
+      this.updateGizmoAttachment();
+    });
+    
     // Setup keyboard shortcuts
     this.setupKeyboardShortcuts();
     
     console.log('EditorManager initialized');
+  }
+  
+  initializeGizmos() {
+    // Create gizmo manager
+    this.gizmoManager = new BABYLON.GizmoManager(this.scene);
+    this.gizmoManager.usePointerToAttachGizmos = false; // Manual attachment
+    
+    // Configure scale gizmo sensitivity
+    this.gizmoManager.scaleRatio = 1;
+    this.gizmoManager.gizmoCoordinatesMode = BABYLON.GizmoCoordinatesMode.Local;
+    
+    // Disable all gizmos initially
+    this.gizmoManager.positionGizmoEnabled = false;
+    this.gizmoManager.scaleGizmoEnabled = false;
+    this.gizmoManager.rotationGizmoEnabled = false;
+    
+    console.log('Gizmo system initialized');
+    console.log('GizmoManager:', this.gizmoManager);
+  }
+  
+  setGizmoMode(mode) {
+    // Disable all gizmos first
+    this.gizmoManager.positionGizmoEnabled = false;
+    this.gizmoManager.scaleGizmoEnabled = false;
+    
+    const selectedObject = this.selectionManager.selectedObject;
+    
+    if (!mode || !selectedObject) {
+      this.activeGizmo = null;
+      this.gizmoManager.attachToMesh(null);
+      return;
+    }
+    
+    // Enable the requested gizmo and attach to selected object
+    if (mode === 'move') {
+      this.gizmoManager.positionGizmoEnabled = true;
+      this.gizmoManager.attachToMesh(selectedObject);
+      this.activeGizmo = 'move';
+      console.log('Position gizmo enabled for:', selectedObject.name);
+    } else if (mode === 'scale') {
+      this.gizmoManager.scaleGizmoEnabled = true;
+      this.gizmoManager.attachToMesh(selectedObject);
+      this.activeGizmo = 'scale';
+      
+      // Wait a frame for gizmo to be created, then configure uniform scaling
+      setTimeout(() => {
+        if (this.gizmoManager.gizmos && this.gizmoManager.gizmos.scaleGizmo) {
+          const uniformMode = this.propertyPanel ? this.propertyPanel.uniformScaling : true;
+          const scaleGizmo = this.gizmoManager.gizmos.scaleGizmo;
+          
+          // Enable/disable individual axis gizmos based on uniform mode
+          if (uniformMode) {
+            // Uniform scaling: only show center gizmo, hide axis gizmos
+            if (scaleGizmo.xGizmo) scaleGizmo.xGizmo.isEnabled = false;
+            if (scaleGizmo.yGizmo) scaleGizmo.yGizmo.isEnabled = false;
+            if (scaleGizmo.zGizmo) scaleGizmo.zGizmo.isEnabled = false;
+            if (scaleGizmo.uniformScaleGizmo) scaleGizmo.uniformScaleGizmo.isEnabled = true;
+          } else {
+            // Non-uniform scaling: show axis gizmos, hide center gizmo
+            if (scaleGizmo.xGizmo) scaleGizmo.xGizmo.isEnabled = true;
+            if (scaleGizmo.yGizmo) scaleGizmo.yGizmo.isEnabled = true;
+            if (scaleGizmo.zGizmo) scaleGizmo.zGizmo.isEnabled = true;
+            if (scaleGizmo.uniformScaleGizmo) scaleGizmo.uniformScaleGizmo.isEnabled = false;
+          }
+          
+          console.log('Scale gizmo configured - uniform mode:', uniformMode);
+        }
+      }, 10);
+      
+      console.log('Scale gizmo enabled for:', selectedObject.name);
+    }
+  }
+  
+  updateScaleGizmoUniformMode(uniform) {
+    console.log('updateScaleGizmoUniformMode called with:', uniform);
+    
+    if (this.gizmoManager && this.gizmoManager.gizmos && this.gizmoManager.gizmos.scaleGizmo) {
+      const scaleGizmo = this.gizmoManager.gizmos.scaleGizmo;
+      
+      // Enable/disable individual axis gizmos based on uniform mode
+      if (uniform) {
+        // Uniform scaling: only show center gizmo, hide axis gizmos
+        if (scaleGizmo.xGizmo) scaleGizmo.xGizmo.isEnabled = false;
+        if (scaleGizmo.yGizmo) scaleGizmo.yGizmo.isEnabled = false;
+        if (scaleGizmo.zGizmo) scaleGizmo.zGizmo.isEnabled = false;
+        if (scaleGizmo.uniformScaleGizmo) scaleGizmo.uniformScaleGizmo.isEnabled = true;
+        console.log('Uniform scaling enabled - showing center gizmo only');
+      } else {
+        // Non-uniform scaling: show axis gizmos, hide center gizmo
+        if (scaleGizmo.xGizmo) scaleGizmo.xGizmo.isEnabled = true;
+        if (scaleGizmo.yGizmo) scaleGizmo.yGizmo.isEnabled = true;
+        if (scaleGizmo.zGizmo) scaleGizmo.zGizmo.isEnabled = true;
+        if (scaleGizmo.uniformScaleGizmo) scaleGizmo.uniformScaleGizmo.isEnabled = false;
+        console.log('Non-uniform scaling enabled - showing axis gizmos');
+      }
+    } else {
+      console.warn('Scale gizmo not available');
+    }
   }
   
   setupKeyboardShortcuts() {
@@ -190,6 +301,11 @@ export class EditorManager {
     
     const objectName = selected.name;
     
+    // Detach gizmos before deletion
+    if (this.gizmoManager) {
+      this.gizmoManager.attachToMesh(null);
+    }
+    
     // Deselect first
     this.selectionManager.deselectObject();
     
@@ -273,9 +389,22 @@ export class EditorManager {
     input.click();
   }
   
+  updateGizmoAttachment() {
+    const selectedObject = this.selectionManager.selectedObject;
+    
+    // Update gizmo attachment based on active mode
+    if (this.activeGizmo && this.gizmoManager) {
+      this.gizmoManager.attachToMesh(selectedObject);
+    }
+  }
+  
   dispose() {
     if (this.selectionManager) {
       this.selectionManager.dispose();
+    }
+    
+    if (this.gizmoManager) {
+      this.gizmoManager.dispose();
     }
   }
 }

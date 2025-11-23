@@ -6,6 +6,7 @@ export class SceneHierarchy {
     this.editor = editorManager;
     this.guiTexture = guiTexture;
     this.panel = null;
+    this.scrollViewer = null;
     this.objectButtons = new Map();
     this.isVisible = true;
     
@@ -13,16 +14,30 @@ export class SceneHierarchy {
   }
   
   initialize() {
-    // Create main panel without scroll viewer
-    this.panel = new BABYLON.GUI.StackPanel();
-    this.panel.width = "220px";
-    this.panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-    this.panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-    this.panel.paddingTop = "500px"; // Below ObjectPalette - increased to give more room
-    this.panel.paddingLeft = "10px";
-    this.panel.background = "#2a2a2a";
+    // Create scroll viewer container
+    this.scrollViewer = new BABYLON.GUI.ScrollViewer();
+    this.scrollViewer.width = "240px";
+    this.scrollViewer.height = "45%"; // 45% of screen height
+    this.scrollViewer.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    this.scrollViewer.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+    this.scrollViewer.left = "10px";
+    this.scrollViewer.top = "-50px"; // Push up 50px from bottom edge to clear taskbar
+    this.scrollViewer.background = "#2a2a2a";
+    this.scrollViewer.thickness = 2;
+    this.scrollViewer.thumbLength = 0.5;
+    this.scrollViewer.barColor = "#4a9eff";
+    this.scrollViewer.barBackground = "#1a1a1a";
     
-    this.guiTexture.addControl(this.panel);
+    // Block pointer events from reaching the canvas
+    this.scrollViewer.isPointerBlocker = true;
+    
+    this.guiTexture.addControl(this.scrollViewer);
+    
+    // Create main panel inside scroll viewer
+    this.panel = new BABYLON.GUI.StackPanel();
+    this.panel.width = "200px";
+    
+    this.scrollViewer.addControl(this.panel);
     
     // Listen for selection changes
     this.editor.selectionManager.addSelectionCallback((object) => {
@@ -31,7 +46,7 @@ export class SceneHierarchy {
     
     this.refresh();
     
-    console.log('SceneHierarchy initialized');
+    console.log('SceneHierarchy initialized with 45% height and scrolling');
   }
   
   refresh() {
@@ -130,15 +145,15 @@ export class SceneHierarchy {
   }
   
   show() {
-    if (this.panel) {
-      this.panel.isVisible = true;
+    if (this.scrollViewer) {
+      this.scrollViewer.isVisible = true;
       this.isVisible = true;
     }
   }
   
   hide() {
-    if (this.panel) {
-      this.panel.isVisible = false;
+    if (this.scrollViewer) {
+      this.scrollViewer.isVisible = false;
       this.isVisible = false;
     }
   }

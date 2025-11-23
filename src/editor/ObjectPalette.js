@@ -6,29 +6,44 @@ export class ObjectPalette {
     this.editor = editorManager;
     this.guiTexture = guiTexture;
     this.panel = null;
+    this.scrollViewer = null;
     this.isVisible = true;
     
     this.initialize();
   }
   
   initialize() {
-    // Create main panel without scroll viewer for simpler layout
-    this.panel = new BABYLON.GUI.StackPanel();
-    this.panel.width = "220px";
-    this.panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-    this.panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-    this.panel.paddingTop = "10px";
-    this.panel.paddingLeft = "10px";
-    this.panel.background = "#2a2a2a";
+    // Create scroll viewer container
+    this.scrollViewer = new BABYLON.GUI.ScrollViewer();
+    this.scrollViewer.width = "240px";
+    this.scrollViewer.height = "45%"; // 45% of screen height
+    this.scrollViewer.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    this.scrollViewer.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+    this.scrollViewer.top = "10px"; // 10px from top
+    this.scrollViewer.left = "10px"; // 10px from left
+    this.scrollViewer.background = "#2a2a2a";
+    this.scrollViewer.thickness = 2;
+    this.scrollViewer.thumbLength = 0.5;
+    this.scrollViewer.barColor = "#4a9eff";
+    this.scrollViewer.barBackground = "#1a1a1a";
     
-    this.guiTexture.addControl(this.panel);
+    // Block pointer events from reaching the canvas
+    this.scrollViewer.isPointerBlocker = true;
+    
+    this.guiTexture.addControl(this.scrollViewer);
+    
+    // Create main panel inside scroll viewer
+    this.panel = new BABYLON.GUI.StackPanel();
+    this.panel.width = "200px";
+    
+    this.scrollViewer.addControl(this.panel);
     
     // Create sections
     this.createPrimitiveSection();
     this.createLightSection();
     this.createModelSection();
     
-    console.log('ObjectPalette initialized');
+    console.log('ObjectPalette initialized with 45% height and scrolling');
   }
   
   createSectionHeader(text) {
@@ -168,15 +183,15 @@ export class ObjectPalette {
   }
   
   show() {
-    if (this.panel) {
-      this.panel.isVisible = true;
+    if (this.scrollViewer) {
+      this.scrollViewer.isVisible = true;
       this.isVisible = true;
     }
   }
   
   hide() {
-    if (this.panel) {
-      this.panel.isVisible = false;
+    if (this.scrollViewer) {
+      this.scrollViewer.isVisible = false;
       this.isVisible = false;
     }
   }

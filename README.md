@@ -8,6 +8,7 @@ A 3D first-person spooky game built with Babylon.js. Features a dark atmospheric
 - **Editor Camera**: ArcRotateCamera for scene editing with orbit controls
 - **Player Camera**: First-person UniversalCamera for gameplay testing
 - **Seamless Switching**: Toggle between modes with E key
+- **Camera Focus**: F key to focus on selected object
 
 ### Scene Editor
 - **Object Creation**: Create primitives (Box, Sphere, Cylinder, Cone, Plane, Torus)
@@ -19,12 +20,14 @@ A 3D first-person spooky game built with Babylon.js. Features a dark atmospheric
 - **Save/Load**: Serialize and deserialize scenes to JSON
 
 ### Object Manipulation
+- **Transform Gizmos**: Visual Move and Scale gizmos for interactive manipulation
 - **Transform Controls**: Edit position, rotation (degrees), and scale via input fields
 - **Material Editor**: Adjust diffuse, specular, and emissive colors with RGB sliders
 - **Light Editor**: Control intensity and color of light sources
 - **Duplication**: Clone objects with Ctrl+D
 - **Deletion**: Remove objects with Delete key or GUI button
 - **Renaming**: Edit object names directly in property panel
+- **Uniform Scaling**: Lock aspect ratio option for proportional scaling
 
 ### Spooky Atmosphere
 - **Dark Environment**: Oppressive 20x20 unit enclosed room
@@ -102,7 +105,7 @@ npm run preview
 **Status**: ✅ Optimized (v1.1.0)
 
 ### Key Metrics
-- **Bundle Size**: 5.56 MB (1.22 MB gzipped)
+- **Bundle Size**: 37.45 KB (9.20 KB gzipped) - Application code only
 - **Draw Calls**: 5-17 (capped)
 - **FPS**: 60 fps with 100+ objects
 - **VRAM per object**: ~500 bytes
@@ -211,12 +214,12 @@ MIT
 - [x] Transform gizmos (position, rotation, scale) ✅ v1.1.0
 
 ### Planned 🎯
+- [ ] Rotation gizmo (complete the transform gizmo set)
 - [ ] Physics integration (collision detection, gravity)
 - [ ] Texture support and texture editor
 - [ ] Performance monitoring GUI (FPS, draw calls, memory)
 - [ ] Undo/Redo system
 - [ ] Multi-selection support
-- [ ] Transform gizmos (visual handles)
 - [ ] Grid and snapping
 - [ ] Prefab system
 - [ ] Animation timeline

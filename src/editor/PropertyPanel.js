@@ -10,6 +10,13 @@ export class PropertyPanel {
     this.propertyControls = [];
     this.isVisible = false;
     
+    // Gizmo state
+    this.activeGizmoMode = null; // 'move' or 'scale'
+    this.uniformScaling = true; // Aspect ratio lock for scale
+    this.moveButton = null;
+    this.scaleButton = null;
+    this.uniformScaleCheckbox = null;
+    
     this.initialize();
   }
   
@@ -33,6 +40,9 @@ export class PropertyPanel {
     this.panel = new BABYLON.GUI.StackPanel();
     this.panel.width = "300px";
     this.panel.background = "#2a2a2a";
+    
+    // Block pointer events from reaching the canvas
+    scrollViewer.isPointerBlocker = true;
     
     scrollViewer.addControl(this.panel);
     this.scrollViewer = scrollViewer;
@@ -310,6 +320,15 @@ export class PropertyPanel {
   }
 
   createTransformSection(object) {
+    // Gizmo controls section
+    this.addSectionHeader("Transform Gizmos");
+    this.createGizmoButtons(object);
+    
+    // Add spacer
+    const spacer = new BABYLON.GUI.Container();
+    spacer.height = "10px";
+    this.panel.addControl(spacer);
+    
     // Position section
     this.addSectionHeader("Position");
     this.addVector3Control("X", object.position.x, (value) => { object.position.x = value; });
@@ -327,6 +346,126 @@ export class PropertyPanel {
     this.addVector3Control("X", object.scaling.x, (value) => { object.scaling.x = value; });
     this.addVector3Control("Y", object.scaling.y, (value) => { object.scaling.y = value; });
     this.addVector3Control("Z", object.scaling.z, (value) => { object.scaling.z = value; });
+  }
+  
+  createGizmoButtons(object) {
+    // Create button container
+    const buttonContainer = new BABYLON.GUI.StackPanel();
+    buttonContainer.height = "40px";
+    buttonContainer.isVertical = false;
+    buttonContainer.paddingLeft = "5px";
+    
+    // Move button
+    this.moveButton = BABYLON.GUI.Button.CreateSimpleButton("moveGizmo", "Move");
+    this.moveButton.width = "90px";
+    this.moveButton.height = "35px";
+    this.moveButton.color = "white";
+    this.moveButton.background = "#3a3a3a";
+    this.moveButton.fontSize = 13;
+    this.moveButton.cornerRadius = 4;
+    this.moveButton.paddingRight = "5px";
+    
+    this.moveButton.onPointerClickObservable.add(() => {
+      this.toggleGizmoMode('move');
+    });
+    
+    buttonContainer.addControl(this.moveButton);
+    
+    // Scale button
+    this.scaleButton = BABYLON.GUI.Button.CreateSimpleButton("scaleGizmo", "Scale");
+    this.scaleButton.width = "90px";
+    this.scaleButton.height = "35px";
+    this.scaleButton.color = "white";
+    this.scaleButton.background = "#3a3a3a";
+    this.scaleButton.fontSize = 13;
+    this.scaleButton.cornerRadius = 4;
+    this.scaleButton.paddingLeft = "5px";
+    
+    this.scaleButton.onPointerClickObservable.add(() => {
+      this.toggleGizmoMode('scale');
+    });
+    
+    buttonContainer.addControl(this.scaleButton);
+    
+    this.panel.addControl(buttonContainer);
+    
+    // Uniform scaling checkbox (only visible when scale is active)
+    const checkboxContainer = new BABYLON.GUI.StackPanel();
+    checkboxContainer.height = "30px";
+    checkboxContainer.isVertical = false;
+    checkboxContainer.paddingLeft = "5px";
+    checkboxContainer.paddingTop = "5px";
+    
+    const checkbox = new BABYLON.GUI.Checkbox();
+    checkbox.name = "uniformScale";
+    checkbox.width = "20px";
+    checkbox.height = "20px";
+    checkbox.isChecked = this.uniformScaling;
+    checkbox.color = "#4a9eff";
+    checkbox.background = "#3a3a3a";
+    
+    checkbox.onIsCheckedChangedObservable.add((value) => {
+      this.uniformScaling = value;
+      this.editor.updateScaleGizmoUniformMode(value);
+    });
+    
+    checkboxContainer.addControl(checkbox);
+    
+    const checkboxLabel = new BABYLON.GUI.TextBlock();
+    checkboxLabel.text = " Lock Aspect Ratio";
+    checkboxLabel.width = "150px";
+    checkboxLabel.height = "20px";
+    checkboxLabel.color = "white";
+    checkboxLabel.fontSize = 12;
+    checkboxLabel.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    checkboxLabel.paddingLeft = "5px";
+    
+    checkboxContainer.addControl(checkboxLabel);
+    
+    this.panel.addControl(checkboxContainer);
+    this.uniformScaleCheckbox = checkboxContainer;
+    
+    // Update button states
+    this.updateGizmoButtonStates();
+  }
+  
+  toggleGizmoMode(mode) {
+    if (this.activeGizmoMode === mode) {
+      // Turn off if already active
+      this.activeGizmoMode = null;
+      this.editor.setGizmoMode(null);
+    } else {
+      // Turn on new mode
+      this.activeGizmoMode = mode;
+      this.editor.setGizmoMode(mode);
+    }
+    
+    this.updateGizmoButtonStates();
+  }
+  
+  updateGizmoButtonStates() {
+    // Update Move button
+    if (this.moveButton) {
+      if (this.activeGizmoMode === 'move') {
+        this.moveButton.background = "#4a9eff";
+      } else {
+        this.moveButton.background = "#3a3a3a";
+      }
+    }
+    
+    // Update Scale button
+    if (this.scaleButton) {
+      if (this.activeGizmoMode === 'scale') {
+        this.scaleButton.background = "#4a9eff";
+      } else {
+        this.scaleButton.background = "#3a3a3a";
+      }
+    }
+    
+    // Show/hide uniform scaling checkbox
+    if (this.uniformScaleCheckbox) {
+      this.uniformScaleCheckbox.isVisible = (this.activeGizmoMode === 'scale');
+    }
   }
   
   addSectionHeader(text) {
