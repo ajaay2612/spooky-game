@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "babylonjs-docs": {
+      "command": "uvx",
+      "args": ["mcp-server-babylonjs"],
+      "disabled": true,
+      "autoApprove": ["search_docs", "get_page"],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      }
+    },
+    "vite-docs": {
+      "command": "uvx",
+      "args": ["mcp-server-vite"],
+      "disabled": true,
+      "autoApprove": ["search_docs", "get_page"],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      }
+    }
+  }
+}

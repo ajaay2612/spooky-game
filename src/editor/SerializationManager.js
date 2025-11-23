@@ -35,11 +35,8 @@ export class SerializationManager {
       data.objects.push(meshData);
     });
     
-    // Serialize lights
+    // Serialize lights (including default lights)
     this.scene.lights.forEach(light => {
-      // Skip default lights
-      if (light.name === 'hemisphericLight' || light.name === 'pointLight') return;
-      
       const lightData = {
         type: "light",
         lightType: this.getLightType(light),
@@ -48,11 +45,26 @@ export class SerializationManager {
         diffuse: light.diffuse.asArray()
       };
       
+      // Save specular color if available
+      if (light.specular) {
+        lightData.specular = light.specular.asArray();
+      }
+      
+      // Save ground color for hemispheric lights
+      if (light.groundColor) {
+        lightData.groundColor = light.groundColor.asArray();
+      }
+      
       if (light.position) {
         lightData.position = light.position.asArray();
       }
       if (light.direction) {
         lightData.direction = light.direction.asArray();
+      }
+      
+      // Save range for point lights
+      if (light.range !== undefined) {
+        lightData.range = light.range;
       }
       
       data.objects.push(lightData);
@@ -125,10 +137,8 @@ export class SerializationManager {
       mesh.dispose();
     });
     
-    // Clear user-created lights (keep default lights)
-    const lightsToRemove = this.scene.lights.filter(light => {
-      return light.name !== 'hemisphericLight' && light.name !== 'pointLight';
-    });
+    // Clear ALL lights (we'll recreate them from saved data)
+    const lightsToRemove = [...this.scene.lights];
     
     lightsToRemove.forEach(light => {
       light.dispose();
@@ -163,11 +173,26 @@ export class SerializationManager {
           light.intensity = objData.intensity;
           light.diffuse.fromArray(objData.diffuse);
           
+          // Restore specular color
+          if (objData.specular && light.specular) {
+            light.specular.fromArray(objData.specular);
+          }
+          
+          // Restore ground color for hemispheric lights
+          if (objData.groundColor && light.groundColor) {
+            light.groundColor.fromArray(objData.groundColor);
+          }
+          
           if (objData.position && light.position) {
             light.position.fromArray(objData.position);
           }
           if (objData.direction && light.direction) {
             light.direction.fromArray(objData.direction);
+          }
+          
+          // Restore range for point lights
+          if (objData.range !== undefined && light.range !== undefined) {
+            light.range = objData.range;
           }
         }
       }
@@ -176,40 +201,58 @@ export class SerializationManager {
     console.log('Scene deserialized successfully');
   }
   
-  saveToFile(filename = "scene.json") {
+  async saveToFile() {
     try {
+      console.log('Starting scene save...');
       const data = this.serializeScene();
-      const blob = new Blob([data], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
+      console.log('Scene serialized, sending to server...');
       
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      link.click();
+      const response = await fetch('http://localhost:3001/api/save-scene', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ data })
+      });
       
-      URL.revokeObjectURL(url);
+      console.log('Server response received:', response.status);
+      const result = await response.json();
+      console.log('Server result:', result);
       
-      console.log('Scene saved to file');
-      alert('Scene saved successfully!');
+      if (result.success) {
+        console.log('✓ Scene saved to project root as saved-3d-env.json');
+        alert('Scene saved successfully to saved-3d-env.json!');
+      } else {
+        throw new Error(result.error);
+      }
     } catch (error) {
-      console.error('Failed to save scene:', error);
+      console.error('✗ Failed to save scene:', error);
+      alert(`Failed to save scene: ${error.message}\nMake sure the server is running (npm run server)`);
       throw error;
     }
   }
   
-  async loadFromFile(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        try {
-          await this.deserializeScene(e.target.result);
-          resolve();
-        } catch (error) {
-          reject(error);
-        }
-      };
-      reader.onerror = reject;
-      reader.readAsText(file);
-    });
+  async loadFromFile() {
+    try {
+      console.log('Starting scene load...');
+      const response = await fetch('http://localhost:3001/api/load-scene');
+      console.log('Server response received:', response.status);
+      
+      const result = await response.json();
+      console.log('Server result:', result);
+      
+      if (result.success) {
+        console.log('Deserializing scene data...');
+        await this.deserializeScene(result.data);
+        console.log('✓ Scene loaded from saved-3d-env.json');
+        alert('Scene loaded successfully!');
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('✗ Failed to load scene:', error);
+      alert(`Failed to load scene: ${error.message}\nMake sure the server is running and a scene has been saved.`);
+      throw error;
+    }
   }
 }

@@ -174,58 +174,47 @@ export class PropertyPanel {
   addColorControl(label, initialColor, onChange) {
     const labelText = new BABYLON.GUI.TextBlock();
     labelText.text = label + " Color:";
-    labelText.height = "20px";
+    labelText.height = "25px";
     labelText.color = "white";
     labelText.fontSize = 12;
     labelText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     labelText.paddingLeft = "5px";
     this.panel.addControl(labelText);
     
-    // RGB sliders
-    ['r', 'g', 'b'].forEach(component => {
-      const container = new BABYLON.GUI.StackPanel();
-      container.height = "30px";
-      container.isVertical = false;
-      
-      const compLabel = new BABYLON.GUI.TextBlock();
-      compLabel.text = component.toUpperCase() + ":";
-      compLabel.width = "30px";
-      compLabel.color = "white";
-      compLabel.fontSize = 11;
-      container.addControl(compLabel);
-      
-      const slider = new BABYLON.GUI.Slider();
-      slider.minimum = 0;
-      slider.maximum = 1;
-      slider.value = initialColor[component];
-      slider.height = "20px";
-      slider.width = "200px";
-      slider.color = "#4a9eff";
-      slider.background = "#3a3a3a";
-      
-      slider.onValueChangedObservable.add((value) => {
-        initialColor[component] = value;
-        onChange(initialColor);
-      });
-      
-      container.addControl(slider);
-      
-      const valueText = new BABYLON.GUI.TextBlock();
-      valueText.text = initialColor[component].toFixed(2);
-      valueText.width = "40px";
-      valueText.color = "white";
-      valueText.fontSize = 11;
-      container.addControl(valueText);
-      
-      slider.onValueChangedObservable.add((value) => {
-        valueText.text = value.toFixed(2);
-      });
-      
-      this.panel.addControl(container);
+    // Create color picker
+    const colorPicker = new BABYLON.GUI.ColorPicker();
+    colorPicker.value = initialColor;
+    colorPicker.height = "180px";
+    colorPicker.width = "180px";
+    colorPicker.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    
+    colorPicker.onValueChangedObservable.add((value) => {
+      initialColor.r = value.r;
+      initialColor.g = value.g;
+      initialColor.b = value.b;
+      onChange(initialColor);
     });
+    
+    this.panel.addControl(colorPicker);
+    
+    // Add spacer after color picker
+    const spacer = new BABYLON.GUI.Container();
+    spacer.height = "10px";
+    this.panel.addControl(spacer);
   }
   
   createLightSection(object) {
+    // Add gizmo controls for lights with position
+    if (object.position) {
+      this.addSectionHeader("Transform Gizmos");
+      this.createLightGizmoButtons(object);
+      
+      // Add spacer
+      const spacer = new BABYLON.GUI.Container();
+      spacer.height = "10px";
+      this.panel.addControl(spacer);
+    }
+    
     this.addSectionHeader("Light Properties");
     
     // Intensity slider
@@ -273,6 +262,66 @@ export class PropertyPanel {
       this.addColorControl("Light", object.diffuse, (color) => {
         object.diffuse = color;
       });
+    }
+    
+    // Position controls (for lights that have position)
+    if (object.position) {
+      this.addSectionHeader("Position");
+      this.addVector3Control("X", object.position.x, (value) => { object.position.x = value; });
+      this.addVector3Control("Y", object.position.y, (value) => { object.position.y = value; });
+      this.addVector3Control("Z", object.position.z, (value) => { object.position.z = value; });
+    }
+    
+    // Direction controls (for directional/spot lights)
+    if (object.direction) {
+      this.addSectionHeader("Direction");
+      this.addVector3Control("X", object.direction.x, (value) => { object.direction.x = value; object.direction.normalize(); });
+      this.addVector3Control("Y", object.direction.y, (value) => { object.direction.y = value; object.direction.normalize(); });
+      this.addVector3Control("Z", object.direction.z, (value) => { object.direction.z = value; object.direction.normalize(); });
+    }
+    
+    // Range control (for point lights)
+    if (object.range !== undefined) {
+      this.addSectionHeader("Range");
+      
+      const rangeContainer = new BABYLON.GUI.StackPanel();
+      rangeContainer.height = "40px";
+      rangeContainer.isVertical = false;
+      
+      const rangeLabel = new BABYLON.GUI.TextBlock();
+      rangeLabel.text = "Range:";
+      rangeLabel.width = "80px";
+      rangeLabel.color = "white";
+      rangeLabel.fontSize = 12;
+      rangeContainer.addControl(rangeLabel);
+      
+      const rangeSlider = new BABYLON.GUI.Slider();
+      rangeSlider.minimum = 1;
+      rangeSlider.maximum = 50;
+      rangeSlider.value = object.range;
+      rangeSlider.height = "20px";
+      rangeSlider.width = "150px";
+      rangeSlider.color = "#4a9eff";
+      rangeSlider.background = "#3a3a3a";
+      
+      rangeSlider.onValueChangedObservable.add((value) => {
+        object.range = value;
+      });
+      
+      rangeContainer.addControl(rangeSlider);
+      
+      const rangeValue = new BABYLON.GUI.TextBlock();
+      rangeValue.text = object.range.toFixed(1);
+      rangeValue.width = "50px";
+      rangeValue.color = "white";
+      rangeValue.fontSize = 12;
+      rangeContainer.addControl(rangeValue);
+      
+      rangeSlider.onValueChangedObservable.add((value) => {
+        rangeValue.text = value.toFixed(1);
+      });
+      
+      this.panel.addControl(rangeContainer);
     }
   }
   
@@ -346,6 +395,34 @@ export class PropertyPanel {
     this.addVector3Control("X", object.scaling.x, (value) => { object.scaling.x = value; });
     this.addVector3Control("Y", object.scaling.y, (value) => { object.scaling.y = value; });
     this.addVector3Control("Z", object.scaling.z, (value) => { object.scaling.z = value; });
+  }
+  
+  createLightGizmoButtons(object) {
+    // Create button container
+    const buttonContainer = new BABYLON.GUI.StackPanel();
+    buttonContainer.height = "40px";
+    buttonContainer.isVertical = false;
+    buttonContainer.paddingLeft = "5px";
+    
+    // Move button (only for lights)
+    this.moveButton = BABYLON.GUI.Button.CreateSimpleButton("moveGizmo", "Move");
+    this.moveButton.width = "90px";
+    this.moveButton.height = "35px";
+    this.moveButton.color = "white";
+    this.moveButton.background = "#3a3a3a";
+    this.moveButton.fontSize = 13;
+    this.moveButton.cornerRadius = 4;
+    
+    this.moveButton.onPointerClickObservable.add(() => {
+      this.toggleLightGizmoMode('move', object);
+    });
+    
+    buttonContainer.addControl(this.moveButton);
+    
+    this.panel.addControl(buttonContainer);
+    
+    // Update button state
+    this.updateGizmoButtonStates();
   }
   
   createGizmoButtons(object) {
@@ -426,6 +503,20 @@ export class PropertyPanel {
     this.uniformScaleCheckbox = checkboxContainer;
     
     // Update button states
+    this.updateGizmoButtonStates();
+  }
+  
+  toggleLightGizmoMode(mode, light) {
+    if (this.activeGizmoMode === mode) {
+      // Turn off if already active
+      this.activeGizmoMode = null;
+      this.editor.setLightGizmoMode(null, light);
+    } else {
+      // Turn on new mode
+      this.activeGizmoMode = mode;
+      this.editor.setLightGizmoMode(mode, light);
+    }
+    
     this.updateGizmoButtonStates();
   }
   

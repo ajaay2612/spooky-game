@@ -2,8 +2,9 @@
 // Handles object selection and visual highlighting
 
 export class SelectionManager {
-  constructor(scene) {
+  constructor(scene, editorManager = null) {
     this.scene = scene;
+    this.editorManager = editorManager;
     this.selectedObject = null;
     this.highlightLayer = null;
     this.onSelectionChanged = null;
@@ -24,6 +25,11 @@ export class SelectionManager {
   setupPicking(canvas) {
     // Set up mouse picking for object selection
     this.scene.onPointerDown = (evt, pickResult) => {
+      // Only allow selection in editor mode
+      if (this.editorManager && !this.editorManager.isEditorMode) {
+        return;
+      }
+      
       // Only handle left-click (button 0)
       if (evt.button === 0) {
         if (pickResult.hit && pickResult.pickedMesh) {

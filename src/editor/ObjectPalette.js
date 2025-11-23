@@ -39,11 +39,34 @@ export class ObjectPalette {
     this.scrollViewer.addControl(this.panel);
     
     // Create sections
+    this.createFileSection();
     this.createPrimitiveSection();
     this.createLightSection();
     this.createModelSection();
     
     console.log('ObjectPalette initialized with 45% height and scrolling');
+  }
+  
+  createFileSection() {
+    const header = this.createSectionHeader("File");
+    this.panel.addControl(header);
+    
+    // Save button
+    const saveButton = this.createButton("Save Scene", () => {
+      this.editor.saveScene();
+    });
+    this.panel.addControl(saveButton);
+    
+    // Load button
+    const loadButton = this.createButton("Load Scene", () => {
+      this.editor.loadScene();
+    });
+    this.panel.addControl(loadButton);
+    
+    // Add spacer
+    const spacer = new BABYLON.GUI.Container();
+    spacer.height = "10px";
+    this.panel.addControl(spacer);
   }
   
   createSectionHeader(text) {

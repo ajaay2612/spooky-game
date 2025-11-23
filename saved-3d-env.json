@@ -1,0 +1,128 @@
+{
+  "version": "1.0",
+  "objects": [
+    {
+      "type": "mesh",
+      "meshType": "box",
+      "name": "Box_0",
+      "position": [
+        3.833984375,
+        0.5889028906822205,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scaling": [
+        1,
+        1,
+        1
+      ],
+      "material": {
+        "diffuseColor": [
+          0.45741987066223555,
+          0.8059383816091024,
+          0.331678227840289
+        ],
+        "specularColor": [
+          1,
+          1,
+          1
+        ],
+        "emissiveColor": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "type": "mesh",
+      "meshType": "sphere",
+      "name": "Sphere_1",
+      "position": [
+        3.8299810886383057,
+        1.6006053686141968,
+        0.03171651437878609
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scaling": [
+        1,
+        1,
+        1
+      ],
+      "material": {
+        "diffuseColor": [
+          0.3874193163417411,
+          0.0758627786662498,
+          0.041312245499707134
+        ],
+        "specularColor": [
+          1,
+          1,
+          1
+        ],
+        "emissiveColor": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "type": "light",
+      "lightType": "hemispheric",
+      "name": "hemisphericLight",
+      "intensity": 0.3,
+      "diffuse": [
+        0.5,
+        0.5,
+        0.6
+      ],
+      "specular": [
+        0.1,
+        0.1,
+        0.15
+      ],
+      "groundColor": [
+        0.1,
+        0.1,
+        0.1
+      ],
+      "direction": [
+        0,
+        1,
+        0
+      ],
+      "range": 1.7976931348623157e+308
+    },
+    {
+      "type": "light",
+      "lightType": "point",
+      "name": "pointLight",
+      "intensity": 3.233333333333333,
+      "diffuse": [
+        1,
+        0.7,
+        0.4
+      ],
+      "specular": [
+        0.5,
+        0.35,
+        0.2
+      ],
+      "position": [
+        -0.048518743366003036,
+        2.6906299591064453,
+        0.12313275039196014
+      ],
+      "range": 15
+    }
+  ]
+}

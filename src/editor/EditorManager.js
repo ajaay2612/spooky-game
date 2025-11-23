@@ -28,13 +28,16 @@ export class EditorManager {
     this.gizmoManager = null;
     this.activeGizmo = null;
     
+    // Light helper meshes for gizmo attachment
+    this.lightHelpers = new Map();
+    
   }
   
   initialize(guiTexture) {
     this.guiTexture = guiTexture;
     
     // Initialize core components
-    this.selectionManager = new SelectionManager(this.scene);
+    this.selectionManager = new SelectionManager(this.scene, this);
     this.objectFactory = new ObjectFactory(this.scene);
     this.serializationManager = new SerializationManager(this.scene);
     this.cameraManager = new CameraManager(this.scene, this.canvas);
@@ -346,47 +349,93 @@ export class EditorManager {
     }
   }
   
-  saveScene() {
+  async saveScene() {
     try {
-      this.serializationManager.saveToFile();
+      await this.serializationManager.saveToFile();
       console.log('Scene saved successfully');
     } catch (error) {
       console.error('Failed to save scene:', error);
-      alert('Failed to save scene. Check console for details.');
     }
   }
   
-  loadScene() {
-    // Create file input element
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-    
-    input.onchange = async (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        try {
-          await this.serializationManager.loadFromFile(file);
-          
-          // Deselect any selected object
-          this.selectionManager.deselectObject();
-          
-          // Update scene hierarchy if it exists
-          if (this.sceneHierarchy) {
-            this.sceneHierarchy.refresh();
-          }
-          
-          console.log('Scene loaded successfully');
-          alert('Scene loaded successfully');
-        } catch (error) {
-          console.error('Failed to load scene:', error);
-          alert('Failed to load scene. Check console for details.');
-        }
+  async loadScene() {
+    try {
+      await this.serializationManager.loadFromFile();
+      
+      // Deselect any selected object
+      this.selectionManager.deselectObject();
+      
+      // Update scene hierarchy if it exists
+      if (this.sceneHierarchy) {
+        this.sceneHierarchy.refresh();
       }
-    };
+      
+      console.log('Scene loaded successfully');
+    } catch (error) {
+      console.error('Failed to load scene:', error);
+    }
+  }
+  
+  setLightGizmoMode(mode, light) {
+    // Disable all gizmos first
+    this.gizmoManager.positionGizmoEnabled = false;
+    this.gizmoManager.scaleGizmoEnabled = false;
     
-    // Trigger file picker
-    input.click();
+    if (!mode || !light) {
+      this.activeGizmo = null;
+      this.gizmoManager.attachToMesh(null);
+      
+      // Clean up helper mesh if exists
+      if (this.lightHelpers.has(light)) {
+        const helper = this.lightHelpers.get(light);
+        helper.dispose();
+        this.lightHelpers.delete(light);
+      }
+      return;
+    }
+    
+    // Create or get helper mesh for the light
+    let helperMesh = this.lightHelpers.get(light);
+    
+    if (!helperMesh) {
+      // Create a small invisible sphere as helper
+      helperMesh = BABYLON.MeshBuilder.CreateSphere(`_lightHelper_${light.name}`, { diameter: 0.3 }, this.scene);
+      helperMesh.isVisible = false;
+      helperMesh.isPickable = false;
+      
+      // Link helper position to light position
+      this.scene.onBeforeRenderObservable.add(() => {
+        if (light.position && helperMesh) {
+          helperMesh.position.copyFrom(light.position);
+        }
+      });
+      
+      this.lightHelpers.set(light, helperMesh);
+    }
+    
+    // Position helper at light position
+    if (light.position) {
+      helperMesh.position.copyFrom(light.position);
+    }
+    
+    // Enable move gizmo and attach to helper mesh
+    if (mode === 'move') {
+      this.gizmoManager.positionGizmoEnabled = true;
+      this.gizmoManager.attachToMesh(helperMesh);
+      this.activeGizmo = 'move';
+      
+      // Update light position when helper moves
+      const positionGizmo = this.gizmoManager.gizmos.positionGizmo;
+      if (positionGizmo) {
+        positionGizmo.onDragEndObservable.add(() => {
+          if (light.position) {
+            light.position.copyFrom(helperMesh.position);
+          }
+        });
+      }
+      
+      console.log('Position gizmo enabled for light:', light.name);
+    }
   }
   
   updateGizmoAttachment() {
@@ -406,5 +455,9 @@ export class EditorManager {
     if (this.gizmoManager) {
       this.gizmoManager.dispose();
     }
+    
+    // Clean up light helpers
+    this.lightHelpers.forEach(helper => helper.dispose());
+    this.lightHelpers.clear();
   }
 }
