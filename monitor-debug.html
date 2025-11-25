@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitor Texture Debug Controls</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Courier New', monospace;
+      background: rgba(0, 0, 0, 0.9);
+      color: #00ff00;
+    }
+    .debug-panel {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.95);
+      border: 2px solid #00ff00;
+      padding: 20px;
+      min-width: 300px;
+      max-width: 400px;
+      z-index: 10000;
+      box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+    }
+    h2 {
+      margin: 0 0 15px 0;
+      font-size: 18px;
+      text-align: center;
+      color: #00ff00;
+      text-shadow: 0 0 10px #00ff00;
+    }
+    .control-group {
+      margin: 15px 0;
+      padding: 10px;
+      border: 1px solid #00ff00;
+      background: rgba(0, 255, 0, 0.05);
+    }
+    .control-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .control-group .value {
+      float: right;
+      color: #00ff00;
+      font-weight: bold;
+    }
+    input[type="range"] {
+      width: 100%;
+      margin: 10px 0;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 8px;
+      background: #1a1a1a;
+      outline: none;
+      border: 1px solid #00ff00;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      background: #00ff00;
+      cursor: pointer;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #00ff00;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      background: #00ff00;
+      cursor: pointer;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #00ff00;
+      border: none;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+      background: #00ff00;
+      color: #000;
+      border: none;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #00cc00;
+      box-shadow: 0 0 10px #00ff00;
+    }
+    button.secondary {
+      background: #1a1a1a;
+      color: #00ff00;
+      border: 1px solid #00ff00;
+    }
+    button.secondary:hover {
+      background: #2a2a2a;
+    }
+    .info {
+      margin-top: 15px;
+      padding: 10px;
+      background: rgba(0, 255, 0, 0.1);
+      border: 1px solid #00ff00;
+      font-size: 12px;
+    }
+    .code-output {
+      margin-top: 15px;
+      padding: 10px;
+      background: #000;
+      border: 1px solid #00ff00;
+      font-size: 11px;
+      word-wrap: break-word;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="debug-panel">
+    <h2>🖥️ MONITOR TEXTURE DEBUG</h2>
+    
+    <div class="control-group">
+      <label>
+        Rotation (degrees)
+        <span class="value" id="rotationValue">270</span>
+      </label>
+      <input type="range" id="rotation" min="0" max="360" value="270" step="1">
+    </div>
+    
+    <div class="control-group">
+      <label>
+        U Scale (Horizontal)
+        <span class="value" id="uScaleValue">1.39</span>
+      </label>
+      <input type="range" id="uScale" min="-2" max="2" value="1.39" step="0.01">
+    </div>
+    
+    <div class="control-group">
+      <label>
+        V Scale (Vertical)
+        <span class="value" id="vScaleValue">-0.97</span>
+      </label>
+      <input type="range" id="vScale" min="-2" max="2" value="-0.97" step="0.01">
+    </div>
+    
+    <div class="control-group">
+      <label>
+        U Offset (Horizontal)
+        <span class="value" id="uOffsetValue">-0.20</span>
+      </label>
+      <input type="range" id="uOffset" min="-1" max="1" value="-0.2" step="0.01">
+    </div>
+    
+    <div class="control-group">
+      <label>
+        V Offset (Vertical)
+        <span class="value" id="vOffsetValue">0.78</span>
+      </label>
+      <input type="range" id="vOffset" min="-1" max="1" value="0.78" step="0.01">
+    </div>
+    
+    <button onclick="resetToDefault()">Reset to Default</button>
+    <button class="secondary" onclick="copyCode()">Copy Code</button>
+    <button class="secondary" onclick="togglePanel()">Hide Panel</button>
+    
+    <div class="info">
+      <strong>Instructions:</strong><br>
+      1. Adjust sliders to fix texture<br>
+      2. Click "Copy Code" when done<br>
+      3. Paste values into MonitorController.js
+    </div>
+    
+    <div class="code-output" id="codeOutput">
+      // Waiting for changes...
+    </div>
+  </div>
+
+  <script>
+    // Get references to controls
+    const rotation = document.getElementById('rotation');
+    const uScale = document.getElementById('uScale');
+    const vScale = document.getElementById('vScale');
+    const uOffset = document.getElementById('uOffset');
+    const vOffset = document.getElementById('vOffset');
+    
+    const rotationValue = document.getElementById('rotationValue');
+    const uScaleValue = document.getElementById('uScaleValue');
+    const vScaleValue = document.getElementById('vScaleValue');
+    const uOffsetValue = document.getElementById('uOffsetValue');
+    const vOffsetValue = document.getElementById('vOffsetValue');
+    
+    const codeOutput = document.getElementById('codeOutput');
+    
+    // Update function
+    function updateTexture() {
+      // Check if we're in the main window with monitorController
+      if (window.opener && window.opener.monitorController) {
+        const mc = window.opener.monitorController;
+        const texture = mc.dynamicTexture;
+        
+        if (texture) {
+          texture.wAng = (parseFloat(rotation.value) * Math.PI) / 180;
+          texture.uScale = parseFloat(uScale.value);
+          texture.vScale = parseFloat(vScale.value);
+          texture.uOffset = parseFloat(uOffset.value);
+          texture.vOffset = parseFloat(vOffset.value);
+          texture.update();
+        }
+      }
+      
+      // Update display values
+      rotationValue.textContent = rotation.value;
+      uScaleValue.textContent = parseFloat(uScale.value).toFixed(2);
+      vScaleValue.textContent = parseFloat(vScale.value).toFixed(2);
+      uOffsetValue.textContent = parseFloat(uOffset.value).toFixed(2);
+      vOffsetValue.textContent = parseFloat(vOffset.value).toFixed(2);
+      
+      // Update code output
+      updateCodeOutput();
+    }
+    
+    function updateCodeOutput() {
+      const code = `// UV Mapping Settings
+this.dynamicTexture.wAng = (${rotation.value} * Math.PI) / 180;
+this.dynamicTexture.uScale = ${uScale.value};
+this.dynamicTexture.vScale = ${vScale.value};
+this.dynamicTexture.uOffset = ${uOffset.value};
+this.dynamicTexture.vOffset = ${vOffset.value};`;
+      
+      codeOutput.textContent = code;
+    }
+    
+    function resetToDefault() {
+      rotation.value = 270;
+      uScale.value = 1.39;
+      vScale.value = -0.97;
+      uOffset.value = -0.2;
+      vOffset.value = 0.78;
+      updateTexture();
+    }
+    
+    function copyCode() {
+      const code = codeOutput.textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        alert('Code copied to clipboard!');
+      }).catch(err => {
+        // Fallback for older browsers
+        const textarea = document.createElement('textarea');
+        textarea.value = code;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        alert('Code copied to clipboard!');
+      });
+    }
+    
+    function togglePanel() {
+      const panel = document.querySelector('.debug-panel');
+      if (panel.style.display === 'none') {
+        panel.style.display = 'block';
+      } else {
+        panel.style.display = 'none';
+      }
+    }
+    
+    // Add event listeners
+    rotation.addEventListener('input', updateTexture);
+    uScale.addEventListener('input', updateTexture);
+    vScale.addEventListener('input', updateTexture);
+    uOffset.addEventListener('input', updateTexture);
+    vOffset.addEventListener('input', updateTexture);
+    
+    // Initialize
+    updateCodeOutput();
+    
+    // Check if opened from main window
+    if (!window.opener) {
+      codeOutput.textContent = '⚠️ Please open this page from the main game window:\nwindow.open("/monitor-debug.html", "debug", "width=450,height=800")';
+    }
+  </script>
+</body>
+</html>

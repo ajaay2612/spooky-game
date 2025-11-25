@@ -29,6 +29,14 @@ A 3D first-person spooky game built with Babylon.js. Features a dark atmospheric
 - **Renaming**: Edit object names directly in property panel
 - **Uniform Scaling**: Lock aspect ratio option for proportional scaling
 
+### Interactive CRT Monitor System
+- **HTML Frame Rendering**: Renders HTML content onto 3D monitor mesh
+- **Keyboard Navigation**: Arrow keys/WASD to navigate, Enter to select
+- **Frame Transitions**: Navigate between different screens (main menu, game start, credits)
+- **Text Input Support**: Interactive forms with keyboard input
+- **M Key Toggle**: Activate/deactivate monitor interaction
+- **CRT Aesthetic**: Green-on-black terminal styling with emissive glow
+
 ### Spooky Atmosphere
 - **Dark Environment**: Oppressive 20x20 unit enclosed room
 - **Flickering Lights**: Dynamic point light with eerie yellow-orange glow
@@ -69,6 +77,14 @@ npm run preview
 - **WASD**: Move camera (first-person)
 - **Mouse**: Look around (pointer lock enabled)
 - **E Key**: Return to Editor mode
+- **M Key**: Toggle monitor interaction (activate/deactivate)
+
+### Monitor Interaction (When Active)
+- **Arrow Keys / WASD**: Navigate between interactive elements
+- **Enter**: Activate selected element (transition or input)
+- **Escape**: Exit input mode
+- **Type**: Enter text in input fields
+- **M Key**: Deactivate monitor and return to normal controls
 
 ### GUI Panels
 - **Object Palette** (Left): Create primitives (Box, Sphere, Cylinder, Cone, Plane, Torus), lights, and import GLTF models
@@ -89,6 +105,12 @@ npm run preview
 - **ObjectPalette**: Left panel for creating primitives, lights, and importing models
 - **PropertyPanel**: Right panel for editing object properties (transform, material, lights)
 - **SceneHierarchy**: Left bottom panel showing tree view of all scene objects
+
+#### Monitor System
+- **MonitorController**: Manages interactive CRT monitor with HTML frame rendering
+- **HTML-to-Texture Pipeline**: Uses html2canvas to render HTML onto 3D monitor mesh
+- **Frame Configuration**: JSON-based frame system with transition validation
+- **Keyboard-Only Navigation**: Accessible navigation without mouse
 
 #### Scene System
 - **ObjectFactory**: Centralized object creation with consistent configuration and material pooling
@@ -156,7 +178,16 @@ spooky-game/
 │   │   ├── SerializationManager.js # Scene save/load
 │   │   ├── ObjectPalette.js        # Object creation UI
 │   │   ├── PropertyPanel.js        # Property editing UI
-│   │   └── SceneHierarchy.js       # Scene tree view UI
+│   │   ├── SceneHierarchy.js       # Scene tree view UI
+│   │   └── SettingsPanel.js        # Post-processing settings UI
+│   ├── monitor/
+│   │   ├── MonitorController.js    # Interactive CRT monitor system
+│   │   ├── frames/                 # HTML frame files
+│   │   │   ├── main-menu.html      # Main menu screen
+│   │   │   ├── game-start.html     # Game start screen
+│   │   │   ├── credits.html        # Credits screen
+│   │   │   └── frames-config.json  # Frame configuration
+│   │   └── README.md               # Monitor system documentation
 │   └── scene/
 │       └── ObjectFactory.js        # Centralized object creation
 ├── docs/
@@ -222,4 +253,6 @@ MIT
 - [ ] Grid and snapping
 - [ ] Prefab system
 - [ ] Animation timeline
-- [ ] Post-processing effects
+- [ ] Monitor frame animations (fade, slide transitions)
+- [ ] Multiple monitor support
+- [ ] Mouse support for monitor (raycasting)

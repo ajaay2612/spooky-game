@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #0a0a0a;
+      color: #00ff00;
+      font-family: 'Courier New', monospace;
+      font-size: 16px;
+      line-height: 1.8;
+    }
+    .title {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 30px;
+      text-shadow: 0 0 10px #00ff00;
+    }
+    .credits-text {
+      text-align: center;
+      margin: 20px 0;
+    }
+    .button {
+      margin-top: 40px;
+      padding: 10px 20px;
+      border: 2px solid #00ff00;
+      background: transparent;
+      color: #00ff00;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-size: 16px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .button.selected {
+      background: #00ff00;
+      color: #0a0a0a;
+    }
+  </style>
+</head>
+<body>
+  <div class="title">CREDITS</div>
+  <div class="credits-text">
+    <p>A GAME BY BLACK NOVA</p>
+    <p>Built with Babylon.js</p>
+    <p>Special Thanks to the Community</p>
+  </div>
+  <button class="button selected" data-transition="main-menu">[ BACK TO MENU ]</button>
+</body>
+</html>

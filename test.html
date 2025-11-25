@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitor Texture Test</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #00ff00;
+      font-family: 'Courier New', monospace;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      color: #00ff00;
+    }
+    .preview {
+      background: #000;
+      border: 2px solid #00ff00;
+      margin: 20px 0;
+      position: relative;
+    }
+    .preview canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+    .info {
+      background: #2a2a2a;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 20px 0;
+    }
+    .controls {
+      background: #2a2a2a;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 20px 0;
+    }
+    button {
+      background: #00ff00;
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+    }
+    button:hover {
+      background: #00cc00;
+    }
+    .frame-preview {
+      background: #000;
+      border: 2px solid #00ff00;
+      padding: 20px;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Monitor Texture Test - 1024x768</h1>
+    
+    <div class="info">
+      <h2>Current Texture Preview</h2>
+      <p>This shows what the texture looks like at 1024x768 resolution</p>
+    </div>
+    
+    <div class="preview">
+      <canvas id="textureCanvas" width="1024" height="768"></canvas>
+    </div>
+    
+    <div class="controls">
+      <h2>Test Patterns</h2>
+      <button onclick="drawTestPattern()">Test Pattern (Border + Text)</button>
+      <button onclick="drawMainMenu()">Main Menu Frame</button>
+      <button onclick="drawGameStart()">Game Start Frame</button>
+      <button onclick="drawGrid()">Grid Pattern</button>
+      <button onclick="drawCorners()">Corner Markers</button>
+    </div>
+    
+    <div class="info">
+      <h2>What you should see on the monitor:</h2>
+      <ul>
+        <li>Full texture should fill the entire screen</li>
+        <li>Green border should be visible on all 4 sides</li>
+        <li>Text should be centered</li>
+        <li>No stretching or distortion</li>
+      </ul>
+      <h3>If you see issues:</h3>
+      <ul>
+        <li><strong>Only left side visible:</strong> UV mapping is wrong (needs adjustment in Blender)</li>
+        <li><strong>Stretched/squashed:</strong> Aspect ratio mismatch</li>
+        <li><strong>Upside down:</strong> V coordinate needs flipping</li>
+      </ul>
+    </div>
+    
+    <div class="frame-preview">
+      <h2>HTML Frame Preview</h2>
+      <iframe id="framePreview" style="width: 100%; height: 600px; border: none; background: #0a0a0a;"></iframe>
+    </div>
+    
+    <div class="controls">
+      <h2>Load HTML Frames</h2>
+      <button onclick="loadFrame('main-menu.html')">Main Menu</button>
+      <button onclick="loadFrame('game-start.html')">Game Start</button>
+      <button onclick="loadFrame('credits.html')">Credits</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('textureCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    function drawTestPattern() {
+      // Black background
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, 1024, 768);
+      
+      // Green border
+      ctx.strokeStyle = '#00ff00';
+      ctx.lineWidth = 10;
+      ctx.strokeRect(5, 5, 1014, 758);
+      
+      // Center text
+      ctx.fillStyle = '#00ff00';
+      ctx.font = 'bold 64px "Courier New"';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('MONITOR TEST', 512, 334);
+      
+      ctx.font = '32px "Courier New"';
+      ctx.fillText('1024 x 768', 512, 434);
+      
+      // Corner markers
+      ctx.fillStyle = '#ff0000';
+      ctx.fillRect(10, 10, 50, 50); // Top-left
+      ctx.fillStyle = '#0000ff';
+      ctx.fillRect(964, 10, 50, 50); // Top-right
+      ctx.fillStyle = '#ffff00';
+      ctx.fillRect(10, 708, 50, 50); // Bottom-left
+      ctx.fillStyle = '#ff00ff';
+      ctx.fillRect(964, 708, 50, 50); // Bottom-right
+    }
+    
+    function drawMainMenu() {
+      ctx.fillStyle = '#0a0a0a';
+      ctx.fillRect(0, 0, 1024, 768);
+      
+      ctx.fillStyle = '#00ff00';
+      ctx.font = 'bold 48px "Courier New"';
+      ctx.textAlign = 'center';
+      ctx.fillText('SPOOKY GAME', 512, 200);
+      
+      ctx.font = '32px "Courier New"';
+      ctx.fillText('[ START GAME ]', 512, 350);
+      ctx.fillText('[ CREDITS ]', 512, 420);
+    }
+    
+    function drawGameStart() {
+      ctx.fillStyle = '#0a0a0a';
+      ctx.fillRect(0, 0, 1024, 768);
+      
+      ctx.fillStyle = '#00ff00';
+      ctx.font = 'bold 36px "Courier New"';
+      ctx.textAlign = 'center';
+      ctx.fillText('ENTER YOUR NAME', 512, 200);
+      
+      // Input field
+      ctx.strokeStyle = '#00ff00';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(262, 350, 500, 60);
+      
+      ctx.font = '24px "Courier New"';
+      ctx.fillText('Name: _', 512, 385);
+      
+      ctx.font = '28px "Courier New"';
+      ctx.fillText('[ BACK TO MENU ]', 512, 550);
+    }
+    
+    function drawGrid() {
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, 1024, 768);
+      
+      ctx.strokeStyle = '#00ff00';
+      ctx.lineWidth = 1;
+      
+      // Vertical lines
+      for (let x = 0; x <= 1024; x += 64) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, 768);
+        ctx.stroke();
+      }
+      
+      // Horizontal lines
+      for (let y = 0; y <= 768; y += 64) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(1024, y);
+        ctx.stroke();
+      }
+      
+      // Center crosshair
+      ctx.strokeStyle = '#ff0000';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(512, 0);
+      ctx.lineTo(512, 768);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, 384);
+      ctx.lineTo(1024, 384);
+      ctx.stroke();
+    }
+    
+    function drawCorners() {
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, 1024, 768);
+      
+      const size = 100;
+      const offset = 20;
+      
+      // Top-left (RED)
+      ctx.fillStyle = '#ff0000';
+      ctx.fillRect(offset, offset, size, size);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '20px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText('TOP-LEFT', offset + 5, offset + 130);
+      
+      // Top-right (BLUE)
+      ctx.fillStyle = '#0000ff';
+      ctx.fillRect(1024 - offset - size, offset, size, size);
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'right';
+      ctx.fillText('TOP-RIGHT', 1024 - offset - 5, offset + 130);
+      
+      // Bottom-left (YELLOW)
+      ctx.fillStyle = '#ffff00';
+      ctx.fillRect(offset, 768 - offset - size, size, size);
+      ctx.fillStyle = '#000000';
+      ctx.textAlign = 'left';
+      ctx.fillText('BOTTOM-LEFT', offset + 5, 768 - offset - 110);
+      
+      // Bottom-right (MAGENTA)
+      ctx.fillStyle = '#ff00ff';
+      ctx.fillRect(1024 - offset - size, 768 - offset - size, size, size);
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'right';
+      ctx.fillText('BOTTOM-RIGHT', 1024 - offset - 5, 768 - offset - 110);
+      
+      // Center marker
+      ctx.fillStyle = '#00ff00';
+      ctx.fillRect(512 - 50, 384 - 50, 100, 100);
+      ctx.fillStyle = '#000000';
+      ctx.textAlign = 'center';
+      ctx.fillText('CENTER', 512, 384 + 5);
+    }
+    
+    function loadFrame(filename) {
+      const iframe = document.getElementById('framePreview');
+      iframe.src = `/src/monitor/frames/${filename}`;
+    }
+    
+    // Draw initial test pattern
+    drawTestPattern();
+  </script>
+</body>
+</html>

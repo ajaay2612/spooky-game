@@ -82,6 +82,12 @@ Navigate → Experience Scene → Return to Editor → Refine → Repeat
 - **GUI Visibility**: Editor UI hidden in Play mode
 - **Selection State**: Cleared when entering Play mode
 
+### Monitor Interaction (v1.1.0+)
+- **M Key**: Toggle monitor activation/deactivation
+- **Active State**: Keyboard input captured for monitor navigation
+- **Inactive State**: Normal camera controls active
+- **Visual Feedback**: Corner markers pattern when inactive, HTML frames when active
+
 ### Object Interaction
 
 #### Object Creation
@@ -471,6 +477,126 @@ West│   20×20 space   │East
 - Performance warnings (center)
 - Mode indicator (top-center)
 - Keyboard shortcut overlay (H key)
+
+## Interactive CRT Monitor System (v1.1.0+)
+
+### Monitor Architecture
+
+**MonitorController**: Manages HTML frame rendering onto 3D monitor mesh
+
+**Components**:
+- Hidden iframe for loading HTML content
+- Offscreen canvas for rendering
+- html2canvas library for HTML-to-canvas conversion
+- Babylon.js DynamicTexture for 3D texture
+- Frame configuration system (JSON)
+
+**HTML-to-Texture Pipeline**:
+1. Load HTML file into hidden iframe
+2. Render iframe content to canvas using html2canvas
+3. Draw canvas to Babylon.js DynamicTexture
+4. Apply texture to monitor mesh as emissive material
+5. Update texture at 30 FPS refresh rate
+
+### Frame System
+
+**Frame Configuration** (frames-config.json):
+```json
+{
+  "activeFrame": "main-menu",
+  "frames": {
+    "main-menu": {
+      "id": "main-menu",
+      "file": "main-menu.html",
+      "name": "Main Menu",
+      "transitions": ["game-start", "credits"]
+    }
+  }
+}
+```
+
+**Frame Structure**:
+- HTML files with inline CSS (no external stylesheets)
+- `.selected` class for highlighting active elements
+- `data-transition="frame-id"` for navigation buttons
+- Standard input fields for text entry
+
+**Available Frames**:
+- **main-menu.html**: Main menu with "Start Game" and "Credits" options
+- **game-start.html**: Game start screen
+- **credits.html**: Credits screen
+
+### Keyboard Navigation
+
+**Navigation Mode** (default):
+- Arrow Down / S: Move selection down
+- Arrow Up / W: Move selection up
+- Enter: Activate selected element (transition or input)
+- M Key: Deactivate monitor
+
+**Input Mode** (when in text field):
+- Type: Characters added to input field
+- Backspace: Delete last character
+- Escape: Exit input mode
+- Enter: Submit (if applicable)
+
+**Interactive Elements**:
+- Buttons with `data-transition` attribute
+- Input fields (`<input>`, `<textarea>`)
+- Auto-detection and highlighting
+
+### Visual Design
+
+**CRT Aesthetic**:
+- Green-on-black terminal styling (#00ff00 on #0a0a0a)
+- Courier New monospace font
+- Emissive material for screen glow
+- Corner markers for alignment verification
+
+**Texture Settings**:
+- Resolution: 1024x768 pixels
+- Rotation: 270° (calibrated)
+- UV Scale: 1.32 (U), -0.96 (V)
+- UV Offset: -0.15 (U), 0.79 (V)
+
+### Monitor Mesh
+
+**Target Mesh**: `SM_Prop_ComputerMonitor_A_29_screen_mesh`
+- Automatically detected in scene
+- Material modified to use dynamic texture
+- Emissive properties for self-illumination
+- Fallback: Creates test plane if mesh not found
+
+**Material Configuration**:
+- Albedo/Diffuse texture: Dynamic texture
+- Emissive texture: Dynamic texture
+- Emissive color: White (1, 1, 1)
+- Unlit/Disable lighting: True
+
+### Performance
+
+**Optimization**:
+- Throttled rendering: 30 FPS refresh rate
+- Only re-renders on input or navigation
+- Offscreen rendering (no visible iframe)
+- Non-blocking initialization
+
+**Resource Usage**:
+- Texture memory: 1024x768 RGBA (~3 MB)
+- CPU: Minimal (only updates on interaction)
+- No impact on main render loop
+
+### Future Enhancements
+
+**Planned Features**:
+- Frame transition animations (fade, slide)
+- Sound effects for navigation
+- Save/load frame state
+- Multiple monitor support
+- Custom cursor rendering
+- Scanline/CRT shader effects
+- Frame history (back button)
+- Mouse support (raycasting)
 
 ## Mechanics (Current - v1.1.0)
 

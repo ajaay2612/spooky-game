@@ -6,6 +6,7 @@ import { ObjectPalette } from './src/editor/ObjectPalette.js';
 import { PropertyPanel } from './src/editor/PropertyPanel.js';
 import { SceneHierarchy } from './src/editor/SceneHierarchy.js';
 import { SettingsPanel } from './src/editor/SettingsPanel.js';
+import { MonitorController } from './src/monitor/MonitorController.js';
 
 // Global variables
 let engine = null;
@@ -14,6 +15,7 @@ let fpsDisplay = null;
 let loadStartTime = Date.now();
 let editorManager = null;
 let postProcessingPipeline = null;
+let monitorController = null;
 
 // Wait for DOM to be fully loaded
 window.addEventListener('DOMContentLoaded', () => {
@@ -348,7 +350,7 @@ function measureLoadTime() {
 /**
  * Initialize the game engine and scene
  */
-function initializeGame() {
+async function initializeGame() {
   try {
     // Check browser compatibility and WebGL support
     const compatibility = checkBrowserCompatibility();
@@ -446,6 +448,30 @@ function initializeGame() {
     const settingsPanel = new SettingsPanel(guiTexture, postProcessingPipeline);
     window.settingsPanel = settingsPanel; // Make globally accessible for refresh
 
+    // Initialize Monitor Controller (non-blocking)
+    monitorController = new MonitorController(scene);
+    window.monitorController = monitorController; // Make globally accessible for debugging
+    
+    // Initialize in background without blocking
+    monitorController.initialize().then(() => {
+      console.log('Monitor system ready');
+    }).catch(error => {
+      console.error('Monitor initialization failed:', error);
+    });
+
+    // Setup monitor activation key (M key)
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'm' || event.key === 'M') {
+        if (monitorController.isActive) {
+          monitorController.deactivate();
+          console.log('Monitor deactivated - press M to reactivate');
+        } else {
+          monitorController.activate();
+          console.log('Monitor activated - use Arrow keys/WASD to navigate, Enter to select, Escape to exit input');
+        }
+      }
+    });
+
     // Start in editor mode
     editorManager.enterEditorMode();
     
@@ -473,6 +499,11 @@ function initializeGame() {
       try {
         scene.render();
         updateFPSCounter();
+        
+        // Update monitor controller
+        if (monitorController) {
+          monitorController.update();
+        }
       } catch (error) {
         console.error('Render error:', error);
         // Don't stop the render loop, just log the error

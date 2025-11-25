@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Interactive CRT Monitor System
+  - MonitorController class for managing HTML frame rendering
+  - HTML-to-texture pipeline using html2canvas
+  - Keyboard-only navigation (Arrow keys/WASD + Enter)
+  - Frame configuration system (frames-config.json)
+  - Three sample frames (main menu, game start, credits)
+  - Dynamic texture rendering on 3D monitor mesh (SM_Prop_ComputerMonitor_A_29_screen_mesh)
+  - Text input support for interactive forms
+  - Frame transition validation system
+  - M key toggle for monitor activation/deactivation
+  - Emissive material for CRT glow effect
+  - Non-blocking initialization with mesh observer
+  - UV mapping correction (270° rotation, calibrated scaling)
+  - Debug tools for texture adjustment
+  - Corner markers test pattern for alignment verification
+  - Fallback rendering when html2canvas unavailable
+
+### Technical
+- Added html2canvas library (1.4.1) for HTML rendering
+- Created src/monitor/ directory structure
+- Integrated MonitorController into main render loop
+- Non-blocking async initialization
+- Interval-based mesh detection for scene loading
+- Texture rotation and scaling system (calibrated: 270°, uScale: 1.32, vScale: -0.96)
+- Test page (test.html) for texture debugging
+- Hidden iframe for HTML loading
+- Offscreen canvas for rendering
+- 30 FPS refresh rate for texture updates
+
+### Documentation
+- **README.md**: Added Interactive CRT Monitor System section, monitor controls, updated project structure with src/monitor/ directory
+- **CHANGELOG.md**: Documented monitor system implementation with technical details
+- **src/monitor/README.md**: Comprehensive monitor system documentation with architecture, usage, API, and troubleshooting
+
 ## [1.0.0] - 2025-11-21
 
 ### Added

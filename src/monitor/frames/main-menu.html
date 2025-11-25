@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #0a0a0a;
+      color: #00ff00;
+      font-family: 'Courier New', monospace;
+      font-size: 18px;
+      line-height: 1.6;
+    }
+
+    .title {
+      text-align: center;
+      font-size: 32px;
+      margin-bottom: 40px;
+      text-shadow: 0 0 10px #00ff00;
+    }
+
+    .menu-item {
+      padding: 10px 20px;
+      margin: 10px 0;
+      border: 2px solid #00ff00;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .menu-item.selected {
+      background: #00ff00;
+      color: #0a0a0a;
+      box-shadow: 0 0 20px #00ff00;
+    }
+
+    .menu-item:hover {
+      background: rgba(0, 255, 0, 0.2);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="title">SPOOKY GAME</div>
+  <div class="menu-item selected" data-transition="game-start">[ START GAME ]</div>
+  <div class="menu-item" data-transition="credits">[ CREDITS ]</div>
+</body>
+
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #0a0a0a;
+      color: #00ff00;
+      font-family: 'Courier New', monospace;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    .title {
+      text-align: center;
+      font-size: 24px;
+      margin-bottom: 30px;
+      text-shadow: 0 0 10px #00ff00;
+    }
+    .input-group {
+      margin: 20px 0;
+    }
+    .label {
+      display: block;
+      margin-bottom: 10px;
+    }
+    .input-field {
+      width: 100%;
+      padding: 10px;
+      background: #1a1a1a;
+      border: 2px solid #00ff00;
+      color: #00ff00;
+      font-family: 'Courier New', monospace;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    .input-field:focus {
+      outline: none;
+      box-shadow: 0 0 10px #00ff00;
+    }
+    .button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      border: 2px solid #00ff00;
+      background: transparent;
+      color: #00ff00;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-size: 16px;
+    }
+    .button.selected {
+      background: #00ff00;
+      color: #0a0a0a;
+    }
+  </style>
+</head>
+<body>
+  <div class="title">ENTER YOUR NAME</div>
+  <div class="input-group">
+    <label class="label">Name:</label>
+    <input type="text" class="input-field" id="playerName" placeholder="Type here..." maxlength="20">
+  </div>
+  <button class="button" data-transition="main-menu">[ BACK TO MENU ]</button>
+</body>
+</html>
