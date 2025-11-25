@@ -11,13 +11,41 @@ export class SerializationManager {
   serializeScene() {
     const data = {
       version: "1.0",
-      objects: []
+      objects: [],
+      postProcessing: null
     };
     
     // Serialize meshes
     this.scene.meshes.forEach(mesh => {
       if (mesh.name.startsWith('_')) return; // Skip internal meshes
       if (mesh.name === 'floor' || mesh.name === 'ceiling' || mesh.name.startsWith('wall')) return; // Skip room geometry
+      
+      // Check if this is an imported GLTF model root
+      if (mesh.metadata && mesh.metadata.isImportedGLTF) {
+        console.log(`Serializing GLTF model ${mesh.name}`);
+        
+        const gltfData = {
+          type: "gltf",
+          name: mesh.name,
+          position: mesh.position.asArray(),
+          rotation: mesh.rotation.asArray(),
+          scaling: mesh.scaling.asArray(),
+          modelPath: mesh.metadata.modelPath,
+          modelName: mesh.metadata.modelName
+        };
+        data.objects.push(gltfData);
+        return; // Don't process as regular mesh
+      }
+      
+      // Skip child meshes that belong to a GLTF model
+      // Check if this mesh or any of its parents is a GLTF root
+      let currentNode = mesh.parent;
+      while (currentNode) {
+        if (currentNode.metadata && currentNode.metadata.isImportedGLTF) {
+          return; // Skip child meshes of GLTF models
+        }
+        currentNode = currentNode.parent;
+      }
       
       const meshData = {
         type: "mesh",
@@ -69,6 +97,31 @@ export class SerializationManager {
       
       data.objects.push(lightData);
     });
+    
+    // Serialize post-processing settings
+    if (window.postProcessingPipeline) {
+      const pp = window.postProcessingPipeline;
+      data.postProcessing = {
+        fxaaEnabled: pp.fxaaEnabled,
+        bloomEnabled: pp.bloomEnabled,
+        bloomThreshold: pp.bloomThreshold,
+        bloomWeight: pp.bloomWeight,
+        bloomScale: pp.bloomScale,
+        contrast: pp.imageProcessing.contrast,
+        exposure: pp.imageProcessing.exposure,
+        vignetteEnabled: pp.imageProcessing.vignetteEnabled,
+        vignetteWeight: pp.imageProcessing.vignetteWeight,
+        chromaticAberrationEnabled: pp.chromaticAberrationEnabled,
+        chromaticAberrationAmount: pp.chromaticAberration.aberrationAmount,
+        grainEnabled: pp.grainEnabled,
+        grainIntensity: pp.grain.intensity,
+        grainAnimated: pp.grain.animated,
+        sharpenEnabled: pp.sharpenEnabled,
+        sharpenEdgeAmount: pp.sharpen.edgeAmount,
+        sharpenColorAmount: pp.sharpen.colorAmount
+      };
+      console.log('Post-processing settings serialized');
+    }
     
     return JSON.stringify(data, null, 2);
   }
@@ -154,7 +207,21 @@ export class SerializationManager {
     
     // Recreate objects
     for (const objData of data.objects) {
-      if (objData.type === "mesh") {
+      if (objData.type === "gltf") {
+        // Re-import GLTF model from models directory
+        try {
+          const mesh = await factory.importGLTF(objData.modelPath, objData.modelName, true);
+          if (mesh) {
+            mesh.name = objData.name;
+            mesh.position.fromArray(objData.position);
+            mesh.rotation.fromArray(objData.rotation);
+            mesh.scaling.fromArray(objData.scaling);
+            console.log(`Restored GLTF model ${objData.name}`);
+          }
+        } catch (error) {
+          console.error(`Failed to restore GLTF model ${objData.name}:`, error);
+        }
+      } else if (objData.type === "mesh") {
         const mesh = factory.createPrimitive(objData.meshType);
         if (mesh) {
           mesh.name = objData.name;
@@ -198,6 +265,37 @@ export class SerializationManager {
       }
     }
     
+    // Restore post-processing settings
+    if (data.postProcessing && window.postProcessingPipeline) {
+      const pp = window.postProcessingPipeline;
+      const settings = data.postProcessing;
+      
+      pp.fxaaEnabled = settings.fxaaEnabled;
+      pp.bloomEnabled = settings.bloomEnabled;
+      pp.bloomThreshold = settings.bloomThreshold;
+      pp.bloomWeight = settings.bloomWeight;
+      pp.bloomScale = settings.bloomScale;
+      pp.imageProcessing.contrast = settings.contrast;
+      pp.imageProcessing.exposure = settings.exposure;
+      pp.imageProcessing.vignetteEnabled = settings.vignetteEnabled;
+      pp.imageProcessing.vignetteWeight = settings.vignetteWeight;
+      pp.chromaticAberrationEnabled = settings.chromaticAberrationEnabled;
+      pp.chromaticAberration.aberrationAmount = settings.chromaticAberrationAmount;
+      pp.grainEnabled = settings.grainEnabled;
+      pp.grain.intensity = settings.grainIntensity;
+      pp.grain.animated = settings.grainAnimated;
+      pp.sharpenEnabled = settings.sharpenEnabled;
+      pp.sharpen.edgeAmount = settings.sharpenEdgeAmount;
+      pp.sharpen.colorAmount = settings.sharpenColorAmount;
+      
+      console.log('Post-processing settings restored');
+      
+      // Refresh settings panel if it exists
+      if (window.settingsPanel) {
+        window.settingsPanel.refresh();
+      }
+    }
+    
     console.log('Scene deserialized successfully');
   }
   
@@ -205,8 +303,8 @@ export class SerializationManager {
     try {
       console.log('Starting scene save...');
       const data = this.serializeScene();
-      console.log('Scene serialized, sending to server...');
       
+      // Save to file via server
       const response = await fetch('http://localhost:3001/api/save-scene', {
         method: 'POST',
         headers: {
@@ -215,13 +313,9 @@ export class SerializationManager {
         body: JSON.stringify({ data })
       });
       
-      console.log('Server response received:', response.status);
       const result = await response.json();
-      console.log('Server result:', result);
-      
       if (result.success) {
-        console.log('✓ Scene saved to project root as saved-3d-env.json');
-        alert('Scene saved successfully to saved-3d-env.json!');
+        console.log('✓ Scene saved to saved-3d-env.json');
       } else {
         throw new Error(result.error);
       }
@@ -232,26 +326,27 @@ export class SerializationManager {
     }
   }
   
-  async loadFromFile() {
+  async loadFromFile(silent = false) {
     try {
       console.log('Starting scene load...');
-      const response = await fetch('http://localhost:3001/api/load-scene');
-      console.log('Server response received:', response.status);
       
-      const result = await response.json();
-      console.log('Server result:', result);
+      // Load directly from the saved-3d-env.json file (no backend needed)
+      const response = await fetch('/saved-3d-env.json');
       
-      if (result.success) {
-        console.log('Deserializing scene data...');
-        await this.deserializeScene(result.data);
-        console.log('✓ Scene loaded from saved-3d-env.json');
-        alert('Scene loaded successfully!');
-      } else {
-        throw new Error(result.error);
+      if (!response.ok) {
+        throw new Error('No saved scene found');
       }
+      
+      const data = await response.text();
+      
+      console.log('Deserializing scene data...');
+      await this.deserializeScene(data);
+      console.log('✓ Scene loaded from saved-3d-env.json');
+      
     } catch (error) {
-      console.error('✗ Failed to load scene:', error);
-      alert(`Failed to load scene: ${error.message}\nMake sure the server is running and a scene has been saved.`);
+      if (!silent) {
+        console.error('✗ Failed to load scene:', error);
+      }
       throw error;
     }
   }

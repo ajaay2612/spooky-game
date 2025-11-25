@@ -53,26 +53,40 @@ export class SelectionManager {
       return;
     }
     
+    // If this is a child of a GLTF model, select the root instead
+    let targetObject = object;
+    if (object instanceof BABYLON.Mesh) {
+      let currentNode = object;
+      while (currentNode) {
+        if (currentNode.metadata && currentNode.metadata.isImportedGLTF) {
+          targetObject = currentNode;
+          console.log(`Found GLTF root: ${targetObject.name} (clicked on ${object.name})`);
+          break;
+        }
+        currentNode = currentNode.parent;
+      }
+    }
+    
     // Remove highlight from previously selected object
     if (this.selectedObject && this.selectedObject instanceof BABYLON.Mesh) {
       this.highlightLayer.removeMesh(this.selectedObject);
     }
     
     // Update selection
-    this.selectedObject = object;
+    this.selectedObject = targetObject;
     
     // Add highlight to newly selected object (only meshes can be highlighted)
-    if (object instanceof BABYLON.Mesh) {
-      this.highlightLayer.addMesh(object, BABYLON.Color3.Yellow());
+    if (targetObject instanceof BABYLON.Mesh) {
+      this.highlightLayer.addMesh(targetObject, BABYLON.Color3.Yellow());
     }
     
     // Trigger selection changed callbacks
     if (this.onSelectionChanged) {
-      this.onSelectionChanged(object);
+      this.onSelectionChanged(targetObject);
     }
-    this.selectionCallbacks.forEach(callback => callback(object));
+    this.selectionCallbacks.forEach(callback => callback(targetObject));
     
-    console.log(`Selected object: ${object.name}`);
+    console.log(`Selected object: ${targetObject.name}`);
   }
   
   deselectObject() {

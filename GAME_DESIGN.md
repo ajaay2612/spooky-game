@@ -327,6 +327,7 @@ West│   20×20 space   │East
 **Property Panel Integration**:
 - Gizmo buttons appear at top of Transform section
 - "Move" button: Activates position gizmo
+- "Rotate" button: Activates rotation gizmo
 - "Scale" button: Activates scale gizmo
 - Active button highlighted in blue (#4a9eff)
 - Click again to deactivate
@@ -570,10 +571,11 @@ West│   20×20 space   │East
 
 **Available Gizmos**:
 - Move Gizmo: Position objects with visual axis handles
+- Rotate Gizmo: Rotate objects around X, Y, Z axes
 - Scale Gizmo: Scale objects with uniform or non-uniform modes
 
 **Activation**:
-- Click "Move" or "Scale" button in Property Panel
+- Click "Move", "Rotate", or "Scale" button in Property Panel
 - Click again to deactivate
 - Only one gizmo active at a time
 
@@ -583,6 +585,13 @@ West│   20×20 space   │East
 - Blue handle: Z-axis movement
 - Drag handles to move object
 - Real-time position updates
+
+**Rotate Gizmo**:
+- Red ring: Rotate around X-axis
+- Green ring: Rotate around Y-axis
+- Blue ring: Rotate around Z-axis
+- Drag rings to rotate object
+- Real-time rotation updates
 
 **Scale Gizmo**:
 - Two modes: Uniform and Non-uniform

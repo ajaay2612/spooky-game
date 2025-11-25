@@ -83,6 +83,7 @@ export class EditorManager {
   setGizmoMode(mode) {
     // Disable all gizmos first
     this.gizmoManager.positionGizmoEnabled = false;
+    this.gizmoManager.rotationGizmoEnabled = false;
     this.gizmoManager.scaleGizmoEnabled = false;
     
     const selectedObject = this.selectionManager.selectedObject;
@@ -99,6 +100,11 @@ export class EditorManager {
       this.gizmoManager.attachToMesh(selectedObject);
       this.activeGizmo = 'move';
       console.log('Position gizmo enabled for:', selectedObject.name);
+    } else if (mode === 'rotate') {
+      this.gizmoManager.rotationGizmoEnabled = true;
+      this.gizmoManager.attachToMesh(selectedObject);
+      this.activeGizmo = 'rotate';
+      console.log('Rotation gizmo enabled for:', selectedObject.name);
     } else if (mode === 'scale') {
       this.gizmoManager.scaleGizmoEnabled = true;
       this.gizmoManager.attachToMesh(selectedObject);
@@ -294,8 +300,8 @@ export class EditorManager {
       return;
     }
     
-    // Prevent deletion of essential objects
-    const essentialNames = ['playerCamera', 'editorCamera', 'camera', 'hemisphericLight', 'pointLight'];
+    // Prevent deletion of cameras only
+    const essentialNames = ['playerCamera', 'editorCamera', 'camera'];
     if (essentialNames.includes(selected.name)) {
       console.warn(`Cannot delete essential object: ${selected.name}`);
       alert(`Cannot delete essential object: ${selected.name}`);
@@ -358,9 +364,9 @@ export class EditorManager {
     }
   }
   
-  async loadScene() {
+  async loadScene(silent = false) {
     try {
-      await this.serializationManager.loadFromFile();
+      await this.serializationManager.loadFromFile(silent);
       
       // Deselect any selected object
       this.selectionManager.deselectObject();
@@ -372,7 +378,31 @@ export class EditorManager {
       
       console.log('Scene loaded successfully');
     } catch (error) {
-      console.error('Failed to load scene:', error);
+      if (!silent) {
+        console.error('Failed to load scene:', error);
+      }
+    }
+  }
+  
+  async autoLoadScene() {
+    // Try to load saved scene on startup (silently fail if no save exists)
+    try {
+      await this.loadScene(true);
+      
+      // Refresh scene hierarchy after auto-load
+      if (this.sceneHierarchy) {
+        this.sceneHierarchy.refresh();
+      }
+      
+      console.log('Auto-loaded saved scene');
+    } catch (error) {
+      // Silently ignore - no saved scene exists
+      console.log('No saved scene to auto-load');
+      
+      // Still refresh hierarchy to show default objects
+      if (this.sceneHierarchy) {
+        this.sceneHierarchy.refresh();
+      }
     }
   }
   

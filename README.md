@@ -20,7 +20,7 @@ A 3D first-person spooky game built with Babylon.js. Features a dark atmospheric
 - **Save/Load**: Serialize and deserialize scenes to JSON
 
 ### Object Manipulation
-- **Transform Gizmos**: Visual Move and Scale gizmos for interactive manipulation
+- **Transform Gizmos**: Visual Move, Rotate, and Scale gizmos for interactive manipulation
 - **Transform Controls**: Edit position, rotation (degrees), and scale via input fields
 - **Material Editor**: Adjust diffuse, specular, and emissive colors with RGB sliders
 - **Light Editor**: Control intensity and color of light sources
@@ -105,7 +105,7 @@ npm run preview
 **Status**: ✅ Optimized (v1.1.0)
 
 ### Key Metrics
-- **Bundle Size**: 37.45 KB (9.20 KB gzipped) - Application code only
+- **Bundle Size**: 52.91 KB (12.36 KB gzipped) - Application code only
 - **Draw Calls**: 5-17 (capped)
 - **FPS**: 60 fps with 100+ objects
 - **VRAM per object**: ~500 bytes
@@ -211,10 +211,9 @@ MIT
 - [x] Scene hierarchy panel ✅ v1.1.0
 - [x] GLTF model import ✅ v1.1.0
 - [x] Object duplication ✅ v1.1.0
-- [x] Transform gizmos (position, rotation, scale) ✅ v1.1.0
+- [x] Transform gizmos (Move, Rotate, Scale) ✅ v1.1.0
 
 ### Planned 🎯
-- [ ] Rotation gizmo (complete the transform gizmo set)
 - [ ] Physics integration (collision detection, gravity)
 - [ ] Texture support and texture editor
 - [ ] Performance monitoring GUI (FPS, draw calls, memory)

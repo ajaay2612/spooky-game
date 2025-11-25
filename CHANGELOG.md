@@ -82,6 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - SceneHierarchy: Tree view of all scene objects
 - **Transform Gizmos**: Interactive visual manipulation tools
   - Move Gizmo: Position objects with visual handles
+  - Rotate Gizmo: Rotate objects around X, Y, Z axes
   - Scale Gizmo: Scale objects with uniform/non-uniform modes
   - Uniform Scaling: Lock aspect ratio checkbox for proportional scaling
   - Gizmo toggle buttons in Property Panel

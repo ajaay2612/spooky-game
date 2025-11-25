@@ -1,22 +1,48 @@
 {
   "mcpServers": {
-    "babylonjs-docs": {
-      "command": "uvx",
-      "args": ["mcp-server-babylonjs"],
+    "babylonjs-3d": {
+      "command": "node",
+      "args": [
+        "mcps/babylonjs-mcp/dist/mcp-stdio-server.js"
+      ],
       "disabled": true,
-      "autoApprove": ["search_docs", "get_page"],
-      "env": {
-        "FASTMCP_LOG_LEVEL": "ERROR"
-      }
+      "autoApprove": [
+        "mcp_davidvanstory_babylonjs_mcp_create_object",
+        "mcp_davidvanstory_babylonjs_mcp_delete_object",
+        "mcp_davidvanstory_babylonjs_mcp_select_object",
+        "mcp_davidvanstory_babylonjs_mcp_list_objects"
+      ]
+    },
+    "babylonjs-docs": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-puppeteer"
+      ],
+      "disabled": false,
+      "autoApprove": [
+        "puppeteer_navigate",
+        "puppeteer_screenshot",
+        "puppeteer_click",
+        "puppeteer_fill",
+        "puppeteer_select",
+        "puppeteer_hover",
+        "puppeteer_evaluate"
+      ]
     },
     "vite-docs": {
       "command": "uvx",
-      "args": ["mcp-server-vite"],
-      "disabled": true,
-      "autoApprove": ["search_docs", "get_page"],
+      "args": [
+        "mcp-server-vite"
+      ],
       "env": {
         "FASTMCP_LOG_LEVEL": "ERROR"
-      }
+      },
+      "disabled": true,
+      "autoApprove": [
+        "search_docs",
+        "get_page"
+      ]
     }
   }
 }

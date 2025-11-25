@@ -11,9 +11,10 @@ export class PropertyPanel {
     this.isVisible = false;
     
     // Gizmo state
-    this.activeGizmoMode = null; // 'move' or 'scale'
+    this.activeGizmoMode = null; // 'move', 'rotate', or 'scale'
     this.uniformScaling = true; // Aspect ratio lock for scale
     this.moveButton = null;
+    this.rotateButton = null;
     this.scaleButton = null;
     this.uniformScaleCheckbox = null;
     
@@ -440,13 +441,30 @@ export class PropertyPanel {
     this.moveButton.background = "#3a3a3a";
     this.moveButton.fontSize = 13;
     this.moveButton.cornerRadius = 4;
-    this.moveButton.paddingRight = "5px";
+    this.moveButton.paddingRight = "3px";
     
     this.moveButton.onPointerClickObservable.add(() => {
       this.toggleGizmoMode('move');
     });
     
     buttonContainer.addControl(this.moveButton);
+    
+    // Rotate button
+    this.rotateButton = BABYLON.GUI.Button.CreateSimpleButton("rotateGizmo", "Rotate");
+    this.rotateButton.width = "90px";
+    this.rotateButton.height = "35px";
+    this.rotateButton.color = "white";
+    this.rotateButton.background = "#3a3a3a";
+    this.rotateButton.fontSize = 13;
+    this.rotateButton.cornerRadius = 4;
+    this.rotateButton.paddingLeft = "3px";
+    this.rotateButton.paddingRight = "3px";
+    
+    this.rotateButton.onPointerClickObservable.add(() => {
+      this.toggleGizmoMode('rotate');
+    });
+    
+    buttonContainer.addControl(this.rotateButton);
     
     // Scale button
     this.scaleButton = BABYLON.GUI.Button.CreateSimpleButton("scaleGizmo", "Scale");
@@ -456,7 +474,7 @@ export class PropertyPanel {
     this.scaleButton.background = "#3a3a3a";
     this.scaleButton.fontSize = 13;
     this.scaleButton.cornerRadius = 4;
-    this.scaleButton.paddingLeft = "5px";
+    this.scaleButton.paddingLeft = "3px";
     
     this.scaleButton.onPointerClickObservable.add(() => {
       this.toggleGizmoMode('scale');
@@ -541,6 +559,15 @@ export class PropertyPanel {
         this.moveButton.background = "#4a9eff";
       } else {
         this.moveButton.background = "#3a3a3a";
+      }
+    }
+    
+    // Update Rotate button
+    if (this.rotateButton) {
+      if (this.activeGizmoMode === 'rotate') {
+        this.rotateButton.background = "#4a9eff";
+      } else {
+        this.rotateButton.background = "#3a3a3a";
       }
     }
     

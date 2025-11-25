@@ -88,24 +88,82 @@ export class ObjectFactory {
     return light;
   }
   
-  async importGLTF(url) {
+  async importGLTF(urlOrPath, modelNameOrData = null, skipDefaultPosition = false) {
     try {
-      console.log(`Importing GLTF from: ${url}`);
-      const result = await BABYLON.SceneLoader.ImportMeshAsync("", "", url, this.scene);
+      console.log(`Importing GLTF from: ${urlOrPath}`);
+      
+      let rootUrl = "";
+      let sceneFilename = urlOrPath;
+      
+      // Determine if this is a server path or blob URL
+      if (urlOrPath.startsWith('/models/')) {
+        // Server path - split into root and filename
+        rootUrl = "/models/";
+        sceneFilename = urlOrPath.replace('/models/', '');
+      }
+      
+      const result = await BABYLON.SceneLoader.ImportMeshAsync(
+        null,  // meshNames - null imports all meshes
+        rootUrl,
+        sceneFilename,
+        this.scene,
+        null,  // onProgress callback
+        ".glb" // pluginExtension - helps the loader identify the format
+      );
       
       if (result.meshes && result.meshes.length > 0) {
-        const rootMesh = result.meshes[0];
-        rootMesh.name = `imported_${this.objectCounter++}`;
-        rootMesh.position = new BABYLON.Vector3(0, 0, 0);
+        // Get the root mesh (usually the first one or find the parent)
+        let rootMesh = result.meshes[0];
         
-        console.log(`Successfully imported GLTF: ${rootMesh.name}`);
+        // If there's a __root__ mesh, use it as the parent
+        const rootNode = result.meshes.find(m => m.name === "__root__");
+        if (rootNode) {
+          rootMesh = rootNode;
+        }
+        
+        // Log all meshes for debugging
+        console.log('GLTF meshes:', result.meshes.map(m => ({ name: m.name, parent: m.parent?.name })));
+        console.log('Selected root mesh:', rootMesh.name);
+        
+        rootMesh.name = `imported_${this.objectCounter++}`;
+        
+        // Store original scaling to preserve coordinate system orientation
+        const originalScaling = rootMesh.scaling.clone();
+        
+        // Reset position and rotation, but preserve scale signs (for coordinate system)
+        rootMesh.position = new BABYLON.Vector3(0, 0, 0);
+        rootMesh.rotation = new BABYLON.Vector3(0, 0, 0);
+        // Keep the sign of each scale component but normalize magnitude to 1
+        rootMesh.scaling = new BABYLON.Vector3(
+          Math.sign(originalScaling.x) || 1,
+          Math.sign(originalScaling.y) || 1,
+          Math.sign(originalScaling.z) || 1
+        );
+        
+        // Only set default position if not loading from saved scene
+        if (!skipDefaultPosition) {
+          rootMesh.position = new BABYLON.Vector3(0, 1, 0);
+          console.log(`Set default position for ${rootMesh.name}:`, rootMesh.position);
+        } else {
+          console.log(`Reset transforms for ${rootMesh.name}, ready for saved transforms`);
+        }
+        
+        // Store metadata for serialization
+        rootMesh.metadata = {
+          isImportedGLTF: true,
+          modelPath: urlOrPath.startsWith('/models/') ? urlOrPath : null,
+          modelName: modelNameOrData,
+          originalName: rootMesh.name
+        };
+        
+        console.log(`Successfully imported GLTF: ${rootMesh.name} with ${result.meshes.length} meshes`);
         return rootMesh;
       } else {
         throw new Error("No meshes found in GLTF file");
       }
     } catch (error) {
       console.error("Failed to load GLTF:", error);
-      throw error;
+      throw new Error(`Unable to load model: ${error.message}`);
     }
   }
   

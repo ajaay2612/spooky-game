@@ -159,50 +159,141 @@ export class ObjectPalette {
     const header = this.createSectionHeader("Models");
     this.panel.addControl(header);
     
-    const button = this.createButton("Import GLTF", () => {
-      this.openGLTFImport();
+    const button = this.createButton("Load Model", () => {
+      this.openModelSelector();
     });
     this.panel.addControl(button);
   }
   
-  openGLTFImport() {
-    // Create file input element
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.gltf,.glb';
-    
-    input.onchange = async (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        try {
-          // Show loading indicator (simple alert for now)
-          console.log('Loading GLTF model...');
-          
-          // Create URL from file
-          const url = URL.createObjectURL(file);
-          
-          // Import the model
-          const rootMesh = await this.editor.objectFactory.importGLTF(url);
-          
-          if (rootMesh) {
-            this.editor.selectionManager.selectObject(rootMesh);
-            if (this.editor.sceneHierarchy) {
-              this.editor.sceneHierarchy.refresh();
-            }
-            console.log('GLTF model imported successfully');
-          }
-          
-          // Clean up URL
-          URL.revokeObjectURL(url);
-        } catch (error) {
-          console.error('Failed to import GLTF:', error);
-          alert(`Failed to import model: ${error.message}`);
-        }
+  async openModelSelector() {
+    try {
+      // Fetch list of models from the models directory
+      const response = await fetch('http://localhost:3001/api/list-models');
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error);
       }
-    };
+      
+      const models = result.models;
+      
+      if (models.length === 0) {
+        alert('No models found in the /models directory.\nPlace your .gltf or .glb files there.');
+        return;
+      }
+      
+      // Create a simple selection dialog
+      this.showModelSelectionDialog(models);
+      
+    } catch (error) {
+      console.error('Failed to list models:', error);
+      alert(`Failed to load models list: ${error.message}\nMake sure the server is running.`);
+    }
+  }
+  
+  showModelSelectionDialog(models) {
+    // Create modal overlay
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    `;
     
-    // Trigger file picker
-    input.click();
+    // Create dialog
+    const dialog = document.createElement('div');
+    dialog.style.cssText = `
+      background: #2a2a2a;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 400px;
+      max-height: 500px;
+      overflow-y: auto;
+      color: white;
+      font-family: Arial, sans-serif;
+    `;
+    
+    // Title
+    const title = document.createElement('h3');
+    title.textContent = 'Select Model';
+    title.style.cssText = 'margin-top: 0; color: #4a9eff;';
+    dialog.appendChild(title);
+    
+    // Model list
+    models.forEach(modelName => {
+      const button = document.createElement('button');
+      button.textContent = modelName;
+      button.style.cssText = `
+        display: block;
+        width: 100%;
+        padding: 10px;
+        margin: 5px 0;
+        background: #3a3a3a;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+      `;
+      
+      button.onmouseenter = () => button.style.background = '#4a4a4a';
+      button.onmouseleave = () => button.style.background = '#3a3a3a';
+      
+      button.onclick = async () => {
+        document.body.removeChild(overlay);
+        await this.loadModelFromServer(modelName);
+      };
+      
+      dialog.appendChild(button);
+    });
+    
+    // Cancel button
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.style.cssText = `
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin-top: 15px;
+      background: #555;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    `;
+    cancelBtn.onclick = () => document.body.removeChild(overlay);
+    dialog.appendChild(cancelBtn);
+    
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
+  }
+  
+  async loadModelFromServer(modelName) {
+    try {
+      console.log(`Loading model: ${modelName}`);
+      
+      // Load model from server
+      const modelPath = `/models/${modelName}`;
+      const rootMesh = await this.editor.objectFactory.importGLTF(modelPath, modelName);
+      
+      if (rootMesh) {
+        this.editor.selectionManager.selectObject(rootMesh);
+        if (this.editor.sceneHierarchy) {
+          this.editor.sceneHierarchy.refresh();
+        }
+        console.log('Model loaded successfully');
+      }
+    } catch (error) {
+      console.error('Failed to load model:', error);
+      alert(`Failed to load model: ${error.message}`);
+    }
   }
   
   show() {

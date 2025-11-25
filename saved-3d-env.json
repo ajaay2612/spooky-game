@@ -6,8 +6,8 @@
       "meshType": "box",
       "name": "Box_0",
       "position": [
-        3.833984375,
-        0.5889028906822205,
+        0,
+        3.582712411880493,
         0
       ],
       "rotation": [
@@ -16,15 +16,15 @@
         0
       ],
       "scaling": [
-        1,
-        1,
-        1
+        0.22818821668624878,
+        0.22818821668624878,
+        0.22818821668624878
       ],
       "material": {
         "diffuseColor": [
-          0.45741987066223555,
-          0.8059383816091024,
-          0.331678227840289
+          0.7606685255256722,
+          0.964038885095856,
+          0.31444062340008117
         ],
         "specularColor": [
           1,
@@ -32,20 +32,19 @@
           1
         ],
         "emissiveColor": [
-          0,
-          0,
-          0
+          1,
+          0.6435193544976803,
+          0.3792021120098221
         ]
       }
     },
     {
-      "type": "mesh",
-      "meshType": "sphere",
-      "name": "Sphere_1",
+      "type": "gltf",
+      "name": "imported_0",
       "position": [
-        3.8299810886383057,
-        1.6006053686141968,
-        0.03171651437878609
+        0,
+        1,
+        0
       ],
       "rotation": [
         0,
@@ -55,31 +54,16 @@
       "scaling": [
         1,
         1,
-        1
+        -1
       ],
-      "material": {
-        "diffuseColor": [
-          0.3874193163417411,
-          0.0758627786662498,
-          0.041312245499707134
-        ],
-        "specularColor": [
-          1,
-          1,
-          1
-        ],
-        "emissiveColor": [
-          0,
-          0,
-          0
-        ]
-      }
+      "modelPath": "/models/stage.glb",
+      "modelName": "stage.glb"
     },
     {
       "type": "light",
       "lightType": "hemispheric",
       "name": "hemisphericLight",
-      "intensity": 0.3,
+      "intensity": 0,
       "diffuse": [
         0.5,
         0.5,
@@ -106,11 +90,11 @@
       "type": "light",
       "lightType": "point",
       "name": "pointLight",
-      "intensity": 3.233333333333333,
+      "intensity": 6.920003255208334,
       "diffuse": [
         1,
-        0.7,
-        0.4
+        0.5109592329351287,
+        0.2466195905373445
       ],
       "specular": [
         0.5,
@@ -124,5 +108,24 @@
       ],
       "range": 15
     }
-  ]
+  ],
+  "postProcessing": {
+    "fxaaEnabled": true,
+    "bloomEnabled": true,
+    "bloomThreshold": 0,
+    "bloomWeight": 0.2839285714285714,
+    "bloomScale": 0.4928571428571429,
+    "contrast": 1.0030358450753347,
+    "exposure": 1.094642857142857,
+    "vignetteEnabled": true,
+    "vignetteWeight": 0.7114292689732142,
+    "chromaticAberrationEnabled": false,
+    "chromaticAberrationAmount": 9.750017438616071,
+    "grainEnabled": true,
+    "grainIntensity": 9.857134137834823,
+    "grainAnimated": true,
+    "sharpenEnabled": true,
+    "sharpenEdgeAmount": 0.5314287458147321,
+    "sharpenColorAmount": 1
+  }
 }

@@ -5,6 +5,7 @@ import { EditorManager } from './src/editor/EditorManager.js';
 import { ObjectPalette } from './src/editor/ObjectPalette.js';
 import { PropertyPanel } from './src/editor/PropertyPanel.js';
 import { SceneHierarchy } from './src/editor/SceneHierarchy.js';
+import { SettingsPanel } from './src/editor/SettingsPanel.js';
 
 // Global variables
 let engine = null;
@@ -12,6 +13,7 @@ let scene = null;
 let fpsDisplay = null;
 let loadStartTime = Date.now();
 let editorManager = null;
+let postProcessingPipeline = null;
 
 // Wait for DOM to be fully loaded
 window.addEventListener('DOMContentLoaded', () => {
@@ -159,6 +161,66 @@ function setupAtmosphericLighting(scene) {
     hemisphericLight,
     pointLight
   };
+}
+
+/**
+ * Setup post-processing effects for realistic rendering
+ * @param {BABYLON.Scene} scene - The Babylon.js scene
+ * @param {Array} cameras - Array of cameras to attach effects to
+ */
+function setupPostProcessing(scene, cameras) {
+  // Create default rendering pipeline with post-processing effects
+  const pipeline = new BABYLON.DefaultRenderingPipeline(
+    "defaultPipeline",
+    true, // HDR enabled
+    scene,
+    cameras // Attach to all cameras
+  );
+
+  // Enable MSAA (Multi-Sample Anti-Aliasing) for best quality
+  pipeline.samples = 4; // 4x MSAA - higher quality than FXAA
+  
+  // Enable FXAA as additional pass for even smoother edges
+  pipeline.fxaaEnabled = true;
+
+  // Enable bloom for glowing lights
+  pipeline.bloomEnabled = true;
+  pipeline.bloomThreshold = 0.8; // Only bright areas bloom
+  pipeline.bloomWeight = 0.3; // Bloom intensity
+  pipeline.bloomKernel = 64; // Bloom spread
+  pipeline.bloomScale = 0.5; // Bloom quality
+
+  // Enable image processing for better colors
+  pipeline.imageProcessingEnabled = true;
+  pipeline.imageProcessing.contrast = 1.1; // Slightly increase contrast
+  pipeline.imageProcessing.exposure = 1.0; // Normal exposure
+  
+  // Enable tone mapping for realistic lighting
+  pipeline.imageProcessing.toneMappingEnabled = true;
+  pipeline.imageProcessing.toneMappingType = BABYLON.ImageProcessingConfiguration.TONEMAPPING_ACES;
+
+  // Enable vignette for cinematic look
+  pipeline.imageProcessing.vignetteEnabled = true;
+  pipeline.imageProcessing.vignetteWeight = 1.5;
+  pipeline.imageProcessing.vignetteCameraFov = 0.8;
+
+  // Reduce chromatic aberration for subtle effect (was too strong)
+  pipeline.chromaticAberrationEnabled = true;
+  pipeline.chromaticAberration.aberrationAmount = 5; // Much more subtle
+
+  // Enable grain for film-like quality
+  pipeline.grainEnabled = true;
+  pipeline.grain.intensity = 10;
+  pipeline.grain.animated = true;
+
+  // Enable sharpen for crisp details
+  pipeline.sharpenEnabled = true;
+  pipeline.sharpen.edgeAmount = 0.3;
+  pipeline.sharpen.colorAmount = 0.5;
+
+  console.log('Post-processing pipeline initialized with bloom, AA, and effects');
+  
+  return pipeline;
 }
 
 /**
@@ -332,14 +394,36 @@ function initializeGame() {
     scene = new BABYLON.Scene(engine);
     scene.clearColor = new BABYLON.Color3(0.01, 0.01, 0.02); // Very dark blue for spooky atmosphere
 
-    // Create room environment geometry
-    const roomMeshes = createRoomEnvironment(scene);
+    // Initialize KTX2 decoder for compressed textures
+    if (BABYLON.KhronosTextureContainer2) {
+      engine.enableOfflineSupport = false; // Disable offline support for KTX2
+      scene.enableOfflineSupport = false;
+      
+      // Set KTX2 decoder configuration
+      if (!BABYLON.KhronosTextureContainer2.URLConfig) {
+        BABYLON.KhronosTextureContainer2.URLConfig = {
+          jsDecoderModule: "https://cdn.babylonjs.com/babylon.ktx2Decoder.js",
+          wasmUASTCToASTC: null,
+          wasmUASTCToBC7: null,
+          wasmUASTCToRGBA_UNORM: null,
+          wasmUASTCToRGBA_SRGB: null,
+          jsMSCTranscoder: null,
+          wasmMSCTranscoder: null
+        };
+      }
+      console.log('KTX2 decoder initialized for compressed textures');
+    }
 
-    // Apply materials and colors for spooky atmosphere
-    applySpookyMaterials(roomMeshes, scene);
-
-    // Setup atmospheric lighting system
-    setupAtmosphericLighting(scene);
+    // Create basic lighting (minimal setup)
+    const hemisphericLight = new BABYLON.HemisphericLight(
+      "hemisphericLight",
+      new BABYLON.Vector3(0, 1, 0),
+      scene
+    );
+    hemisphericLight.intensity = 0.5;
+    hemisphericLight.diffuse = new BABYLON.Color3(0.8, 0.8, 0.9);
+    
+    console.log('Basic scene initialized without room geometry');
 
     // Create GUI texture for editor UI
     const guiTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
@@ -353,8 +437,22 @@ function initializeGame() {
     editorManager.propertyPanel = new PropertyPanel(editorManager, guiTexture);
     editorManager.sceneHierarchy = new SceneHierarchy(editorManager, guiTexture);
 
+    // Setup post-processing effects for realistic rendering (attach to both cameras)
+    const cameras = [editorManager.cameraManager.editorCamera, editorManager.cameraManager.playerCamera];
+    postProcessingPipeline = setupPostProcessing(scene, cameras);
+    window.postProcessingPipeline = postProcessingPipeline; // Make globally accessible for serialization
+    
+    // Create settings panel for post-processing controls
+    const settingsPanel = new SettingsPanel(guiTexture, postProcessingPipeline);
+    window.settingsPanel = settingsPanel; // Make globally accessible for refresh
+
     // Start in editor mode
     editorManager.enterEditorMode();
+    
+    // Auto-load saved scene if it exists (after a small delay to ensure UI is ready)
+    setTimeout(() => {
+      editorManager.autoLoadScene();
+    }, 100);
 
     // Implement window resize handler for responsive canvas
     window.addEventListener('resize', () => {
