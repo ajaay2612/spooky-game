@@ -53,18 +53,51 @@ export class SceneHierarchy {
     this.panel.clearControls();
     this.objectButtons.clear();
     
-    // Add header
+    // Add header container with title and refresh button
+    const headerContainer = new BABYLON.GUI.StackPanel();
+    headerContainer.height = "35px";
+    headerContainer.width = "190px";
+    headerContainer.isVertical = false;
+    this.panel.addControl(headerContainer);
+    
+    // Add header text
     const header = new BABYLON.GUI.TextBlock();
     header.text = "Scene Hierarchy";
-    header.height = "30px";
-    header.width = "190px";
+    header.width = "140px";
     header.color = "#4a9eff";
     header.fontSize = 16;
     header.fontWeight = "bold";
     header.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-    header.textWrapping = true;
     header.paddingLeft = "5px";
-    this.panel.addControl(header);
+    headerContainer.addControl(header);
+    
+    // Add refresh button
+    const refreshBtn = BABYLON.GUI.Button.CreateSimpleButton(
+      `hierarchy_refresh_${Date.now()}`,
+      "↻"
+    );
+    refreshBtn.width = "40px";
+    refreshBtn.height = "30px";
+    refreshBtn.color = "white";
+    refreshBtn.background = "#4a9eff";
+    refreshBtn.fontSize = 18;
+    refreshBtn.cornerRadius = 3;
+    refreshBtn.thickness = 0;
+    
+    refreshBtn.onPointerEnterObservable.add(() => {
+      refreshBtn.background = "#5ab0ff";
+    });
+    
+    refreshBtn.onPointerOutObservable.add(() => {
+      refreshBtn.background = "#4a9eff";
+    });
+    
+    refreshBtn.onPointerClickObservable.add(() => {
+      this.refresh();
+      console.log('Scene hierarchy manually refreshed');
+    });
+    
+    headerContainer.addControl(refreshBtn);
     
     // Get objects from scene
     const meshes = this.editor.scene.meshes.filter(m => !m.name.startsWith('_'));

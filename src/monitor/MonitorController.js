@@ -3,6 +3,8 @@
  * Renders HTML content onto a 3D monitor screen texture
  */
 
+import { BootSequenceRenderer } from './BootSequenceRenderer.js';
+
 export class MonitorController {
   constructor(scene) {
     this.scene = scene;
@@ -28,8 +30,8 @@ export class MonitorController {
     this.activeInputField = null;
     
     // Settings
-    this.textureWidth = 1024;
-    this.textureHeight = 768;
+    this.textureWidth = 2048;
+    this.textureHeight = 1536;
     this.refreshRate = 30; // FPS for texture updates
     this.lastRenderTime = 0;
     
@@ -205,9 +207,9 @@ export class MonitorController {
         
         // Fix UV mapping - calibrated settings
         this.dynamicTexture.wAng = (270 * Math.PI) / 180;
-        this.dynamicTexture.uScale = 1.32;
-        this.dynamicTexture.vScale = -0.96;
-        this.dynamicTexture.uOffset = -0.15;
+        this.dynamicTexture.uScale = 1.37;
+        this.dynamicTexture.vScale = -0.98;
+        this.dynamicTexture.uOffset = -0.18;
         this.dynamicTexture.vOffset = 0.79;
         
         console.log('Modified PBR material with dynamic texture (calibrated UV mapping)');
@@ -220,9 +222,9 @@ export class MonitorController {
         
         // Fix UV mapping - calibrated settings
         this.dynamicTexture.wAng = (270 * Math.PI) / 180;
-        this.dynamicTexture.uScale = 1.32;
-        this.dynamicTexture.vScale = -0.96;
-        this.dynamicTexture.uOffset = -0.15;
+        this.dynamicTexture.uScale = 1.37;
+        this.dynamicTexture.vScale = -0.98;
+        this.dynamicTexture.uOffset = -0.18;
         this.dynamicTexture.vOffset = 0.79;
         
         console.log('Modified Standard material with dynamic texture (calibrated UV mapping)');
@@ -411,6 +413,12 @@ export class MonitorController {
    */
   async renderFrameToTexture() {
     try {
+      // Check if this is the boot sequence frame - use direct rendering
+      if (this.currentFrame && this.currentFrame.id === 'boot-sequence') {
+        await this.renderBootSequenceDirect();
+        return;
+      }
+
       const iframeDoc = this.hiddenIframe.contentDocument || this.hiddenIframe.contentWindow.document;
       const iframeBody = iframeDoc.body;
 
@@ -421,6 +429,9 @@ export class MonitorController {
 
       // Use html2canvas to render HTML to canvas
       if (typeof html2canvas !== 'undefined') {
+        // Wait for fonts to load
+        await iframeDoc.fonts.ready;
+        
         console.log('Rendering HTML to canvas...');
         const canvas = await html2canvas(iframeBody, {
           canvas: this.renderCanvas,
@@ -428,7 +439,11 @@ export class MonitorController {
           scale: 1,
           logging: false,
           width: this.textureWidth,
-          height: this.textureHeight
+          height: this.textureHeight,
+          letterRendering: true,
+          allowTaint: true,
+          useCORS: true,
+          imageTimeout: 0
         });
 
         // Update Babylon.js dynamic texture
@@ -445,6 +460,29 @@ export class MonitorController {
       }
     } catch (error) {
       console.error('Error rendering frame to texture:', error);
+      this.renderFallback();
+    }
+  }
+
+  /**
+   * Render boot sequence directly to texture (bypasses html2canvas)
+   */
+  async renderBootSequenceDirect() {
+    try {
+      console.log('Rendering boot sequence directly...');
+      
+      const renderer = new BootSequenceRenderer(this.textureWidth, this.textureHeight);
+      const canvas = await renderer.render();
+      
+      // Update Babylon.js dynamic texture
+      const ctx = this.dynamicTexture.getContext();
+      ctx.clearRect(0, 0, this.textureWidth, this.textureHeight);
+      ctx.drawImage(canvas, 0, 0);
+      this.dynamicTexture.update();
+      
+      console.log('Boot sequence rendered directly');
+    } catch (error) {
+      console.error('Error rendering boot sequence directly:', error);
       this.renderFallback();
     }
   }

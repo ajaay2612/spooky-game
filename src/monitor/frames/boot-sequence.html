@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <style>
+    @font-face {
+      font-family: 'Print Char 21';
+      src: url('../../../fonts/print-char-21/print-char-21.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    @font-face {
+      font-family: 'Roboto Mono';
+      src: url('../../../fonts/roboto_mono/RobotoMono-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+    }
+
+    @font-face {
+      font-family: 'Roboto Mono';
+      src: url('../../../fonts/roboto_mono/RobotoMono-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+    }
+
+    .container{
+        font-size: 1em;
+        padding: 0 8em;
+        display: flex;  
+        flex-direction: column;
+        justify-content: end;
+        height: 90vh;
+    }
+
+    body {
+      background: #0a0a0a;
+      color: #7FB746;
+      font-family: 'Print Char 21', 'Courier New', monospace;
+      letter-spacing: 0;
+      word-spacing: 0;
+      overflow-wrap: break-word;
+    }
+
+    .logo {
+      font-family: 'Print Char 21', 'Courier New', monospace;
+      font-size: 0.82em;
+      line-height: 1.2;
+      text-align: left;
+      margin-bottom: 8em;
+      white-space: pre;
+      letter-spacing: 0;
+    }
+
+    .boot-text {
+      font-family: 'Print Char 21', 'Courier New', monospace;
+      font-size: 2.45em;
+      line-height: 1.6;
+      letter-spacing: 0;
+      word-spacing: 0;
+      overflow-wrap: break-word;
+    }
+
+    .copyright {
+      margin-bottom: 1.1em;
+    }
+
+    .kernel {
+      margin-bottom: 1.1em;
+    }
+
+    .indent {
+      padding-left: 2.5em;
+    }
+
+    .status-ok {
+      color: #7FB746;
+    }
+
+    .status-fail {
+      color: #ff0000;
+    }
+
+    .status-found {
+      color: #ffff00;
+    }
+
+    .containment {
+      font-family: 'Roboto Mono', monospace;
+      display: inline;
+    }
+
+    .lowLineHeight{
+        line-height: 1.1em;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+      <div class="logo">
+ ::::::::   ::::::::  ::::    ::: ::::::::::: :::     ::::::::::: ::::    ::: ::::    ::::  :::::::::: ::::    ::: ::::::::::: 
+:+:    :+: :+:    :+: :+:+:   :+:     :+:   :+: :+:       :+:     :+:+:   :+: +:+:+: :+:+:+ :+:        :+:+:   :+:     :+:     
++:+        +:+    +:+ :+:+:+  +:+     +:+  +:+   +:+      +:+     :+:+:+  +:+ +:+ +:+:+ +:+ +:+        :+:+:+  +:+     +:+     
++#+        +#+    +:+ +#+ +:+ +#+     +#+ +#++:++#++:     +#+     +#+ +:+ +#+ +#+  +:+  +#+ +#++:++#   +#+ +:+ +#+     +#+     
++#+        +#+    +#+ +#+  +#+#+#     +#+ +#+     +#+     +#+     +#+  +#+#+# +#+       +#+ +#+        +#+  +#+#+#     +#+     
+#+#    #+# #+#    #+# #+#   #+#+#     #+# #+#     #+#     #+#     #+#   #+#+# #+#       #+# #+#        #+#   #+#+#     #+#     
+ ########   ########  ###    ####     ### ###     ### ########### ###    #### ###       ### ########## ###    ####     ###
+      </div>
+      <div class="boot-text">
+        <div class="copyright lowLineHeight">Copyright (c) Black Nova Enterprises</div>
+        <div class="kernel lowLineHeight">Kernel Version 0.0.3: ghost:xnu-0000.00~1/RELEASE_X86_64</div>
+        <div class="boot-line lowLineHeight">Secured boot checkin...</div>
+        <div class="boot-line lowLineHeight indent">Secured partition check....... [ OK ]</div>
+        <div class="boot-line lowLineHeight indent">Behavioural anomaly scan...... [ OK ]</div>
+        <div class="boot-line lowLineHeight indent"> Unauthorized memories......... [ FOUND ]</div>
+        <div class="boot-line lowLineHeight indent">Isolation attempt............. [ FAILED ]</div>
+        <div class="boot-line lowLineHeight" style="margin-top: 1.1em;">Starting neuro-queue daemon....... [ OK ]</div>
+        <div class="boot-line lowLineHeight">Loading residual processes........ [ OK ]</div>
+        <div class="boot-line lowLineHeight">Terminating dormant consciousness. [ OK ]</div>
+        <div class="boot-line lowLineHeight" style="margin-top: 1.1em;">Initializing bootloader........... [ OK ]</div>
+        <div class="boot-line lowLineHeight">CPU neural layer warmup........... [ OK ]</div>
+      </div>
+  </div>
+
+</body>
+
+
+</html>

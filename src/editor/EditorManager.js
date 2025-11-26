@@ -5,6 +5,7 @@ import { SelectionManager } from './SelectionManager.js';
 import { CameraManager } from './CameraManager.js';
 import { SerializationManager } from './SerializationManager.js';
 import { ObjectFactory } from '../scene/ObjectFactory.js';
+import { HtmlMeshAlignPanel } from './HtmlMeshAlignPanel.js';
 
 export class EditorManager {
   constructor(scene, canvas) {
@@ -20,6 +21,7 @@ export class EditorManager {
     this.objectPalette = null;
     this.propertyPanel = null;
     this.sceneHierarchy = null;
+    this.htmlMeshAlignPanel = null;
     
     // GUI reference
     this.guiTexture = null;
@@ -448,7 +450,7 @@ export class EditorManager {
       helperMesh.position.copyFrom(light.position);
     }
     
-    // Enable move gizmo and attach to helper mesh
+    // Enable gizmo and attach to helper mesh
     if (mode === 'move') {
       this.gizmoManager.positionGizmoEnabled = true;
       this.gizmoManager.attachToMesh(helperMesh);
@@ -465,6 +467,36 @@ export class EditorManager {
       }
       
       console.log('Position gizmo enabled for light:', light.name);
+    } else if (mode === 'scale') {
+      this.gizmoManager.scaleGizmoEnabled = true;
+      this.gizmoManager.attachToMesh(helperMesh);
+      this.activeGizmo = 'scale';
+      
+      // Store initial light properties
+      const initialRange = light.range || 10;
+      const initialIntensity = light.intensity || 1;
+      const initialScale = helperMesh.scaling.x;
+      
+      // Update light range/intensity continuously during scale
+      setTimeout(() => {
+        const scaleGizmo = this.gizmoManager.gizmos.scaleGizmo;
+        if (scaleGizmo) {
+          // Use onDragObservable for continuous updates
+          scaleGizmo.onDragObservable.add(() => {
+            // Calculate scale factor relative to initial scale
+            const scaleFactor = helperMesh.scaling.x / initialScale;
+            
+            if (light.range !== undefined) {
+              light.range = initialRange * scaleFactor;
+            }
+            if (light.intensity !== undefined) {
+              light.intensity = initialIntensity * scaleFactor;
+            }
+          });
+        }
+      }, 100);
+      
+      console.log('Scale gizmo enabled for light:', light.name);
     }
   }
   

@@ -6,12 +6,31 @@ import { ObjectPalette } from './src/editor/ObjectPalette.js';
 import { PropertyPanel } from './src/editor/PropertyPanel.js';
 import { SceneHierarchy } from './src/editor/SceneHierarchy.js';
 import { SettingsPanel } from './src/editor/SettingsPanel.js';
+import { HtmlMeshAlignPanel } from './src/editor/HtmlMeshAlignPanel.js';
 import { MonitorController } from './src/monitor/MonitorController.js';
+import { HtmlMeshMonitor } from './src/monitor/HtmlMeshMonitor.js';
 
 // Global variables
 let engine = null;
 let scene = null;
 let fpsDisplay = null;
+
+// Expose scene globally for debugging tools
+window.scene = null;
+
+// Helper function to open alignment tool
+window.openAlignmentTool = function() {
+  const url = window.location.origin + '/htmlmesh-align.html';
+  window.open(url, 'HtmlMeshAlignment', 'width=900,height=800,scrollbars=yes');
+  console.log('✓ Alignment tool opened. Use it to align HtmlMesh to monitor screen.');
+};
+
+// Helper function to open position debug tool
+window.openPositionDebug = function() {
+  const url = window.location.origin + '/htmlmesh-position-debug.html';
+  window.open(url, 'HtmlMeshPositionDebug', 'width=700,height=700,scrollbars=yes');
+  console.log('✓ Position debug tool opened. Use sliders to adjust HtmlMesh position in real-time.');
+};
 let loadStartTime = Date.now();
 let editorManager = null;
 let postProcessingPipeline = null;
@@ -394,7 +413,10 @@ async function initializeGame() {
 
     // Create scene instance with dark background color
     scene = new BABYLON.Scene(engine);
-    scene.clearColor = new BABYLON.Color3(0.01, 0.01, 0.02); // Very dark blue for spooky atmosphere
+    scene.clearColor = new BABYLON.Color4(0.01, 0.01, 0.02, 0); // Very dark blue with transparent alpha for HtmlMesh
+    
+    // Expose scene globally for debugging tools
+    window.scene = scene;
 
     // Initialize KTX2 decoder for compressed textures
     if (BABYLON.KhronosTextureContainer2) {
@@ -438,6 +460,7 @@ async function initializeGame() {
     editorManager.objectPalette = new ObjectPalette(editorManager, guiTexture);
     editorManager.propertyPanel = new PropertyPanel(editorManager, guiTexture);
     editorManager.sceneHierarchy = new SceneHierarchy(editorManager, guiTexture);
+    editorManager.htmlMeshAlignPanel = new HtmlMeshAlignPanel(scene, guiTexture);
 
     // Setup post-processing effects for realistic rendering (attach to both cameras)
     const cameras = [editorManager.cameraManager.editorCamera, editorManager.cameraManager.playerCamera];
@@ -448,8 +471,8 @@ async function initializeGame() {
     const settingsPanel = new SettingsPanel(guiTexture, postProcessingPipeline);
     window.settingsPanel = settingsPanel; // Make globally accessible for refresh
 
-    // Initialize Monitor Controller (non-blocking)
-    monitorController = new MonitorController(scene);
+    // Initialize Monitor Controller with HtmlMesh (non-blocking)
+    monitorController = new HtmlMeshMonitor(scene);
     window.monitorController = monitorController; // Make globally accessible for debugging
     
     // Initialize in background without blocking
@@ -459,8 +482,9 @@ async function initializeGame() {
       console.error('Monitor initialization failed:', error);
     });
 
-    // Setup monitor activation key (M key)
+    // Setup keyboard shortcuts
     window.addEventListener('keydown', (event) => {
+      // M key - Monitor activation
       if (event.key === 'm' || event.key === 'M') {
         if (monitorController.isActive) {
           monitorController.deactivate();
@@ -469,6 +493,12 @@ async function initializeGame() {
           monitorController.activate();
           console.log('Monitor activated - use Arrow keys/WASD to navigate, Enter to select, Escape to exit input');
         }
+      }
+      
+      // H key - HtmlMesh Alignment Panel
+      if (event.key === 'h' || event.key === 'H') {
+        editorManager.htmlMeshAlignPanel.toggle();
+        console.log('HtmlMesh Alignment Panel toggled - press H to toggle');
       }
     });
 

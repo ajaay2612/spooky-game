@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitor Frames Test Viewer</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      margin: 0 0 10px 0;
+      color: #00ff00;
+    }
+
+    .info {
+      color: #888;
+      font-size: 14px;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      background: #333;
+      color: #00ff00;
+      border: 2px solid #00ff00;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .btn:hover {
+      background: #00ff00;
+      color: #000;
+    }
+
+    .btn.active {
+      background: #00ff00;
+      color: #000;
+      font-weight: bold;
+    }
+
+    .frame-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .frame-wrapper {
+      border: 3px solid #00ff00;
+      box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+      background: #000;
+    }
+
+    iframe {
+      display: block;
+      border: none;
+      background: #0a0a0a;
+      width: 2048px;
+      height: 1536px;
+      transform-origin: top left;
+    }
+
+    .scale-controls {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .scale-controls label {
+      color: #00ff00;
+      margin-right: 10px;
+    }
+
+    .scale-controls input {
+      width: 200px;
+    }
+
+    .scale-controls span {
+      color: #888;
+      margin-left: 10px;
+    }
+
+    .dimensions {
+      text-align: center;
+      color: #888;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 2100px) {
+      iframe {
+        transform: scale(0.5);
+        width: 2048px;
+        height: 1536px;
+      }
+      .frame-wrapper {
+        width: 1024px;
+        height: 768px;
+        overflow: hidden;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🖥️ Monitor Frames Test Viewer</h1>
+    <div class="info">Texture Resolution: 2048 x 1536 pixels</div>
+  </div>
+
+  <div class="scale-controls">
+    <label for="scaleSlider">Scale:</label>
+    <input type="range" id="scaleSlider" min="0.1" max="1" step="0.05" value="0.5">
+    <span id="scaleValue">50%</span>
+  </div>
+
+  <div class="controls">
+    <button class="btn active" data-frame="boot-sequence">Boot Sequence</button>
+    <button class="btn" data-frame="main-menu">Main Menu</button>
+    <button class="btn" data-frame="game-start">Game Start</button>
+    <button class="btn" data-frame="credits">Credits</button>
+  </div>
+
+  <div class="frame-container">
+    <div class="frame-wrapper" id="frameWrapper">
+      <iframe id="frameViewer" src="src/monitor/frames/boot-sequence.html"></iframe>
+    </div>
+  </div>
+
+  <div class="dimensions">
+    Actual dimensions: <span id="actualDimensions">2048 x 1536</span> | 
+    Displayed dimensions: <span id="displayedDimensions">1024 x 768</span>
+  </div>
+
+  <script>
+    const frameViewer = document.getElementById('frameViewer');
+    const buttons = document.querySelectorAll('.btn');
+    const scaleSlider = document.getElementById('scaleSlider');
+    const scaleValue = document.getElementById('scaleValue');
+    const frameWrapper = document.getElementById('frameWrapper');
+    const displayedDimensions = document.getElementById('displayedDimensions');
+
+    // Frame switching
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const frame = btn.dataset.frame;
+        frameViewer.src = `src/monitor/frames/${frame}.html`;
+        
+        // Update active button
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    // Scale control
+    scaleSlider.addEventListener('input', (e) => {
+      const scale = parseFloat(e.target.value);
+      scaleValue.textContent = Math.round(scale * 100) + '%';
+      
+      frameViewer.style.transform = `scale(${scale})`;
+      
+      const scaledWidth = Math.round(2048 * scale);
+      const scaledHeight = Math.round(1536 * scale);
+      
+      frameWrapper.style.width = scaledWidth + 'px';
+      frameWrapper.style.height = scaledHeight + 'px';
+      
+      displayedDimensions.textContent = `${scaledWidth} x ${scaledHeight}`;
+    });
+
+    // Initialize scale
+    const initialScale = parseFloat(scaleSlider.value);
+    frameViewer.style.transform = `scale(${initialScale})`;
+    frameWrapper.style.width = Math.round(2048 * initialScale) + 'px';
+    frameWrapper.style.height = Math.round(1536 * initialScale) + 'px';
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '1') buttons[0].click();
+      if (e.key === '2') buttons[1].click();
+      if (e.key === '3') buttons[2].click();
+      if (e.key === '4') buttons[3].click();
+      
+      // Scale with +/-
+      if (e.key === '+' || e.key === '=') {
+        scaleSlider.value = Math.min(1, parseFloat(scaleSlider.value) + 0.05);
+        scaleSlider.dispatchEvent(new Event('input'));
+      }
+      if (e.key === '-' || e.key === '_') {
+        scaleSlider.value = Math.max(0.1, parseFloat(scaleSlider.value) - 0.05);
+        scaleSlider.dispatchEvent(new Event('input'));
+      }
+    });
+
+    console.log('Frame Test Viewer loaded');
+    console.log('Keyboard shortcuts: 1-4 to switch frames, +/- to zoom');
+  </script>
+</body>
+</html>

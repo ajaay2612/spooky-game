@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HtmlMesh Position Debug</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      background: #0a0a0a;
+      color: #00ff00;
+      padding: 20px;
+      margin: 0;
+    }
+    
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #1a1a1a;
+      padding: 20px;
+      border: 2px solid #00ff00;
+      border-radius: 8px;
+    }
+    
+    h1 {
+      text-align: center;
+      color: #00ff00;
+      text-shadow: 0 0 10px #00ff00;
+    }
+    
+    .control {
+      margin: 20px 0;
+      padding: 15px;
+      background: #0f0f0f;
+      border: 1px solid #00ff00;
+      border-radius: 4px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    
+    input[type="range"] {
+      width: 100%;
+      margin: 10px 0;
+    }
+    
+    .value {
+      color: #00ff00;
+      font-size: 18px;
+      text-align: center;
+      padding: 5px;
+      background: #000;
+      border-radius: 3px;
+    }
+    
+    button {
+      background: #00ff00;
+      color: #0a0a0a;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 4px;
+      margin: 5px;
+      font-family: 'Courier New', monospace;
+      width: calc(50% - 10px);
+    }
+    
+    button:hover {
+      background: #00cc00;
+      box-shadow: 0 0 15px #00ff00;
+    }
+    
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    
+    .info {
+      background: #0a0a0a;
+      padding: 10px;
+      margin: 10px 0;
+      border-left: 3px solid #00ff00;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⚡ HtmlMesh Position Debug ⚡</h1>
+    
+    <div class="info">
+      Adjust the position offset to move the HtmlMesh back/forward relative to its current position.
+    </div>
+    
+    <div class="control">
+      <label>X Offset</label>
+      <input type="range" id="xOffset" min="-0.5" max="0.5" step="0.01" value="0">
+      <div class="value" id="xValue">0.000</div>
+    </div>
+    
+    <div class="control">
+      <label>Y Offset</label>
+      <input type="range" id="yOffset" min="-0.5" max="0.5" step="0.01" value="0">
+      <div class="value" id="yValue">0.000</div>
+    </div>
+    
+    <div class="control">
+      <label>Z Offset</label>
+      <input type="range" id="zOffset" min="-0.5" max="0.5" step="0.01" value="0">
+      <div class="value" id="zValue">0.000</div>
+    </div>
+    
+    <div class="button-group">
+      <button onclick="resetPosition()">Reset</button>
+      <button onclick="copyPosition()">Copy Position</button>
+    </div>
+    
+    <div class="info" id="currentPos">
+      Current Position: Loading...
+    </div>
+  </div>
+
+  <script>
+    // Base position as plain object (BABYLON not available in this window)
+    const basePosition = {
+      x: 0.8987579441070557,
+      y: 2.250906467437744,
+      z: 0.4201294779777527
+    };
+    
+    function getScene() {
+      if (window.opener && window.opener.scene) {
+        return window.opener.scene;
+      }
+      if (typeof BABYLON !== 'undefined' && BABYLON.Engine && BABYLON.Engine.LastCreatedScene) {
+        return BABYLON.Engine.LastCreatedScene;
+      }
+      return null;
+    }
+    
+    function getHtmlMesh() {
+      const scene = getScene();
+      if (!scene) return null;
+      
+      // Try multiple methods to find the HtmlMesh
+      
+      // Method 1: Look for mesh by name
+      let mesh = scene.meshes.find(m => m.name && (m.name.includes('monitorFrame') || m.name.includes('HtmlMesh')));
+      
+      // Method 2: Access via window.monitorController
+      if (!mesh && window.opener && window.opener.monitorController) {
+        const controller = window.opener.monitorController;
+        if (controller.htmlMesh) {
+          return controller.htmlMesh;
+        }
+      }
+      
+      // Method 3: Look for any mesh with HtmlMesh in constructor name
+      if (!mesh) {
+        mesh = scene.meshes.find(m => m.constructor.name === 'HtmlMesh');
+      }
+      
+      console.log('Found mesh:', mesh);
+      return mesh;
+    }
+    
+    function updatePosition() {
+      try {
+        const xOffset = parseFloat(document.getElementById('xOffset').value);
+        const yOffset = parseFloat(document.getElementById('yOffset').value);
+        const zOffset = parseFloat(document.getElementById('zOffset').value);
+        
+        document.getElementById('xValue').textContent = xOffset.toFixed(3);
+        document.getElementById('yValue').textContent = yOffset.toFixed(3);
+        document.getElementById('zValue').textContent = zOffset.toFixed(3);
+        
+        // Debug logging
+        console.log('window.opener:', window.opener);
+        console.log('monitorController:', window.opener?.monitorController);
+        console.log('htmlMesh:', window.opener?.monitorController?.htmlMesh);
+        
+        // Access via window.opener.monitorController
+        if (!window.opener) {
+          document.getElementById('currentPos').textContent = 'Error: No opener window. Open this from main window using openPositionDebug()';
+          return;
+        }
+        
+        if (!window.opener.monitorController) {
+          document.getElementById('currentPos').textContent = 'Error: monitorController not found in main window';
+          return;
+        }
+        
+        if (!window.opener.monitorController.htmlMesh) {
+          document.getElementById('currentPos').textContent = 'Error: htmlMesh not initialized yet. Wait for monitor to load.';
+          return;
+        }
+        
+        const htmlMesh = window.opener.monitorController.htmlMesh;
+        
+        // Update position
+        htmlMesh.position.x = basePosition.x + xOffset;
+        htmlMesh.position.y = basePosition.y + yOffset;
+        htmlMesh.position.z = basePosition.z + zOffset;
+        
+        document.getElementById('currentPos').textContent = 
+          `Current Position: (${htmlMesh.position.x.toFixed(3)}, ${htmlMesh.position.y.toFixed(3)}, ${htmlMesh.position.z.toFixed(3)})`;
+      } catch (error) {
+        document.getElementById('currentPos').textContent = 'Error: ' + error.message;
+        console.error('Update position error:', error);
+      }
+    }
+    
+    function resetPosition() {
+      document.getElementById('xOffset').value = 0;
+      document.getElementById('yOffset').value = 0;
+      document.getElementById('zOffset').value = 0;
+      updatePosition();
+    }
+    
+    function copyPosition() {
+      if (window.opener && window.opener.monitorController && window.opener.monitorController.htmlMesh) {
+        const htmlMesh = window.opener.monitorController.htmlMesh;
+        const pos = htmlMesh.position;
+        const text = `this.htmlMesh.position = new BABYLON.Vector3(${pos.x}, ${pos.y}, ${pos.z});`;
+        navigator.clipboard.writeText(text).then(() => {
+          alert('Position copied to clipboard!\n\n' + text);
+        }).catch(err => {
+          alert('Failed to copy: ' + err);
+        });
+      } else {
+        alert('HtmlMesh not found!');
+      }
+    }
+    
+    // Add event listeners
+    document.getElementById('xOffset').addEventListener('input', updatePosition);
+    document.getElementById('yOffset').addEventListener('input', updatePosition);
+    document.getElementById('zOffset').addEventListener('input', updatePosition);
+    
+    // Initial update
+    setTimeout(updatePosition, 500);
+    
+    // Update periodically
+    setInterval(updatePosition, 1000);
+  </script>
+</body>
+</html>

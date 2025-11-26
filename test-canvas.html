@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTML2Canvas Test Viewer</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      margin: 0 0 10px 0;
+      color: #00ff00;
+    }
+
+    .info {
+      color: #888;
+      font-size: 14px;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      background: #333;
+      color: #00ff00;
+      border: 2px solid #00ff00;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .btn:hover {
+      background: #00ff00;
+      color: #000;
+    }
+
+    .btn.active {
+      background: #00ff00;
+      color: #000;
+      font-weight: bold;
+    }
+
+    .comparison {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .panel {
+      flex: 1;
+      max-width: 1024px;
+    }
+
+    .panel-title {
+      text-align: center;
+      color: #00ff00;
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .frame-wrapper {
+      border: 3px solid #00ff00;
+      box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+      background: #000;
+      width: 1024px;
+      height: 768px;
+      overflow: hidden;
+    }
+
+    iframe {
+      display: block;
+      border: none;
+      background: #0a0a0a;
+      width: 2048px;
+      height: 1536px;
+      transform: scale(0.5);
+      transform-origin: top left;
+    }
+
+    #canvasOutput {
+      border: 3px solid #ff6600;
+      box-shadow: 0 0 20px rgba(255, 102, 0, 0.3);
+      background: #000;
+      display: block;
+    }
+
+    .status {
+      text-align: center;
+      color: #888;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+
+    .render-btn {
+      display: block;
+      margin: 20px auto;
+      padding: 15px 30px;
+      background: #ff6600;
+      color: #fff;
+      border: 2px solid #ff6600;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+
+    .render-btn:hover {
+      background: #fff;
+      color: #ff6600;
+    }
+
+    .options {
+      text-align: center;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #2a2a2a;
+      border-radius: 5px;
+    }
+
+    .options label {
+      color: #00ff00;
+      margin-right: 20px;
+    }
+
+    .options input[type="checkbox"] {
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🖼️ HTML2Canvas Live Test Viewer</h1>
+    <div class="info">Compare original HTML vs html2canvas rendering</div>
+  </div>
+
+  <div class="controls">
+    <button class="btn active" data-frame="boot-sequence">Boot Sequence</button>
+    <button class="btn" data-frame="main-menu">Main Menu</button>
+    <button class="btn" data-frame="game-start">Game Start</button>
+    <button class="btn" data-frame="credits">Credits</button>
+  </div>
+
+  <div class="options">
+    <label>
+      <input type="checkbox" id="letterRendering" checked>
+      letterRendering: true
+    </label>
+    <label>
+      <input type="checkbox" id="allowTaint" checked>
+      allowTaint: true
+    </label>
+    <label>
+      <input type="checkbox" id="useCORS" checked>
+      useCORS: true
+    </label>
+  </div>
+
+  <button class="render-btn" id="renderBtn">🎨 Render with html2canvas</button>
+
+  <div class="comparison">
+    <div class="panel">
+      <div class="panel-title">Original HTML (iframe)</div>
+      <div class="frame-wrapper">
+        <iframe id="frameViewer" src="src/monitor/frames/boot-sequence.html"></iframe>
+      </div>
+      <div class="status">Direct HTML rendering</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">html2canvas Output</div>
+      <div class="frame-wrapper">
+        <canvas id="canvasOutput" width="2048" height="1536" style="transform: scale(0.5); transform-origin: top left;"></canvas>
+      </div>
+      <div class="status" id="canvasStatus">Click "Render" to generate</div>
+    </div>
+  </div>
+
+  <script>
+    const frameViewer = document.getElementById('frameViewer');
+    const canvasOutput = document.getElementById('canvasOutput');
+    const canvasStatus = document.getElementById('canvasStatus');
+    const renderBtn = document.getElementById('renderBtn');
+    const buttons = document.querySelectorAll('.btn');
+    
+    let currentFrame = 'boot-sequence';
+
+    // Frame switching
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const frame = btn.dataset.frame;
+        currentFrame = frame;
+        frameViewer.src = `src/monitor/frames/${frame}.html`;
+        
+        // Update active button
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // Clear canvas
+        const ctx = canvasOutput.getContext('2d');
+        ctx.fillStyle = '#0a0a0a';
+        ctx.fillRect(0, 0, 2048, 1536);
+        canvasStatus.textContent = 'Click "Render" to generate';
+      });
+    });
+
+    // Render with html2canvas
+    renderBtn.addEventListener('click', async () => {
+      try {
+        canvasStatus.textContent = 'Rendering...';
+        renderBtn.disabled = true;
+        
+        // Wait for iframe to load
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        const iframeDoc = frameViewer.contentDocument || frameViewer.contentWindow.document;
+        const iframeBody = iframeDoc.body;
+        
+        if (!iframeBody) {
+          canvasStatus.textContent = 'Error: Iframe body not found';
+          renderBtn.disabled = false;
+          return;
+        }
+
+        // Wait for fonts
+        await iframeDoc.fonts.ready;
+        
+        // Get options
+        const letterRendering = document.getElementById('letterRendering').checked;
+        const allowTaint = document.getElementById('allowTaint').checked;
+        const useCORS = document.getElementById('useCORS').checked;
+        
+        // Render with html2canvas
+        const tempCanvas = await html2canvas(iframeBody, {
+          backgroundColor: '#0a0a0a',
+          scale: 1,
+          logging: true,
+          width: 2048,
+          height: 1536,
+          letterRendering: letterRendering,
+          allowTaint: allowTaint,
+          useCORS: useCORS,
+          imageTimeout: 0
+        });
+        
+        // Draw to output canvas
+        const ctx = canvasOutput.getContext('2d');
+        ctx.clearRect(0, 0, 2048, 1536);
+        ctx.drawImage(tempCanvas, 0, 0);
+        
+        canvasStatus.textContent = 'Rendered successfully';
+        renderBtn.disabled = false;
+        
+        console.log('html2canvas rendering complete');
+      } catch (error) {
+        console.error('Rendering error:', error);
+        canvasStatus.textContent = `Error: ${error.message}`;
+        renderBtn.disabled = false;
+      }
+    });
+
+    // Auto-render on load
+    frameViewer.addEventListener('load', () => {
+      setTimeout(() => {
+        renderBtn.click();
+      }, 1000);
+    });
+
+    console.log('HTML2Canvas Test Viewer loaded');
+    console.log('html2canvas version:', html2canvas ? 'loaded' : 'not loaded');
+  </script>
+</body>
+</html>

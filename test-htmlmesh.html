@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>HtmlMesh Test</title>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    #renderCanvas { width: 100%; height: 100%; display: block; }
+  </style>
+</head>
+<body>
+  <canvas id="renderCanvas"></canvas>
+  
+  <script type="module">
+    import * as BABYLON from '@babylonjs/core';
+    import { HtmlMesh, HtmlMeshRenderer } from '@babylonjs/addons/htmlMesh';
+    
+    const canvas = document.getElementById('renderCanvas');
+    const engine = new BABYLON.Engine(canvas, true);
+    
+    const createScene = async () => {
+      const scene = new BABYLON.Scene(engine);
+      // CRITICAL: transparent clear color for HtmlMesh to work
+      scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
+      
+      // Camera
+      const camera = new BABYLON.ArcRotateCamera('camera', 0, Math.PI / 3, 10, BABYLON.Vector3.Zero(), scene);
+      camera.attachControl(canvas, true);
+      
+      // Light
+      const light = new BABYLON.HemisphericLight('light', new BABYLON.Vector3(0, 1, 0), scene);
+      
+      // Create HtmlMeshRenderer
+      console.log('Creating HtmlMeshRenderer...');
+      const htmlMeshRenderer = new HtmlMeshRenderer(scene);
+      console.log('HtmlMeshRenderer created:', htmlMeshRenderer);
+      
+      // Create iframe to load boot-sequence.html
+      const htmlElement = document.createElement('iframe');
+      htmlElement.src = '/src/monitor/frames/boot-sequence.html';
+      htmlElement.style.width = '2048px';
+      htmlElement.style.height = '1536px';
+      htmlElement.style.border = 'none';
+      htmlElement.style.background = '#0a0a0a';
+      
+      // Wait for iframe to load (with timeout)
+      await new Promise((resolve, reject) => {
+        htmlElement.onload = () => {
+          console.log('Iframe loaded successfully');
+          resolve();
+        };
+        htmlElement.onerror = () => {
+          console.error('Iframe failed to load');
+          reject();
+        };
+        setTimeout(() => {
+          console.log('Iframe load timeout, continuing anyway');
+          resolve();
+        }, 3000);
+      });
+      
+      // Create HtmlMesh - pass scene, not renderer!
+      console.log('Creating HtmlMesh...');
+      const htmlMesh = new HtmlMesh(scene, 'bootSequenceMesh');
+      
+      // setContent takes (element, widthInBabylonUnits, heightInBabylonUnits)
+      // Using larger dimensions for the boot sequence
+      htmlMesh.setContent(htmlElement, 8, 6);
+      console.log('HtmlMesh created with boot-sequence.html');
+      
+      // Position the mesh in front of camera
+      htmlMesh.position.x = 0;
+      htmlMesh.position.y = 0;
+      htmlMesh.position.z = 0;
+      
+      console.log('HtmlMesh position:', htmlMesh.position);
+      console.log('HtmlMesh scaling:', htmlMesh.scaling);
+      
+      return scene;
+    };
+    
+    createScene().then(scene => {
+      engine.runRenderLoop(() => {
+        scene.render();
+      });
+    });
+    
+    window.addEventListener('resize', () => {
+      engine.resize();
+    });
+    
+    console.log('Test scene initialized');
+  </script>
+</body>
+</html>

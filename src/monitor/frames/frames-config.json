@@ -1,6 +1,12 @@
 {
-  "activeFrame": "main-menu",
+  "activeFrame": "boot-sequence",
   "frames": {
+    "boot-sequence": {
+      "id": "boot-sequence",
+      "file": "boot-sequence.html",
+      "name": "Boot Sequence",
+      "transitions": ["main-menu"]
+    },
     "main-menu": {
       "id": "main-menu",
       "file": "main-menu.html",

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HtmlMesh Alignment Tool</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      background: #0a0a0a;
+      color: #00ff00;
+      padding: 20px;
+      margin: 0;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #1a1a1a;
+      padding: 20px;
+      border: 2px solid #00ff00;
+      border-radius: 8px;
+    }
+    
+    h1 {
+      text-align: center;
+      color: #00ff00;
+      text-shadow: 0 0 10px #00ff00;
+    }
+    
+    .section {
+      margin: 20px 0;
+      padding: 15px;
+      background: #0f0f0f;
+      border: 1px solid #00ff00;
+      border-radius: 4px;
+    }
+    
+    .section h2 {
+      margin-top: 0;
+      color: #00ff00;
+      font-size: 18px;
+    }
+    
+    button {
+      background: #00ff00;
+      color: #0a0a0a;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 4px;
+      margin: 5px;
+      font-family: 'Courier New', monospace;
+      transition: all 0.2s;
+    }
+    
+    button:hover {
+      background: #00cc00;
+      box-shadow: 0 0 15px #00ff00;
+    }
+    
+    button:active {
+      transform: scale(0.95);
+    }
+    
+    .info {
+      background: #0a0a0a;
+      padding: 10px;
+      margin: 10px 0;
+      border-left: 3px solid #00ff00;
+      font-size: 14px;
+    }
+    
+    .info pre {
+      margin: 5px 0;
+      color: #00ff00;
+    }
+    
+    .status {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    
+    .status.success {
+      background: #003300;
+      color: #00ff00;
+      border: 1px solid #00ff00;
+    }
+    
+    .status.error {
+      background: #330000;
+      color: #ff0000;
+      border: 1px solid #ff0000;
+    }
+    
+    .status.warning {
+      background: #333300;
+      color: #ffff00;
+      border: 1px solid #ffff00;
+    }
+    
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⚡ HtmlMesh Alignment Tool ⚡</h1>
+    
+    <div class="section">
+      <h2>📖 How to Use</h2>
+      <div class="info">
+        <strong>Option 1 (Recommended):</strong> Open this file by right-clicking and selecting "Open with Live Server" or similar, 
+        then in your main game window, open the browser console and run:
+        <pre>window.open('http://localhost:5173/htmlmesh-align.html', 'alignment', 'width=900,height=800')</pre>
+        
+        <strong>Option 2:</strong> Open your main game first at <code>http://localhost:5173</code>, 
+        then open this tool in a new tab at <code>http://localhost:5173/htmlmesh-align.html</code>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h2>Step 1: Find Monitor Screen Mesh</h2>
+      <p>Click this button to search for the monitor screen mesh in the scene.</p>
+      <button onclick="findMonitorMesh()">🔍 Find Monitor Screen Mesh</button>
+      <div id="findStatus"></div>
+      <div id="monitorInfo" class="info" style="display: none;"></div>
+    </div>
+    
+    <div class="section">
+      <h2>Step 2: Align HtmlMesh</h2>
+      <p>Once the monitor mesh is found, click to align the HtmlMesh helper box to it.</p>
+      <button onclick="alignHtmlMesh()">📍 Align HtmlMesh to Monitor</button>
+      <div id="alignStatus"></div>
+    </div>
+    
+    <div class="section">
+      <h2>Step 3: Copy Transform Values</h2>
+      <p>Copy the position, rotation, and scale values to clipboard.</p>
+      <div class="button-group">
+        <button onclick="copyTransform('position')">📋 Copy Position</button>
+        <button onclick="copyTransform('rotation')">📋 Copy Rotation</button>
+        <button onclick="copyTransform('scaling')">📋 Copy Scaling</button>
+        <button onclick="copyTransform('all')">📋 Copy All Transforms</button>
+      </div>
+      <div id="copyStatus"></div>
+      <div id="transformInfo" class="info" style="display: none;"></div>
+    </div>
+    
+    <div class="section">
+      <h2>Debug Info</h2>
+      <button onclick="refreshDebugInfo()">🔄 Refresh Debug Info</button>
+      <div id="debugInfo" class="info"></div>
+    </div>
+  </div>
+
+  <script>
+    let monitorMesh = null;
+    let helperBox = null;
+    let htmlMesh = null;
+
+    // Get references from parent window (main.js)
+    function getScene() {
+      // Try window.opener first (if opened as popup)
+      if (window.opener && window.opener.scene) {
+        return window.opener.scene;
+      }
+      // Try parent window (if opened in iframe)
+      if (window.parent && window.parent !== window && window.parent.scene) {
+        return window.parent.scene;
+      }
+      // Try current window (if opened in same tab)
+      if (window.scene) {
+        return window.scene;
+      }
+      // Try accessing via global BABYLON if scene exists
+      if (typeof BABYLON !== 'undefined' && BABYLON.Engine && BABYLON.Engine.LastCreatedScene) {
+        return BABYLON.Engine.LastCreatedScene;
+      }
+      return null;
+    }
+
+    function findMonitorMesh() {
+      const scene = getScene();
+      if (!scene) {
+        showStatus('findStatus', 'error', '❌ Cannot access scene. Make sure the main window is open.');
+        return;
+      }
+
+      // Find monitor screen mesh
+      monitorMesh = scene.getMeshByName('SM_Prop_ComputerMonitor_A_29_screen_mesh');
+      
+      if (monitorMesh) {
+        showStatus('findStatus', 'success', '✅ Monitor screen mesh found!');
+        
+        // Force world matrix update
+        monitorMesh.computeWorldMatrix(true);
+        
+        // Display info
+        const worldPos = monitorMesh.getAbsolutePosition();
+        const worldMatrix = monitorMesh.getWorldMatrix();
+        const transformedPos = BABYLON.Vector3.TransformCoordinates(BABYLON.Vector3.Zero(), worldMatrix);
+        
+        document.getElementById('monitorInfo').style.display = 'block';
+        document.getElementById('monitorInfo').innerHTML = `
+          <strong>Monitor Mesh Found:</strong>
+          <pre>Name: ${monitorMesh.name}</pre>
+          <pre>Position: ${formatVector(monitorMesh.position)}</pre>
+          <pre>Absolute Position: ${formatVector(worldPos)}</pre>
+          <pre>World Position: ${formatVector(transformedPos)}</pre>
+          <pre>Rotation: ${formatVector(monitorMesh.rotation)}</pre>
+          <pre>Scaling: ${formatVector(monitorMesh.scaling)}</pre>
+          <pre>Absolute Scaling: ${formatVector(monitorMesh.absoluteScaling)}</pre>
+        `;
+      } else {
+        showStatus('findStatus', 'error', '❌ Monitor screen mesh not found. Make sure the model is loaded.');
+        
+        // List all meshes for debugging
+        const allMeshes = scene.meshes.map(m => m.name).join(', ');
+        document.getElementById('monitorInfo').style.display = 'block';
+        document.getElementById('monitorInfo').innerHTML = `
+          <strong>Available meshes:</strong>
+          <pre>${allMeshes}</pre>
+        `;
+      }
+    }
+
+    function alignHtmlMesh() {
+      const scene = getScene();
+      if (!scene) {
+        showStatus('alignStatus', 'error', '❌ Cannot access scene.');
+        return;
+      }
+
+      if (!monitorMesh) {
+        showStatus('alignStatus', 'error', '❌ Find monitor mesh first!');
+        return;
+      }
+
+      // Find the helper box
+      helperBox = scene.getMeshByName('HtmlMesh_Helper');
+      
+      if (!helperBox) {
+        showStatus('alignStatus', 'error', '❌ HtmlMesh_Helper not found. Make sure HtmlMeshMonitor is initialized.');
+        return;
+      }
+
+      // Force world matrix computation
+      monitorMesh.computeWorldMatrix(true);
+      
+      // Get world position
+      const worldMatrix = monitorMesh.getWorldMatrix();
+      const worldPos = BABYLON.Vector3.TransformCoordinates(BABYLON.Vector3.Zero(), worldMatrix);
+      
+      // Copy transforms to helper box
+      helperBox.position.copyFrom(worldPos);
+      
+      // Handle rotation (quaternion or euler)
+      if (monitorMesh.rotationQuaternion) {
+        helperBox.rotationQuaternion = monitorMesh.rotationQuaternion.clone();
+      } else {
+        helperBox.rotation.copyFrom(monitorMesh.rotation);
+      }
+      
+      // Copy absolute scaling
+      helperBox.scaling.copyFrom(monitorMesh.absoluteScaling);
+      
+      showStatus('alignStatus', 'success', '✅ HtmlMesh aligned to monitor screen!');
+      
+      // Update transform info
+      updateTransformInfo();
+    }
+
+    function updateTransformInfo() {
+      const scene = getScene();
+      if (!scene) return;
+
+      helperBox = scene.getMeshByName('HtmlMesh_Helper');
+      if (!helperBox) return;
+
+      document.getElementById('transformInfo').style.display = 'block';
+      document.getElementById('transformInfo').innerHTML = `
+        <strong>HtmlMesh_Helper Transforms:</strong>
+        <pre>Position: ${formatVector(helperBox.position)}</pre>
+        <pre>Rotation: ${formatVector(helperBox.rotation)}</pre>
+        <pre>Scaling: ${formatVector(helperBox.scaling)}</pre>
+      `;
+    }
+
+    function copyTransform(type) {
+      const scene = getScene();
+      if (!scene) {
+        showStatus('copyStatus', 'error', '❌ Cannot access scene.');
+        return;
+      }
+
+      helperBox = scene.getMeshByName('HtmlMesh_Helper');
+      if (!helperBox) {
+        showStatus('copyStatus', 'error', '❌ HtmlMesh_Helper not found.');
+        return;
+      }
+
+      let textToCopy = '';
+      
+      switch(type) {
+        case 'position':
+          textToCopy = `position: new BABYLON.Vector3(${helperBox.position.x}, ${helperBox.position.y}, ${helperBox.position.z})`;
+          break;
+        case 'rotation':
+          textToCopy = `rotation: new BABYLON.Vector3(${helperBox.rotation.x}, ${helperBox.rotation.y}, ${helperBox.rotation.z})`;
+          break;
+        case 'scaling':
+          textToCopy = `scaling: new BABYLON.Vector3(${helperBox.scaling.x}, ${helperBox.scaling.y}, ${helperBox.scaling.z})`;
+          break;
+        case 'all':
+          textToCopy = `// HtmlMesh Transform
+helperBox.position = new BABYLON.Vector3(${helperBox.position.x}, ${helperBox.position.y}, ${helperBox.position.z});
+helperBox.rotation = new BABYLON.Vector3(${helperBox.rotation.x}, ${helperBox.rotation.y}, ${helperBox.rotation.z});
+helperBox.scaling = new BABYLON.Vector3(${helperBox.scaling.x}, ${helperBox.scaling.y}, ${helperBox.scaling.z});`;
+          break;
+      }
+
+      // Copy to clipboard
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        showStatus('copyStatus', 'success', `✅ ${type.toUpperCase()} copied to clipboard!`);
+        updateTransformInfo();
+      }).catch(err => {
+        showStatus('copyStatus', 'error', '❌ Failed to copy to clipboard: ' + err);
+      });
+    }
+
+    function refreshDebugInfo() {
+      const scene = getScene();
+      if (!scene) {
+        document.getElementById('debugInfo').innerHTML = '<pre>❌ Cannot access scene</pre>';
+        return;
+      }
+
+      const meshCount = scene.meshes.length;
+      const helperBox = scene.getMeshByName('HtmlMesh_Helper');
+      const monitorMesh = scene.getMeshByName('SM_Prop_ComputerMonitor_A_29_screen_mesh');
+      
+      let info = `<strong>Scene Info:</strong>
+<pre>Total Meshes: ${meshCount}</pre>
+<pre>HtmlMesh_Helper: ${helperBox ? '✅ Found' : '❌ Not Found'}</pre>
+<pre>Monitor Screen: ${monitorMesh ? '✅ Found' : '❌ Not Found'}</pre>`;
+
+      if (helperBox) {
+        info += `
+<strong>Current HtmlMesh_Helper:</strong>
+<pre>Position: ${formatVector(helperBox.position)}</pre>
+<pre>Rotation: ${formatVector(helperBox.rotation)}</pre>
+<pre>Scaling: ${formatVector(helperBox.scaling)}</pre>`;
+      }
+
+      document.getElementById('debugInfo').innerHTML = info;
+    }
+
+    function formatVector(vec) {
+      if (!vec) return 'N/A';
+      return `(${vec.x.toFixed(3)}, ${vec.y.toFixed(3)}, ${vec.z.toFixed(3)})`;
+    }
+
+    function showStatus(elementId, type, message) {
+      const element = document.getElementById(elementId);
+      element.className = `status ${type}`;
+      element.textContent = message;
+      element.style.display = 'block';
+    }
+
+    // Auto-refresh debug info on load
+    window.addEventListener('load', () => {
+      refreshDebugInfo();
+    });
+  </script>
+</body>
+</html>

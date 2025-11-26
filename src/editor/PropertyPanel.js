@@ -405,7 +405,7 @@ export class PropertyPanel {
     buttonContainer.isVertical = false;
     buttonContainer.paddingLeft = "5px";
     
-    // Move button (only for lights)
+    // Move button
     this.moveButton = BABYLON.GUI.Button.CreateSimpleButton("moveGizmo", "Move");
     this.moveButton.width = "90px";
     this.moveButton.height = "35px";
@@ -413,12 +413,28 @@ export class PropertyPanel {
     this.moveButton.background = "#3a3a3a";
     this.moveButton.fontSize = 13;
     this.moveButton.cornerRadius = 4;
+    this.moveButton.paddingRight = "3px";
     
     this.moveButton.onPointerClickObservable.add(() => {
       this.toggleLightGizmoMode('move', object);
     });
     
     buttonContainer.addControl(this.moveButton);
+    
+    // Scale button
+    this.scaleButton = BABYLON.GUI.Button.CreateSimpleButton("scaleGizmo", "Scale");
+    this.scaleButton.width = "90px";
+    this.scaleButton.height = "35px";
+    this.scaleButton.color = "white";
+    this.scaleButton.background = "#3a3a3a";
+    this.scaleButton.fontSize = 13;
+    this.scaleButton.cornerRadius = 4;
+    
+    this.scaleButton.onPointerClickObservable.add(() => {
+      this.toggleLightGizmoMode('scale', object);
+    });
+    
+    buttonContainer.addControl(this.scaleButton);
     
     this.panel.addControl(buttonContainer);
     
