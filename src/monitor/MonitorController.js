@@ -185,6 +185,16 @@ export class MonitorController {
       false
     );
     
+    // Lock texture coordinates to prevent camera-dependent distortion
+    // Use EXPLICIT_MODE to force UV mapping (not spherical/cubic/etc)
+    this.dynamicTexture.coordinatesMode = BABYLON.Texture.EXPLICIT_MODE;
+    this.dynamicTexture.coordinatesIndex = 0; // Use first UV channel
+    this.dynamicTexture.getAlphaFromRGB = false;
+    
+    // Disable any automatic texture coordinate generation
+    this.dynamicTexture.level = 1.0; // No level adjustment
+    this.dynamicTexture.hasAlpha = false; // No alpha channel
+    
     // Store original material for potential restoration
     this.originalMaterial = this.monitorMesh.material;
     console.log('Original material:', this.originalMaterial);
@@ -205,12 +215,20 @@ export class MonitorController {
         this.originalMaterial.emissiveIntensity = 1;
         this.originalMaterial.unlit = true; // Make it self-illuminated
         
+        // Disable texture transforms that could cause distortion
+        this.originalMaterial.useParallax = false;
+        this.originalMaterial.useParallaxOcclusion = false;
+        
         // Fix UV mapping - calibrated settings
         this.dynamicTexture.wAng = (270 * Math.PI) / 180;
         this.dynamicTexture.uScale = 1.37;
         this.dynamicTexture.vScale = -0.98;
         this.dynamicTexture.uOffset = -0.18;
         this.dynamicTexture.vOffset = 0.79;
+        
+        // Lock texture wrapping to prevent stretching
+        this.dynamicTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
+        this.dynamicTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
         
         console.log('Modified PBR material with dynamic texture (calibrated UV mapping)');
       } else {
@@ -220,12 +238,21 @@ export class MonitorController {
         this.originalMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
         this.originalMaterial.disableLighting = true;
         
+        // Disable parallax if available
+        if (this.originalMaterial.useParallax !== undefined) {
+          this.originalMaterial.useParallax = false;
+        }
+        
         // Fix UV mapping - calibrated settings
         this.dynamicTexture.wAng = (270 * Math.PI) / 180;
         this.dynamicTexture.uScale = 1.37;
         this.dynamicTexture.vScale = -0.98;
         this.dynamicTexture.uOffset = -0.18;
         this.dynamicTexture.vOffset = 0.79;
+        
+        // Lock texture wrapping to prevent stretching
+        this.dynamicTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE;
+        this.dynamicTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE;
         
         console.log('Modified Standard material with dynamic texture (calibrated UV mapping)');
       }
@@ -250,6 +277,18 @@ export class MonitorController {
     console.log('Mesh name:', this.monitorMesh.name);
     console.log('Final material:', this.monitorMesh.material?.name);
     console.log('Texture size:', this.dynamicTexture.getSize());
+    
+    // CRITICAL: Freeze the mesh to prevent texture coordinate recalculation
+    // This prevents the texture from appearing to shift when camera moves
+    this.monitorMesh.freezeWorldMatrix();
+    this.monitorMesh.doNotSyncBoundingInfo = true;
+    
+    // Ensure the mesh uses its own UV coordinates, not computed ones
+    if (this.monitorMesh.geometry) {
+      this.monitorMesh.geometry.doNotSerialize = false;
+    }
+    
+    console.log('✓ Monitor mesh frozen to prevent texture distortion');
     
     // Draw initial corner markers test pattern AFTER UV settings are applied
     this.drawCornerMarkersPattern();

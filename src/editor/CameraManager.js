@@ -14,12 +14,12 @@ export class CameraManager {
     // Create UniversalCamera at sitting position (chair height)
     const camera = new BABYLON.UniversalCamera(
       "playerCamera",
-      new BABYLON.Vector3(0.00, 2.45, 0.20),
+      new BABYLON.Vector3(-0.10, 2.50, 0.35),
       this.scene
     );
 
     // Configure camera target to look at specific direction (slightly upward)
-    camera.setTarget(new BABYLON.Vector3(3.90, 1.10, 0.50));
+    camera.setTarget(new BABYLON.Vector3(3.60, 1.55, 0.50));
 
     // Disable movement - player is sitting in chair
     camera.speed = 0;
