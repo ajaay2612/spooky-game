@@ -127,6 +127,10 @@ export class HtmlMeshMonitor {
       container.style.position = 'relative';
       container.style.transformStyle = 'preserve-3d';
       container.style.perspective = '2000px';
+      container.style.background = '#0a0a0a'; // Black background
+      container.style.margin = '0';
+      container.style.padding = '0';
+      container.style.overflow = 'hidden';
       
       // Create iframe
       const htmlElement = document.createElement('iframe');
@@ -169,10 +173,15 @@ export class HtmlMeshMonitor {
       // Use container instead of iframe directly
       this.htmlMesh.setContent(container, 0.36, 0.27);
       
-      // Position HtmlMesh at monitor screen (adjusted position)
+      // Position HtmlMesh at monitor screen (scaled up to cover bezel completely)
       this.htmlMesh.position = new BABYLON.Vector3(0.8987579441070557, 2.250906467437744, 0.4201294779777527);
       this.htmlMesh.rotation = new BABYLON.Vector3(0, BABYLON.Tools.ToRadians(88), 0);
-      this.htmlMesh.scaling = new BABYLON.Vector3(1.2, 1.2, 0.95);
+      this.htmlMesh.scaling = new BABYLON.Vector3(1.25, 1.25, 0.95); // Increased to cover bezel edges
+      
+      // Move slightly forward along local X-axis (since rotated 88 degrees) to prevent z-fighting
+      const forwardOffset = 0.002; // 2mm forward
+      this.htmlMesh.position.x += forwardOffset * Math.cos(BABYLON.Tools.ToRadians(88));
+      this.htmlMesh.position.z += forwardOffset * Math.sin(BABYLON.Tools.ToRadians(88));
       
       console.log('✓ HtmlMesh positioned at monitor screen');
       

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Camera Lock-On Debug</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      background: #0a0a0a;
+      color: #00ff00;
+      padding: 20px;
+      margin: 0;
+    }
+    
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      background: #1a1a1a;
+      padding: 20px;
+      border: 2px solid #00ff00;
+      border-radius: 8px;
+    }
+    
+    h1 {
+      text-align: center;
+      color: #00ff00;
+      text-shadow: 0 0 10px #00ff00;
+      margin-bottom: 10px;
+    }
+    
+    .info {
+      background: #0a0a0a;
+      padding: 10px;
+      margin: 10px 0;
+      border-left: 3px solid #00ff00;
+      font-size: 12px;
+    }
+    
+    .control {
+      margin: 20px 0;
+      padding: 15px;
+      background: #0f0f0f;
+      border: 1px solid #00ff00;
+      border-radius: 4px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #ffff00;
+    }
+    
+    input[type="range"] {
+      width: 100%;
+      margin: 10px 0;
+    }
+    
+    .value {
+      color: #00ff00;
+      font-size: 16px;
+      text-align: center;
+      padding: 5px;
+      background: #000;
+      border-radius: 3px;
+      margin-top: 5px;
+    }
+    
+    button {
+      background: #00ff00;
+      color: #0a0a0a;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 4px;
+      margin: 5px;
+      font-family: 'Courier New', monospace;
+      width: calc(50% - 10px);
+    }
+    
+    button:hover {
+      background: #00cc00;
+      box-shadow: 0 0 15px #00ff00;
+    }
+    
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    
+    .section {
+      border-top: 2px solid #00ff00;
+      padding-top: 15px;
+      margin-top: 20px;
+    }
+    
+    .code-output {
+      background: #000;
+      padding: 15px;
+      border: 1px solid #00ff00;
+      border-radius: 4px;
+      font-size: 12px;
+      white-space: pre;
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎥 Camera Lock-On Debug 🎥</h1>
+    
+    <div class="info">
+      Adjust camera position and rotation for the perfect lock-on view. Changes apply in real-time.
+    </div>
+    
+    <div class="section">
+      <h3 style="color: #ffff00;">Camera Position</h3>
+      
+      <div class="control">
+        <label>X Position</label>
+        <input type="range" id="posX" min="-5" max="5" step="0.1" value="0">
+        <div class="value" id="posXValue">0.0</div>
+      </div>
+      
+      <div class="control">
+        <label>Y Position</label>
+        <input type="range" id="posY" min="0" max="5" step="0.1" value="2.45">
+        <div class="value" id="posYValue">2.45</div>
+      </div>
+      
+      <div class="control">
+        <label>Z Position</label>
+        <input type="range" id="posZ" min="-5" max="5" step="0.1" value="0">
+        <div class="value" id="posZValue">0.0</div>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h3 style="color: #ffff00;">Camera Rotation (Radians)</h3>
+      
+      <div class="control">
+        <label>X Rotation (Pitch)</label>
+        <input type="range" id="rotX" min="-3.14" max="3.14" step="0.01" value="0">
+        <div class="value" id="rotXValue">0.00</div>
+      </div>
+      
+      <div class="control">
+        <label>Y Rotation (Yaw)</label>
+        <input type="range" id="rotY" min="-3.14" max="3.14" step="0.01" value="0">
+        <div class="value" id="rotYValue">0.00</div>
+      </div>
+      
+      <div class="control">
+        <label>Z Rotation (Roll)</label>
+        <input type="range" id="rotZ" min="-3.14" max="3.14" step="0.01" value="0">
+        <div class="value" id="rotZValue">0.00</div>
+      </div>
+    </div>
+    
+    <div class="button-group">
+      <button onclick="applyToCamera()">✓ Apply to Camera</button>
+      <button onclick="copyCode()">📋 Copy Code</button>
+      <button onclick="resetValues()">↺ Reset</button>
+      <button onclick="getCurrentCamera()">📷 Get Current</button>
+    </div>
+    
+    <div class="info" id="status">
+      Status: Ready
+    </div>
+    
+    <div class="code-output" id="codeOutput">
+// Camera Lock-On Position & Rotation
+targetPosition = new BABYLON.Vector3(0.0, 2.45, 0.0);
+targetRotation = new BABYLON.Vector3(0.00, 0.00, 0.00);
+    </div>
+  </div>
+
+  <script>
+    // Get all sliders
+    const sliders = {
+      posX: document.getElementById('posX'),
+      posY: document.getElementById('posY'),
+      posZ: document.getElementById('posZ'),
+      rotX: document.getElementById('rotX'),
+      rotY: document.getElementById('rotY'),
+      rotZ: document.getElementById('rotZ')
+    };
+    
+    // Get all value displays
+    const values = {
+      posX: document.getElementById('posXValue'),
+      posY: document.getElementById('posYValue'),
+      posZ: document.getElementById('posZValue'),
+      rotX: document.getElementById('rotXValue'),
+      rotY: document.getElementById('rotYValue'),
+      rotZ: document.getElementById('rotZValue')
+    };
+    
+    // Update displays and apply to camera
+    function updateValues() {
+      const pos = {
+        x: parseFloat(sliders.posX.value),
+        y: parseFloat(sliders.posY.value),
+        z: parseFloat(sliders.posZ.value)
+      };
+      
+      const rot = {
+        x: parseFloat(sliders.rotX.value),
+        y: parseFloat(sliders.rotY.value),
+        z: parseFloat(sliders.rotZ.value)
+      };
+      
+      // Update displays
+      values.posX.textContent = pos.x.toFixed(2);
+      values.posY.textContent = pos.y.toFixed(2);
+      values.posZ.textContent = pos.z.toFixed(2);
+      values.rotX.textContent = rot.x.toFixed(2);
+      values.rotY.textContent = rot.y.toFixed(2);
+      values.rotZ.textContent = rot.z.toFixed(2);
+      
+      // Update code output
+      document.getElementById('codeOutput').textContent = 
+`// Camera Lock-On Position & Rotation
+targetPosition = new BABYLON.Vector3(${pos.x.toFixed(2)}, ${pos.y.toFixed(2)}, ${pos.z.toFixed(2)});
+targetRotation = new BABYLON.Vector3(${rot.x.toFixed(2)}, ${rot.y.toFixed(2)}, ${rot.z.toFixed(2)});`;
+      
+      // Auto-apply to camera
+      applyToCamera(true);
+    }
+    
+    // Apply to main window camera
+    function applyToCamera(silent = false) {
+      try {
+        if (!window.opener || !window.opener.scene) {
+          if (!silent) {
+            document.getElementById('status').textContent = 'Error: Main window not found';
+          }
+          return;
+        }
+        
+        const scene = window.opener.scene;
+        const camera = scene.getCameraByName('playerCamera');
+        
+        if (!camera) {
+          if (!silent) {
+            document.getElementById('status').textContent = 'Error: Player camera not found';
+          }
+          return;
+        }
+        
+        const pos = {
+          x: parseFloat(sliders.posX.value),
+          y: parseFloat(sliders.posY.value),
+          z: parseFloat(sliders.posZ.value)
+        };
+        
+        const rot = {
+          x: parseFloat(sliders.rotX.value),
+          y: parseFloat(sliders.rotY.value),
+          z: parseFloat(sliders.rotZ.value)
+        };
+        
+        camera.position.set(pos.x, pos.y, pos.z);
+        camera.rotation.set(rot.x, rot.y, rot.z);
+        
+        if (!silent) {
+          document.getElementById('status').textContent = '✓ Applied to camera!';
+        }
+      } catch (error) {
+        if (!silent) {
+          document.getElementById('status').textContent = 'Error: ' + error.message;
+        }
+      }
+    }
+    
+    // Get current camera values
+    function getCurrentCamera() {
+      try {
+        if (!window.opener || !window.opener.scene) {
+          document.getElementById('status').textContent = 'Error: Main window not found';
+          return;
+        }
+        
+        const scene = window.opener.scene;
+        const camera = scene.getCameraByName('playerCamera');
+        
+        if (!camera) {
+          document.getElementById('status').textContent = 'Error: Player camera not found';
+          return;
+        }
+        
+        sliders.posX.value = camera.position.x;
+        sliders.posY.value = camera.position.y;
+        sliders.posZ.value = camera.position.z;
+        sliders.rotX.value = camera.rotation.x;
+        sliders.rotY.value = camera.rotation.y;
+        sliders.rotZ.value = camera.rotation.z;
+        
+        updateValues();
+        document.getElementById('status').textContent = '✓ Got current camera values!';
+      } catch (error) {
+        document.getElementById('status').textContent = 'Error: ' + error.message;
+      }
+    }
+    
+    // Copy code to clipboard
+    function copyCode() {
+      const code = document.getElementById('codeOutput').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        document.getElementById('status').textContent = '✓ Code copied to clipboard!';
+      }).catch(() => {
+        document.getElementById('status').textContent = 'Error: Failed to copy';
+      });
+    }
+    
+    // Reset to defaults
+    function resetValues() {
+      sliders.posX.value = 0;
+      sliders.posY.value = 2.45;
+      sliders.posZ.value = 0;
+      sliders.rotX.value = 0;
+      sliders.rotY.value = 0;
+      sliders.rotZ.value = 0;
+      updateValues();
+      document.getElementById('status').textContent = '↺ Reset to defaults';
+    }
+    
+    // Add event listeners
+    Object.values(sliders).forEach(slider => {
+      slider.addEventListener('input', updateValues);
+    });
+    
+    // Initial update
+    updateValues();
+  </script>
+</body>
+</html>

@@ -11,30 +11,49 @@ export class CameraManager {
   }
   
   createPlayerCamera() {
-    // Create UniversalCamera at eye level position (0, 1.6, -5)
+    // Create UniversalCamera at sitting position (chair height)
     const camera = new BABYLON.UniversalCamera(
       "playerCamera",
-      new BABYLON.Vector3(0, 1.6, -5),
+      new BABYLON.Vector3(0.00, 2.45, 0.20),
       this.scene
     );
 
-    // Configure camera target to look forward
-    camera.setTarget(new BABYLON.Vector3(0, 1.6, 0));
+    // Configure camera target to look at specific direction (slightly upward)
+    camera.setTarget(new BABYLON.Vector3(3.90, 1.10, 0.50));
 
-    // Set camera movement speed to 0.1 units per frame
-    camera.speed = 0.1;
+    // Disable movement - player is sitting in chair
+    camera.speed = 0;
 
-    // Configure mouse sensitivity and pointer lock
+    // Configure mouse sensitivity for rotation only
     // Lower angularSensibility = higher sensitivity (inverse relationship)
     camera.angularSensibility = 2000;
 
-    // Set up WASD key mappings for movement controls
-    camera.keysUp = [87];    // W key
-    camera.keysDown = [83];  // S key
-    camera.keysLeft = [65];  // A key
-    camera.keysRight = [68]; // D key
+    // Disable WASD key movement - player cannot move from chair
+    camera.keysUp = [];
+    camera.keysDown = [];
+    camera.keysLeft = [];
+    camera.keysRight = [];
 
-    console.log('Player camera (UniversalCamera) created');
+    // Improve camera visibility settings
+    camera.minZ = 0.1;  // Near clipping plane - very close
+    camera.maxZ = 1000; // Far clipping plane - see far
+    camera.fov = 0.6;   // Field of view (narrower for less distortion)
+
+    // Clamp vertical rotation to prevent looking at chair
+    // Use onBeforeRenderObservable to enforce limits every frame
+    const minRotationX = -1.4;  // Limit looking up (~-80 degrees, negative is up)
+    const maxRotationX = 0.39;  // Limit looking down (~22 degrees, positive is down)
+    
+    this.scene.onBeforeRenderObservable.add(() => {
+      if (camera.rotation.x < minRotationX) {
+        camera.rotation.x = minRotationX;
+      }
+      if (camera.rotation.x > maxRotationX) {
+        camera.rotation.x = maxRotationX;
+      }
+    });
+
+    console.log('Player camera (UniversalCamera) created - sitting mode (rotation only)');
     
     this.playerCamera = camera;
     return camera;

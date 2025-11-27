@@ -8,6 +8,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Object Interaction System** (Play Mode) - v1.1.0+
+  - InteractionSystem class for detecting and interacting with objects
+  - Raycast-based detection (5 unit range, throttled to every 5 frames)
+  - Visual crosshair feedback (white default, green when targeting interactables)
+  - "Press [F] to Interact" prompt when targeting objects
+  - Lock-on mode with smooth camera animation to interaction position
+  - Configurable camera positions per machine (InteractiveMachinesConfig)
+  - Exit lock-on with Escape or F key
+  - Pointer lock management (unlocked during lock-on for UI interaction)
+  - Optimized for 75+ FPS with minimal overhead
+- Interactive CRT Monitor System (documented in v1.1.0 section below)
+
+### Fixed
+- **Performance**: Aggressive optimization of InteractionSystem for stable 60+ FPS
+  - Removed HighlightLayer entirely (GPU post-processing overhead)
+  - Replaced 3D highlighting with lightweight CSS crosshair (changes color when targeting interactables)
+  - Throttled raycasts to every 5 frames instead of every frame (83% reduction)
+  - Removed debug raycasts and unnecessary vector cloning
+  - Eliminated all material modifications during gameplay
+  - FPS now stable at 75+ even during rapid camera movement
+
+### Added
 - Interactive CRT Monitor System
   - MonitorController class for managing HTML frame rendering
   - HTML-to-texture pipeline using html2canvas

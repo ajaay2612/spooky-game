@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Player Start Position Debug</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 20px;
+      margin: 0;
+    }
+    
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      color: #4ec9b0;
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+    
+    .description {
+      color: #9cdcfe;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+    
+    .control-group {
+      background: #252526;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border: 1px solid #3e3e42;
+    }
+    
+    .control-label {
+      display: block;
+      color: #4ec9b0;
+      font-weight: 600;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    
+    .slider-container {
+      margin-bottom: 15px;
+    }
+    
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+      font-size: 13px;
+    }
+    
+    .slider-name {
+      color: #9cdcfe;
+    }
+    
+    .slider-value {
+      color: #ce9178;
+      font-weight: bold;
+    }
+    
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: #3e3e42;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #4ec9b0;
+      cursor: pointer;
+    }
+    
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #4ec9b0;
+      cursor: pointer;
+      border: none;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    button {
+      flex: 1;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-apply {
+      background: #0e639c;
+      color: white;
+    }
+    
+    .btn-apply:hover {
+      background: #1177bb;
+    }
+    
+    .btn-reset {
+      background: #3e3e42;
+      color: #d4d4d4;
+    }
+    
+    .btn-reset:hover {
+      background: #505050;
+    }
+    
+    .btn-copy {
+      background: #2d7d2d;
+      color: white;
+    }
+    
+    .btn-copy:hover {
+      background: #3a9a3a;
+    }
+    
+    .status {
+      margin-top: 20px;
+      padding: 12px;
+      border-radius: 4px;
+      font-size: 13px;
+      display: none;
+    }
+    
+    .status.success {
+      background: #1e3a1e;
+      border: 1px solid #2d7d2d;
+      color: #4ec9b0;
+      display: block;
+    }
+    
+    .status.error {
+      background: #3a1e1e;
+      border: 1px solid #7d2d2d;
+      color: #f48771;
+      display: block;
+    }
+    
+    .preset-buttons {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 15px;
+    }
+    
+    .btn-preset {
+      padding: 10px;
+      background: #2d2d30;
+      color: #9cdcfe;
+      border: 1px solid #3e3e42;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    
+    .btn-preset:hover {
+      background: #3e3e42;
+      border-color: #4ec9b0;
+    }
+    
+    .code-block {
+      background: #1e1e1e;
+      border: 1px solid #3e3e42;
+      border-radius: 4px;
+      padding: 15px;
+      margin-top: 15px;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 12px;
+      color: #ce9178;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🪑 Player Start Position Debug</h1>
+    <p class="description">
+      Adjust the starting position for play mode (where the player sits in the chair).
+      Changes apply in real-time to the main window.
+    </p>
+    
+    <div class="control-group">
+      <span class="control-label">Position Controls</span>
+      
+      <div class="slider-container">
+        <div class="slider-label">
+          <span class="slider-name">X Position (Left ← → Right)</span>
+          <span class="slider-value" id="xValue">0.00</span>
+        </div>
+        <input type="range" id="xSlider" min="-10" max="10" step="0.1" value="0">
+      </div>
+      
+      <div class="slider-container">
+        <div class="slider-label">
+          <span class="slider-name">Y Position (Down ↓ ↑ Up)</span>
+          <span class="slider-value" id="yValue">1.00</span>
+        </div>
+        <input type="range" id="ySlider" min="0.5" max="2.5" step="0.05" value="1.0">
+      </div>
+      
+      <div class="slider-container">
+        <div class="slider-label">
+          <span class="slider-name">Z Position (Back ← → Forward)</span>
+          <span class="slider-value" id="zValue">-5.00</span>
+        </div>
+        <input type="range" id="zSlider" min="-10" max="10" step="0.1" value="-5">
+      </div>
+      
+      <div class="preset-buttons">
+        <button class="btn-preset" onclick="applyPreset('center')">📍 Center Room</button>
+        <button class="btn-preset" onclick="applyPreset('desk')">🖥️ At Desk</button>
+        <button class="btn-preset" onclick="applyPreset('corner')">📐 Corner View</button>
+        <button class="btn-preset" onclick="applyPreset('default')">🔄 Default</button>
+      </div>
+    </div>
+    
+    <div class="control-group">
+      <span class="control-label">Target Look Direction</span>
+      
+      <div class="slider-container">
+        <div class="slider-label">
+          <span class="slider-name">Target X</span>
+          <span class="slider-value" id="targetXValue">0.00</span>
+        </div>
+        <input type="range" id="targetXSlider" min="-10" max="10" step="0.1" value="0">
+      </div>
+      
+      <div class="slider-container">
+        <div class="slider-label">
+          <span class="slider-name">Target Y</span>
+          <span class="slider-value" id="targetYValue">1.00</span>
+        </div>
+        <input type="range" id="targetYSlider" min="0" max="3" step="0.05" value="1.0">
+      </div>
+      
+      <div class="slider-container">
+        <div class="slider-label">
+          <span class="slider-name">Target Z</span>
+          <span class="slider-value" id="targetZValue">0.00</span>
+        </div>
+        <input type="range" id="targetZSlider" min="-10" max="10" step="0.1" value="0">
+      </div>
+    </div>
+    
+    <div class="button-group">
+      <button class="btn-apply" onclick="applyToMainWindow()">✓ Apply to Main Window</button>
+      <button class="btn-copy" onclick="copyCode()">📋 Copy Code</button>
+      <button class="btn-reset" onclick="resetToDefault()">↺ Reset</button>
+    </div>
+    
+    <div id="status" class="status"></div>
+    
+    <div class="code-block" id="codeBlock">
+      <div>// Player camera position</div>
+      <div>new BABYLON.Vector3(0, 1.0, -5)</div>
+      <div>// Target position</div>
+      <div>new BABYLON.Vector3(0, 1.0, 0)</div>
+    </div>
+  </div>
+  
+  <script>
+    // Get slider elements
+    const xSlider = document.getElementById('xSlider');
+    const ySlider = document.getElementById('ySlider');
+    const zSlider = document.getElementById('zSlider');
+    const targetXSlider = document.getElementById('targetXSlider');
+    const targetYSlider = document.getElementById('targetYSlider');
+    const targetZSlider = document.getElementById('targetZSlider');
+    
+    // Get value display elements
+    const xValue = document.getElementById('xValue');
+    const yValue = document.getElementById('yValue');
+    const zValue = document.getElementById('zValue');
+    const targetXValue = document.getElementById('targetXValue');
+    const targetYValue = document.getElementById('targetYValue');
+    const targetZValue = document.getElementById('targetZValue');
+    
+    const codeBlock = document.getElementById('codeBlock');
+    const status = document.getElementById('status');
+    
+    // Update displays when sliders change
+    function updateDisplays() {
+      const x = parseFloat(xSlider.value);
+      const y = parseFloat(ySlider.value);
+      const z = parseFloat(zSlider.value);
+      const tx = parseFloat(targetXSlider.value);
+      const ty = parseFloat(targetYSlider.value);
+      const tz = parseFloat(targetZSlider.value);
+      
+      xValue.textContent = x.toFixed(2);
+      yValue.textContent = y.toFixed(2);
+      zValue.textContent = z.toFixed(2);
+      targetXValue.textContent = tx.toFixed(2);
+      targetYValue.textContent = ty.toFixed(2);
+      targetZValue.textContent = tz.toFixed(2);
+      
+      // Update code block
+      codeBlock.innerHTML = `
+        <div>// Player camera position (sitting in chair)</div>
+        <div>new BABYLON.Vector3(${x.toFixed(2)}, ${y.toFixed(2)}, ${z.toFixed(2)})</div>
+        <div style="margin-top: 10px;">// Target look direction</div>
+        <div>new BABYLON.Vector3(${tx.toFixed(2)}, ${ty.toFixed(2)}, ${tz.toFixed(2)})</div>
+      `;
+      
+      // Auto-apply to main window if it exists
+      applyToMainWindow(true);
+    }
+    
+    // Attach event listeners
+    xSlider.addEventListener('input', updateDisplays);
+    ySlider.addEventListener('input', updateDisplays);
+    zSlider.addEventListener('input', updateDisplays);
+    targetXSlider.addEventListener('input', updateDisplays);
+    targetYSlider.addEventListener('input', updateDisplays);
+    targetZSlider.addEventListener('input', updateDisplays);
+    
+    // Apply to main window
+    function applyToMainWindow(silent = false) {
+      try {
+        if (window.opener && window.opener.scene) {
+          const scene = window.opener.scene;
+          const camera = scene.getCameraByName('playerCamera');
+          
+          if (camera) {
+            const x = parseFloat(xSlider.value);
+            const y = parseFloat(ySlider.value);
+            const z = parseFloat(zSlider.value);
+            const tx = parseFloat(targetXSlider.value);
+            const ty = parseFloat(targetYSlider.value);
+            const tz = parseFloat(targetZSlider.value);
+            
+            camera.position.set(x, y, z);
+            camera.setTarget(new window.opener.BABYLON.Vector3(tx, ty, tz));
+            
+            if (!silent) {
+              showStatus('✓ Position applied to player camera!', 'success');
+            }
+          } else {
+            if (!silent) {
+              showStatus('⚠ Player camera not found. Make sure the main window is open.', 'error');
+            }
+          }
+        } else {
+          if (!silent) {
+            showStatus('⚠ Main window not found. Open this from the main game window.', 'error');
+          }
+        }
+      } catch (error) {
+        if (!silent) {
+          showStatus('✗ Error: ' + error.message, 'error');
+        }
+      }
+    }
+    
+    // Copy code to clipboard
+    function copyCode() {
+      const x = parseFloat(xSlider.value);
+      const y = parseFloat(ySlider.value);
+      const z = parseFloat(zSlider.value);
+      const tx = parseFloat(targetXSlider.value);
+      const ty = parseFloat(targetYSlider.value);
+      const tz = parseFloat(targetZSlider.value);
+      
+      const code = `// Player camera position (sitting in chair)
+new BABYLON.Vector3(${x.toFixed(2)}, ${y.toFixed(2)}, ${z.toFixed(2)})
+
+// Target look direction
+new BABYLON.Vector3(${tx.toFixed(2)}, ${ty.toFixed(2)}, ${tz.toFixed(2)})`;
+      
+      navigator.clipboard.writeText(code).then(() => {
+        showStatus('✓ Code copied to clipboard!', 'success');
+      }).catch(() => {
+        showStatus('✗ Failed to copy code', 'error');
+      });
+    }
+    
+    // Reset to default
+    function resetToDefault() {
+      xSlider.value = 0;
+      ySlider.value = 1.0;
+      zSlider.value = -5;
+      targetXSlider.value = 0;
+      targetYSlider.value = 1.0;
+      targetZSlider.value = 0;
+      updateDisplays();
+      showStatus('↺ Reset to default position', 'success');
+    }
+    
+    // Apply presets
+    function applyPreset(preset) {
+      switch(preset) {
+        case 'center':
+          xSlider.value = 0;
+          ySlider.value = 1.0;
+          zSlider.value = 0;
+          targetXSlider.value = 0;
+          targetYSlider.value = 1.0;
+          targetZSlider.value = 5;
+          break;
+        case 'desk':
+          xSlider.value = 0;
+          ySlider.value = 1.0;
+          zSlider.value = -3;
+          targetXSlider.value = 0;
+          targetYSlider.value = 1.0;
+          targetZSlider.value = 0;
+          break;
+        case 'corner':
+          xSlider.value = -5;
+          ySlider.value = 1.0;
+          zSlider.value = -5;
+          targetXSlider.value = 0;
+          targetYSlider.value = 1.0;
+          targetZSlider.value = 0;
+          break;
+        case 'default':
+          resetToDefault();
+          return;
+      }
+      updateDisplays();
+      showStatus(`✓ Applied "${preset}" preset`, 'success');
+    }
+    
+    // Show status message
+    function showStatus(message, type) {
+      status.textContent = message;
+      status.className = 'status ' + type;
+      
+      setTimeout(() => {
+        status.style.display = 'none';
+      }, 3000);
+    }
+    
+    // Initialize displays
+    updateDisplays();
+  </script>
+</body>
+</html>

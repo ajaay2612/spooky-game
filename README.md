@@ -29,6 +29,14 @@ A 3D first-person spooky game built with Babylon.js. Features a dark atmospheric
 - **Renaming**: Edit object names directly in property panel
 - **Uniform Scaling**: Lock aspect ratio option for proportional scaling
 
+### Object Interaction System
+- **Raycast Detection**: Automatically detects interactable objects in view
+- **Visual Feedback**: Crosshair changes color when targeting interactable objects
+- **Lock-On Mode**: Press F to lock camera onto focused object
+- **Smooth Camera Animation**: Animated transition to interaction position
+- **Interaction Prompt**: "Press [F] to Interact" displayed when targeting objects
+- **Exit Lock-On**: Press Escape or F again to return to normal camera
+
 ### Interactive CRT Monitor System
 - **HTML Frame Rendering**: Renders HTML content onto 3D monitor mesh
 - **Keyboard Navigation**: Arrow keys/WASD to navigate, Enter to select
@@ -74,9 +82,10 @@ npm run preview
 - **Escape**: Deselect current object
 
 ### Play Mode
-- **WASD**: Move camera (first-person)
 - **Mouse**: Look around (pointer lock enabled)
 - **E Key**: Return to Editor mode
+- **F Key**: Interact with focused object (lock-on mode)
+- **Escape**: Exit lock-on mode
 - **M Key**: Toggle monitor interaction (activate/deactivate)
 
 ### Monitor Interaction (When Active)

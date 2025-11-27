@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dial Rotation Debug</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      background: #0a0a0a;
+      color: #00ff00;
+      padding: 20px;
+      margin: 0;
+    }
+    
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      background: #1a1a1a;
+      padding: 20px;
+      border: 2px solid #00ff00;
+      border-radius: 8px;
+    }
+    
+    h1 {
+      text-align: center;
+      color: #00ff00;
+      text-shadow: 0 0 10px #00ff00;
+      margin-bottom: 10px;
+    }
+    
+    .info {
+      background: #0a0a0a;
+      padding: 10px;
+      margin: 10px 0;
+      border-left: 3px solid #00ff00;
+      font-size: 12px;
+    }
+    
+    .control {
+      margin: 15px 0;
+      padding: 15px;
+      background: #0f0f0f;
+      border: 1px solid #00ff00;
+      border-radius: 4px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #ffff00;
+    }
+    
+    input[type="range"] {
+      width: 100%;
+      margin: 10px 0;
+    }
+    
+    .value {
+      color: #00ff00;
+      font-size: 16px;
+      text-align: center;
+      padding: 5px;
+      background: #000;
+      border-radius: 3px;
+      margin-top: 5px;
+    }
+    
+    button {
+      background: #00ff00;
+      color: #0a0a0a;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 4px;
+      margin: 5px;
+      font-family: 'Courier New', monospace;
+      width: calc(50% - 10px);
+    }
+    
+    button:hover {
+      background: #00cc00;
+      box-shadow: 0 0 15px #00ff00;
+    }
+    
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    
+    .code-output {
+      background: #000;
+      padding: 15px;
+      border: 1px solid #00ff00;
+      border-radius: 4px;
+      font-size: 12px;
+      white-space: pre;
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+    
+    .section {
+      border-top: 2px solid #00ff00;
+      padding-top: 15px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎛️ Dial Rotation Debug 🎛️</h1>
+    
+    <div class="info">
+      Adjust rotation axis and angle to find the correct dial rotation. Changes apply in real-time.
+    </div>
+    
+    <div class="section">
+      <h3 style="color: #ffff00;">Rotation Axis (Normalized)</h3>
+      
+      <div class="control">
+        <label>Axis X</label>
+        <input type="range" id="axisX" min="-1" max="1" step="0.01" value="0">
+        <div class="value" id="axisXValue">0.00</div>
+      </div>
+      
+      <div class="control">
+        <label>Axis Y</label>
+        <input type="range" id="axisY" min="-1" max="1" step="0.01" value="1">
+        <div class="value" id="axisYValue">1.00</div>
+      </div>
+      
+      <div class="control">
+        <label>Axis Z</label>
+        <input type="range" id="axisZ" min="-1" max="1" step="0.01" value="0">
+        <div class="value" id="axisZValue">0.00</div>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h3 style="color: #ffff00;">Pivot Point Offset</h3>
+      
+      <div class="control">
+        <label>Pivot X</label>
+        <input type="range" id="pivotX" min="-0.1" max="0.1" step="0.001" value="0">
+        <div class="value" id="pivotXValue">0.000</div>
+      </div>
+      
+      <div class="control">
+        <label>Pivot Y</label>
+        <input type="range" id="pivotY" min="-0.1" max="0.1" step="0.001" value="0">
+        <div class="value" id="pivotYValue">0.000</div>
+      </div>
+      
+      <div class="control">
+        <label>Pivot Z</label>
+        <input type="range" id="pivotZ" min="-0.1" max="0.1" step="0.001" value="0">
+        <div class="value" id="pivotZValue">0.000</div>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h3 style="color: #ffff00;">Rotation Angle</h3>
+      
+      <div class="control">
+        <label>Angle (Radians)</label>
+        <input type="range" id="angle" min="-6.28" max="6.28" step="0.01" value="0">
+        <div class="value" id="angleValue">0.00 rad (0°)</div>
+      </div>
+      
+      <div class="control">
+        <label>Quick Angles</label>
+        <div style="display: flex; gap: 5px; flex-wrap: wrap; margin-top: 10px;">
+          <button style="width: auto; padding: 8px 12px; font-size: 14px;" onclick="setAngle(0)">0°</button>
+          <button style="width: auto; padding: 8px 12px; font-size: 14px;" onclick="setAngle(Math.PI/4)">45°</button>
+          <button style="width: auto; padding: 8px 12px; font-size: 14px;" onclick="setAngle(Math.PI/2)">90°</button>
+          <button style="width: auto; padding: 8px 12px; font-size: 14px;" onclick="setAngle(Math.PI)">180°</button>
+          <button style="width: auto; padding: 8px 12px; font-size: 14px;" onclick="setAngle(-Math.PI/2)">-90°</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="button-group">
+      <button onclick="applyRotation()">✓ Apply Rotation</button>
+      <button onclick="resetRotation()">↺ Reset</button>
+      <button onclick="copyCode()">📋 Copy Code</button>
+      <button onclick="animateRotation()">▶️ Animate</button>
+    </div>
+    
+    <div class="info" id="status">
+      Status: Ready
+    </div>
+    
+    <div class="code-output" id="codeOutput">
+// Dial Rotation Axis & Angle
+const axis = new BABYLON.Vector3(0.00, 1.00, 0.00);
+const angle = 0.00; // radians (0°)
+    </div>
+  </div>
+
+  <script>
+    let originalRotation = null;
+    let originalPosition = null;
+    
+    // Get all sliders
+    const sliders = {
+      axisX: document.getElementById('axisX'),
+      axisY: document.getElementById('axisY'),
+      axisZ: document.getElementById('axisZ'),
+      pivotX: document.getElementById('pivotX'),
+      pivotY: document.getElementById('pivotY'),
+      pivotZ: document.getElementById('pivotZ'),
+      angle: document.getElementById('angle')
+    };
+    
+    // Get all value displays
+    const values = {
+      axisX: document.getElementById('axisXValue'),
+      axisY: document.getElementById('axisYValue'),
+      axisZ: document.getElementById('axisZValue'),
+      pivotX: document.getElementById('pivotXValue'),
+      pivotY: document.getElementById('pivotYValue'),
+      pivotZ: document.getElementById('pivotZValue'),
+      angle: document.getElementById('angleValue')
+    };
+    
+    // Update displays
+    function updateValues() {
+      const axis = {
+        x: parseFloat(sliders.axisX.value),
+        y: parseFloat(sliders.axisY.value),
+        z: parseFloat(sliders.axisZ.value)
+      };
+      
+      const pivot = {
+        x: parseFloat(sliders.pivotX.value),
+        y: parseFloat(sliders.pivotY.value),
+        z: parseFloat(sliders.pivotZ.value)
+      };
+      
+      const angle = parseFloat(sliders.angle.value);
+      const degrees = (angle * 180 / Math.PI).toFixed(0);
+      
+      // Update displays
+      values.axisX.textContent = axis.x.toFixed(2);
+      values.axisY.textContent = axis.y.toFixed(2);
+      values.axisZ.textContent = axis.z.toFixed(2);
+      values.pivotX.textContent = pivot.x.toFixed(3);
+      values.pivotY.textContent = pivot.y.toFixed(3);
+      values.pivotZ.textContent = pivot.z.toFixed(3);
+      values.angle.textContent = `${angle.toFixed(2)} rad (${degrees}°)`;
+      
+      // Update code output
+      document.getElementById('codeOutput').textContent = 
+`// Dial Rotation Axis, Pivot & Angle
+const axis = new BABYLON.Vector3(${axis.x.toFixed(2)}, ${axis.y.toFixed(2)}, ${axis.z.toFixed(2)});
+const pivotOffset = new BABYLON.Vector3(${pivot.x.toFixed(3)}, ${pivot.y.toFixed(3)}, ${pivot.z.toFixed(3)});
+const angle = ${angle.toFixed(2)}; // radians (${degrees}°)`;
+      
+      // Auto-apply
+      applyRotation(true);
+    }
+    
+    // Set angle quickly
+    function setAngle(radians) {
+      sliders.angle.value = radians;
+      updateValues();
+    }
+    
+    // Apply rotation to dial
+    function applyRotation(silent = false) {
+      try {
+        if (!window.opener || !window.opener.scene) {
+          if (!silent) {
+            document.getElementById('status').textContent = 'Error: Main window not found';
+          }
+          return;
+        }
+        
+        const scene = window.opener.scene;
+        const dial = scene.getMeshByName('SM_ComputerParts_C05_N1_54_StaticMeshComponent0.dial');
+        
+        if (!dial) {
+          if (!silent) {
+            document.getElementById('status').textContent = 'Error: Dial mesh not found';
+          }
+          return;
+        }
+        
+        // Store originals on first access
+        if (!originalRotation) {
+          originalRotation = dial.rotationQuaternion ? dial.rotationQuaternion.clone() : 
+                            window.opener.BABYLON.Quaternion.FromEulerAngles(dial.rotation.x, dial.rotation.y, dial.rotation.z);
+          originalPosition = dial.position.clone();
+        }
+        
+        const axis = {
+          x: parseFloat(sliders.axisX.value),
+          y: parseFloat(sliders.axisY.value),
+          z: parseFloat(sliders.axisZ.value)
+        };
+        
+        const pivot = {
+          x: parseFloat(sliders.pivotX.value),
+          y: parseFloat(sliders.pivotY.value),
+          z: parseFloat(sliders.pivotZ.value)
+        };
+        
+        const angle = parseFloat(sliders.angle.value);
+        
+        // Set pivot point
+        const pivotVector = new window.opener.BABYLON.Vector3(pivot.x, pivot.y, pivot.z);
+        dial.setPivotPoint(pivotVector);
+        
+        // Create rotation quaternion from axis-angle
+        const axisVector = new window.opener.BABYLON.Vector3(axis.x, axis.y, axis.z).normalize();
+        const rotationQuat = window.opener.BABYLON.Quaternion.RotationAxis(axisVector, angle);
+        
+        // Apply rotation
+        dial.rotationQuaternion = originalRotation.multiply(rotationQuat);
+        
+        if (!silent) {
+          document.getElementById('status').textContent = '✓ Rotation applied!';
+        }
+      } catch (error) {
+        if (!silent) {
+          document.getElementById('status').textContent = 'Error: ' + error.message;
+        }
+      }
+    }
+    
+    // Reset rotation
+    function resetRotation() {
+      try {
+        if (!window.opener || !window.opener.scene) {
+          document.getElementById('status').textContent = 'Error: Main window not found';
+          return;
+        }
+        
+        const scene = window.opener.scene;
+        const dial = scene.getMeshByName('SM_ComputerParts_C05_N1_54_StaticMeshComponent0.dial');
+        
+        if (!dial || !originalRotation) {
+          document.getElementById('status').textContent = 'Error: Dial not found or no original rotation';
+          return;
+        }
+        
+        dial.rotationQuaternion = originalRotation.clone();
+        
+        // Reset pivot
+        dial.setPivotPoint(window.opener.BABYLON.Vector3.Zero());
+        
+        // Reset sliders
+        sliders.axisX.value = 0;
+        sliders.axisY.value = 1;
+        sliders.axisZ.value = 0;
+        sliders.pivotX.value = 0;
+        sliders.pivotY.value = 0;
+        sliders.pivotZ.value = 0;
+        sliders.angle.value = 0;
+        updateValues();
+        
+        document.getElementById('status').textContent = '↺ Reset to original rotation';
+      } catch (error) {
+        document.getElementById('status').textContent = 'Error: ' + error.message;
+      }
+    }
+    
+    // Animate rotation
+    function animateRotation() {
+      const startAngle = 0;
+      const endAngle = Math.PI * 2; // Full rotation
+      const duration = 2000; // 2 seconds
+      const startTime = Date.now();
+      
+      function animate() {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const currentAngle = startAngle + (endAngle - startAngle) * progress;
+        
+        sliders.angle.value = currentAngle;
+        updateValues();
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          document.getElementById('status').textContent = '✓ Animation complete';
+        }
+      }
+      
+      document.getElementById('status').textContent = '▶️ Animating...';
+      animate();
+    }
+    
+    // Copy code to clipboard
+    function copyCode() {
+      const code = document.getElementById('codeOutput').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        document.getElementById('status').textContent = '✓ Code copied to clipboard!';
+      }).catch(() => {
+        document.getElementById('status').textContent = 'Error: Failed to copy';
+      });
+    }
+    
+    // Add event listeners
+    Object.values(sliders).forEach(slider => {
+      slider.addEventListener('input', updateValues);
+    });
+    
+    // Initial update
+    updateValues();
+  </script>
+</body>
+</html>

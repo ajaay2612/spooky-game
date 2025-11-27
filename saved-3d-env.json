@@ -23,43 +23,6 @@
       "modelName": "stage.glb"
     },
     {
-      "type": "mesh",
-      "meshType": "box",
-      "name": "monitorFrame",
-      "position": [
-        0.8987579441070557,
-        2.250906467437744,
-        0.4201294779777527
-      ],
-      "rotation": [
-        0,
-        1.53588974175501,
-        0
-      ],
-      "scaling": [
-        1,
-        1,
-        1
-      ],
-      "material": {
-        "diffuseColor": [
-          1,
-          1,
-          1
-        ],
-        "specularColor": [
-          1,
-          1,
-          1
-        ],
-        "emissiveColor": [
-          0,
-          0,
-          0
-        ]
-      }
-    },
-    {
       "type": "light",
       "lightType": "hemispheric",
       "name": "hemisphericLight",

@@ -82,6 +82,15 @@ Navigate → Experience Scene → Return to Editor → Refine → Repeat
 - **GUI Visibility**: Editor UI hidden in Play mode
 - **Selection State**: Cleared when entering Play mode
 
+### Object Interaction (v1.1.0+)
+- **Raycast Detection**: Automatically detects interactable objects in camera view (5 unit range)
+- **Visual Feedback**: Crosshair changes from white to green when targeting interactables
+- **Interaction Prompt**: "Press [F] to Interact" displayed at bottom center
+- **F Key**: Lock onto focused object with smooth camera animation
+- **Lock-On Mode**: Camera moves to configured interaction position, pointer unlocked for UI
+- **Exit Lock-On**: Press Escape or F again to return to original camera position
+- **Performance**: Raycasts throttled to every 5 frames for optimal performance
+
 ### Monitor Interaction (v1.1.0+)
 - **M Key**: Toggle monitor activation/deactivation
 - **Active State**: Keyboard input captured for monitor navigation

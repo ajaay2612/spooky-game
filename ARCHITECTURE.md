@@ -34,6 +34,9 @@ The application now uses a modular class-based architecture with clear separatio
 ├──────────────┼──────────────┼──────────────┼────────────┤
 │ ObjectPalette│ PropertyPanel│SceneHierarchy│ Serializer │
 │ (Create UI)  │ (Edit UI)    │ (Tree UI)    │ (Save/Load)│
+├──────────────┼──────────────┼──────────────┼────────────┤
+│InteractionSys│MonitorControl│MachineInterac│            │
+│ (Play Mode)  │ (HTML Frames)│ (Buttons/Dial)│            │
 ├──────────────┴──────────────┴──────────────┴────────────┤
 │              Babylon.js GizmoManager                     │
 │         (Move Gizmo, Scale Gizmo, Rotation Gizmo)        │
@@ -328,7 +331,59 @@ The application now uses a modular class-based architecture with clear separatio
 - Local coordinate space (follows object rotation)
 - Real-time property updates
 
-### 10. Application State (`appState`) [Legacy]
+### 10. InteractionSystem (Play Mode)
+
+**Purpose**: Handles object interaction in play mode with raycast detection and lock-on camera
+
+**Properties**:
+- `scene`: Babylon.js scene reference
+- `camera`: Player camera reference
+- `canvas`: HTML canvas element
+- `focusedObject`: Currently targeted object
+- `isLockedOn`: Boolean for lock-on state
+- `interactableObjects`: Array of interactable meshes
+- `enabled`: Boolean (enabled in play mode only)
+- `raycastDistance`: 5 units maximum interaction range
+- `raycastThrottle`: Frame counter for performance
+- `raycastInterval`: 5 frames between raycasts
+
+**Methods**:
+- `initialize()`: Setup UI elements and register interactables
+- `update()`: Called every frame to perform raycasting
+- `registerInteractableObjects()`: Scan scene for interactable meshes
+- `setFocusedObject(mesh)`: Set currently targeted object
+- `clearFocusedObject()`: Clear target and reset UI
+- `lockOnToObject()`: Animate camera to interaction position
+- `exitLockOn()`: Return camera to original position
+- `onObjectInteract(mesh)`: Trigger interaction events
+- `dispose()`: Cleanup resources
+
+**UI Elements**:
+- Crosshair: White (default) → Green (targeting interactable)
+- Interaction prompt: "Press [F] to Interact" at bottom center
+- Pointer lock management
+
+**Lock-On Behavior**:
+- F key triggers lock-on to focused object
+- Smooth camera animation (60 frames, cubic easing)
+- Camera moves to configured position from InteractiveMachinesConfig
+- Pointer lock released for UI interaction
+- Escape or F key exits lock-on
+- Returns to original camera position with animation
+
+**Performance Optimizations**:
+- Raycasts throttled to every 5 frames (83% reduction)
+- HighlightLayer removed (GPU overhead eliminated)
+- CSS-based crosshair (lightweight)
+- No material modifications during gameplay
+- Achieves 75+ FPS during rapid camera movement
+
+**Interactable Objects**:
+- Registered by mesh name from InteractiveMachinesConfig
+- Specific meshes: Computer parts, monitor, buttons, dials
+- Re-scans at 1s and 3s intervals to catch late-loading models
+
+### 11. Application State (`appState`) [Legacy]
 
 Global state object tracking application health and metrics.
 

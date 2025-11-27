@@ -6,6 +6,7 @@ import { CameraManager } from './CameraManager.js';
 import { SerializationManager } from './SerializationManager.js';
 import { ObjectFactory } from '../scene/ObjectFactory.js';
 import { HtmlMeshAlignPanel } from './HtmlMeshAlignPanel.js';
+import { InteractionSystem } from '../story/InteractionSystem.js';
 
 export class EditorManager {
   constructor(scene, canvas) {
@@ -22,6 +23,7 @@ export class EditorManager {
     this.propertyPanel = null;
     this.sceneHierarchy = null;
     this.htmlMeshAlignPanel = null;
+    this.interactionSystem = null;
     
     // GUI reference
     this.guiTexture = null;
@@ -44,8 +46,11 @@ export class EditorManager {
     this.serializationManager = new SerializationManager(this.scene);
     this.cameraManager = new CameraManager(this.scene, this.canvas);
     
-    // Initialize camera system
+    // Initialize camera system first (creates cameras)
     this.cameraManager.initialize();
+    
+    // Now initialize interaction system with the created player camera
+    this.interactionSystem = new InteractionSystem(this.scene, this.cameraManager.playerCamera, this.canvas);
     
     // Setup mouse picking for selection
     this.selectionManager.setupPicking(this.canvas);
@@ -263,6 +268,15 @@ export class EditorManager {
       this.selectionManager.setupPicking(this.canvas);
     }
     
+    // Disable interaction system
+    if (this.interactionSystem) {
+      this.interactionSystem.enabled = false;
+      this.interactionSystem.clearFocusedObject();
+      if (this.interactionSystem.isLockedOn) {
+        this.interactionSystem.exitLockOn();
+      }
+    }
+    
     console.log('Entered editor mode');
   }
   
@@ -289,6 +303,12 @@ export class EditorManager {
     // Deselect any selected object
     if (this.selectionManager) {
       this.selectionManager.deselectObject();
+    }
+    
+    // Enable interaction system
+    if (this.interactionSystem) {
+      this.interactionSystem.enabled = true;
+      console.log('✓ InteractionSystem enabled');
     }
     
     console.log('Entered play mode');

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Button Animation Debug</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      background: #0a0a0a;
+      color: #00ff00;
+      padding: 20px;
+      margin: 0;
+    }
+    
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      background: #1a1a1a;
+      padding: 20px;
+      border: 2px solid #00ff00;
+      border-radius: 8px;
+    }
+    
+    h1 {
+      text-align: center;
+      color: #00ff00;
+      text-shadow: 0 0 10px #00ff00;
+      margin-bottom: 10px;
+    }
+    
+    .info {
+      background: #0a0a0a;
+      padding: 10px;
+      margin: 10px 0;
+      border-left: 3px solid #00ff00;
+      font-size: 12px;
+    }
+    
+    .section {
+      border-top: 2px solid #00ff00;
+      padding-top: 15px;
+      margin-top: 20px;
+    }
+    
+    .control {
+      margin: 15px 0;
+      padding: 15px;
+      background: #0f0f0f;
+      border: 1px solid #00ff00;
+      border-radius: 4px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #ffff00;
+    }
+    
+    input[type="range"] {
+      width: 100%;
+      margin: 10px 0;
+    }
+    
+    .value {
+      color: #00ff00;
+      font-size: 16px;
+      text-align: center;
+      padding: 5px;
+      background: #000;
+      border-radius: 3px;
+      margin-top: 5px;
+    }
+    
+    button {
+      background: #00ff00;
+      color: #0a0a0a;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 4px;
+      margin: 5px;
+      font-family: 'Courier New', monospace;
+      width: calc(50% - 10px);
+    }
+    
+    button:hover {
+      background: #00cc00;
+      box-shadow: 0 0 15px #00ff00;
+    }
+    
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    
+    .code-output {
+      background: #000;
+      padding: 15px;
+      border: 1px solid #00ff00;
+      border-radius: 4px;
+      font-size: 12px;
+      white-space: pre;
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+    
+    .state-buttons {
+      display: flex;
+      gap: 10px;
+      margin: 15px 0;
+    }
+    
+    .state-btn {
+      flex: 1;
+      padding: 10px;
+      background: #2a2a2a;
+      border: 2px solid #00ff00;
+      color: #00ff00;
+      cursor: pointer;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    
+    .state-btn.active {
+      background: #00ff00;
+      color: #0a0a0a;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔘 Button Animation Debug 🔘</h1>
+    
+    <div class="info">
+      Adjust button position for pressed and unpressed states. Click "Test Animation" to preview.
+    </div>
+    
+    <div class="control">
+      <label>Button Mesh Name</label>
+      <input type="text" id="buttonMeshName" value="SM_ComputerParts_C05_N1_54_StaticMeshComponent0_power" 
+             style="width: 100%; padding: 8px; background: #000; color: #00ff00; border: 1px solid #00ff00; border-radius: 4px; font-family: 'Courier New', monospace;">
+      <button onclick="loadButton()" style="width: 100%; margin-top: 10px;">Load Button</button>
+    </div>
+    
+    <div class="state-buttons">
+      <button class="state-btn active" onclick="setState('original')">📍 Original Position</button>
+      <button class="state-btn" onclick="setState('pressed')">👇 Pressed Position</button>
+    </div>
+    
+    <div class="section">
+      <h3 style="color: #ffff00;">Position Offset</h3>
+      
+      <div class="control">
+        <label>X Offset</label>
+        <input type="range" id="offsetX" min="-0.1" max="0.1" step="0.001" value="0">
+        <div class="value" id="offsetXValue">0.000</div>
+      </div>
+      
+      <div class="control">
+        <label>Y Offset</label>
+        <input type="range" id="offsetY" min="-0.1" max="0.1" step="0.001" value="0">
+        <div class="value" id="offsetYValue">0.000</div>
+      </div>
+      
+      <div class="control">
+        <label>Z Offset</label>
+        <input type="range" id="offsetZ" min="-0.1" max="0.1" step="0.001" value="-0.01">
+        <div class="value" id="offsetZValue">-0.010</div>
+      </div>
+    </div>
+    
+    <div class="button-group">
+      <button onclick="applyPosition()">✓ Apply Position</button>
+      <button onclick="testAnimation()">▶️ Test Animation</button>
+      <button onclick="copyCode()">📋 Copy Code</button>
+      <button onclick="resetValues()">↺ Reset</button>
+    </div>
+    
+    <div class="info" id="status">
+      Status: Ready
+    </div>
+    
+    <div class="code-output" id="codeOutput">
+// Button Press Offset
+const pressOffset = new BABYLON.Vector3(0.000, 0.000, -0.010);
+    </div>
+  </div>
+
+  <script>
+    let currentState = 'original';
+    let originalPosition = null;
+    let currentButtonMeshName = 'SM_ComputerParts_C05_N1_54_StaticMeshComponent0_power';
+    
+    // Get all sliders
+    const sliders = {
+      offsetX: document.getElementById('offsetX'),
+      offsetY: document.getElementById('offsetY'),
+      offsetZ: document.getElementById('offsetZ')
+    };
+    
+    // Get all value displays
+    const values = {
+      offsetX: document.getElementById('offsetXValue'),
+      offsetY: document.getElementById('offsetYValue'),
+      offsetZ: document.getElementById('offsetZValue')
+    };
+    
+    // Update displays
+    function updateValues() {
+      const offset = {
+        x: parseFloat(sliders.offsetX.value),
+        y: parseFloat(sliders.offsetY.value),
+        z: parseFloat(sliders.offsetZ.value)
+      };
+      
+      // Update displays
+      values.offsetX.textContent = offset.x.toFixed(3);
+      values.offsetY.textContent = offset.y.toFixed(3);
+      values.offsetZ.textContent = offset.z.toFixed(3);
+      
+      // Update code output
+      document.getElementById('codeOutput').textContent = 
+`// Button Press Offset
+const pressOffset = new BABYLON.Vector3(${offset.x.toFixed(3)}, ${offset.y.toFixed(3)}, ${offset.z.toFixed(3)});`;
+      
+      // Auto-apply if in pressed state
+      if (currentState === 'pressed') {
+        applyPosition(true);
+      }
+    }
+    
+    // Set state (original or pressed)
+    function setState(state) {
+      currentState = state;
+      
+      // Update button styles
+      document.querySelectorAll('.state-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      
+      if (state === 'original') {
+        // Return to original position
+        returnToOriginal();
+      } else {
+        // Apply pressed position
+        applyPosition();
+      }
+    }
+    
+    // Load button by name
+    function loadButton() {
+      currentButtonMeshName = document.getElementById('buttonMeshName').value;
+      originalPosition = null; // Reset original position
+      document.getElementById('status').textContent = '✓ Loaded button: ' + currentButtonMeshName;
+      returnToOriginal();
+    }
+    
+    // Apply position to button
+    function applyPosition(silent = false) {
+      try {
+        if (!window.opener || !window.opener.scene) {
+          if (!silent) {
+            document.getElementById('status').textContent = 'Error: Main window not found';
+          }
+          return;
+        }
+        
+        const scene = window.opener.scene;
+        const button = scene.getMeshByName(currentButtonMeshName);
+        
+        if (!button) {
+          if (!silent) {
+            document.getElementById('status').textContent = 'Error: Power button not found';
+          }
+          return;
+        }
+        
+        // Store original position on first access
+        if (!originalPosition) {
+          originalPosition = button.position.clone();
+        }
+        
+        const offset = {
+          x: parseFloat(sliders.offsetX.value),
+          y: parseFloat(sliders.offsetY.value),
+          z: parseFloat(sliders.offsetZ.value)
+        };
+        
+        if (currentState === 'pressed') {
+          // Apply offset to original position
+          button.position.x = originalPosition.x + offset.x;
+          button.position.y = originalPosition.y + offset.y;
+          button.position.z = originalPosition.z + offset.z;
+        } else {
+          // Return to original
+          button.position.copyFrom(originalPosition);
+        }
+        
+        if (!silent) {
+          document.getElementById('status').textContent = `✓ Applied ${currentState} position!`;
+        }
+      } catch (error) {
+        if (!silent) {
+          document.getElementById('status').textContent = 'Error: ' + error.message;
+        }
+      }
+    }
+    
+    // Return to original position
+    function returnToOriginal() {
+      try {
+        if (!window.opener || !window.opener.scene) {
+          return;
+        }
+        
+        const scene = window.opener.scene;
+        const button = scene.getMeshByName(currentButtonMeshName);
+        
+        if (!button || !originalPosition) {
+          return;
+        }
+        
+        button.position.copyFrom(originalPosition);
+        document.getElementById('status').textContent = '✓ Returned to original position';
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    
+    // Test animation
+    function testAnimation() {
+      try {
+        if (!window.opener || !window.opener.machineInteractions) {
+          document.getElementById('status').textContent = 'Error: Machine interactions not found';
+          return;
+        }
+        
+        window.opener.machineInteractions.pressPowerButton();
+        document.getElementById('status').textContent = '▶️ Testing animation...';
+      } catch (error) {
+        document.getElementById('status').textContent = 'Error: ' + error.message;
+      }
+    }
+    
+    // Copy code to clipboard
+    function copyCode() {
+      const code = document.getElementById('codeOutput').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        document.getElementById('status').textContent = '✓ Code copied to clipboard!';
+      }).catch(() => {
+        document.getElementById('status').textContent = 'Error: Failed to copy';
+      });
+    }
+    
+    // Reset to defaults
+    function resetValues() {
+      sliders.offsetX.value = 0;
+      sliders.offsetY.value = 0;
+      sliders.offsetZ.value = -0.01;
+      updateValues();
+      document.getElementById('status').textContent = '↺ Reset to defaults';
+    }
+    
+    // Add event listeners
+    Object.values(sliders).forEach(slider => {
+      slider.addEventListener('input', updateValues);
+    });
+    
+    // Initial update
+    updateValues();
+  </script>
+</body>
+</html>

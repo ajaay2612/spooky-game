@@ -9,6 +9,7 @@ import { SettingsPanel } from './src/editor/SettingsPanel.js';
 import { HtmlMeshAlignPanel } from './src/editor/HtmlMeshAlignPanel.js';
 import { MonitorController } from './src/monitor/MonitorController.js';
 import { HtmlMeshMonitor } from './src/monitor/HtmlMeshMonitor.js';
+import { MachineInteractions } from './src/story/MachineInteractions.js';
 
 // Global variables
 let engine = null;
@@ -31,10 +32,39 @@ window.openPositionDebug = function() {
   window.open(url, 'HtmlMeshPositionDebug', 'width=700,height=700,scrollbars=yes');
   console.log('✓ Position debug tool opened. Use sliders to adjust HtmlMesh position in real-time.');
 };
+
+// Helper function to open player position debug tool
+window.openPlayerPositionDebug = function() {
+  const url = window.location.origin + '/player-position-debug.html';
+  window.open(url, 'PlayerPositionDebug', 'width=700,height=900,scrollbars=yes');
+  console.log('✓ Player position debug tool opened. Adjust starting position for play mode.');
+};
+
+// Helper function to open camera lock-on debug tool
+window.openCameraLockOnDebug = function() {
+  const url = window.location.origin + '/camera-lockon-debug.html';
+  window.open(url, 'CameraLockOnDebug', 'width=750,height=950,scrollbars=yes');
+  console.log('✓ Camera lock-on debug tool opened. Adjust camera position/rotation for lock-on view.');
+};
+
+// Helper function to open button animation debug tool
+window.openButtonAnimationDebug = function() {
+  const url = window.location.origin + '/button-animation-debug.html';
+  window.open(url, 'ButtonAnimationDebug', 'width=750,height=850,scrollbars=yes');
+  console.log('✓ Button animation debug tool opened. Adjust button press animation.');
+};
+
+// Helper function to open dial rotation debug tool
+window.openDialRotationDebug = function() {
+  const url = window.location.origin + '/dial-rotation-debug.html';
+  window.open(url, 'DialRotationDebug', 'width=750,height=950,scrollbars=yes');
+  console.log('✓ Dial rotation debug tool opened. Find the correct rotation axis for the dial.');
+};
 let loadStartTime = Date.now();
 let editorManager = null;
 let postProcessingPipeline = null;
 let monitorController = null;
+let machineInteractions = null;
 
 // Wait for DOM to be fully loaded
 window.addEventListener('DOMContentLoaded', () => {
@@ -204,12 +234,8 @@ function setupPostProcessing(scene, cameras) {
   // Enable FXAA as additional pass for even smoother edges
   pipeline.fxaaEnabled = true;
 
-  // Enable bloom for glowing lights
-  pipeline.bloomEnabled = true;
-  pipeline.bloomThreshold = 0.8; // Only bright areas bloom
-  pipeline.bloomWeight = 0.3; // Bloom intensity
-  pipeline.bloomKernel = 64; // Bloom spread
-  pipeline.bloomScale = 0.5; // Bloom quality
+  // Bloom disabled - no glow effect
+  pipeline.bloomEnabled = false;
 
   // Enable image processing for better colors
   pipeline.imageProcessingEnabled = true;
@@ -239,7 +265,7 @@ function setupPostProcessing(scene, cameras) {
   pipeline.sharpen.edgeAmount = 0.3;
   pipeline.sharpen.colorAmount = 0.5;
 
-  console.log('Post-processing pipeline initialized with bloom, AA, and effects');
+  console.log('Post-processing pipeline initialized with AA and effects');
   
   return pipeline;
 }
@@ -481,6 +507,10 @@ async function initializeGame() {
     }).catch(error => {
       console.error('Monitor initialization failed:', error);
     });
+    
+    // Initialize Machine Interactions (buttons, switches, etc.)
+    machineInteractions = new MachineInteractions(scene);
+    window.machineInteractions = machineInteractions; // Make globally accessible for debugging
 
     // Setup keyboard shortcuts
     window.addEventListener('keydown', (event) => {
@@ -502,8 +532,8 @@ async function initializeGame() {
       }
     });
 
-    // Start in editor mode
-    editorManager.enterEditorMode();
+    // Start in play mode (sitting in chair)
+    editorManager.enterPlayMode();
     
     // Auto-load saved scene if it exists (after a small delay to ensure UI is ready)
     setTimeout(() => {
@@ -533,6 +563,11 @@ async function initializeGame() {
         // Update monitor controller
         if (monitorController) {
           monitorController.update();
+        }
+        
+        // Update interaction system (only in play mode)
+        if (editorManager && editorManager.interactionSystem && !editorManager.isEditorMode) {
+          editorManager.interactionSystem.update();
         }
       } catch (error) {
         console.error('Render error:', error);
