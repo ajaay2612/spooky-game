@@ -136,7 +136,7 @@ npm run preview
 **Status**: ✅ Optimized (v1.1.0)
 
 ### Key Metrics
-- **Bundle Size**: 52.91 KB (12.36 KB gzipped) - Application code only
+- **Bundle Size**: 90.59 KB (20.84 KB gzipped) - Application code only
 - **Draw Calls**: 5-17 (capped)
 - **FPS**: 60 fps with 100+ objects
 - **VRAM per object**: ~500 bytes
@@ -151,10 +151,14 @@ npm run preview
 
 ## Technology Stack
 
-- **Babylon.js 7.31.0**: 3D engine
-- **Babylon.js GUI 7.31.0**: UI system
+- **Babylon.js 7.54.3**: 3D engine
+- **Babylon.js GUI 7.54.3**: UI system
+- **Babylon.js Loaders 7.54.3**: GLTF/GLB model loading
+- **Babylon.js Addons 7.54.3**: HtmlMesh for HTML rendering
 - **Vite 5.4.11**: Build tool and dev server
 - **ESLint 8.57.0**: Code quality
+- **Express 4.18.2**: Scene save/load server
+- **CORS 2.8.5**: Cross-origin resource sharing
 
 ## Development
 
@@ -217,7 +221,10 @@ spooky-game/
 ### Known Vulnerabilities
 ⚠️ **esbuild** (moderate): Development-only vulnerability in Vite's esbuild dependency
 - **Impact**: Development server only, not production builds
+- **CVSS Score**: 5.3 (Medium)
+- **CWE**: CWE-346 (Origin Validation Error)
 - **Fix Available**: Upgrade to Vite 7.x (breaking changes)
+- **Risk Assessment**: Low - only affects development environment, not production builds
 
 ## Browser Compatibility
 
@@ -254,6 +261,7 @@ MIT
 - [x] Transform gizmos (Move, Rotate, Scale) ✅ v1.1.0
 
 ### Planned 🎯
+- [ ] Story progression system (complete machine interactions)
 - [ ] Physics integration (collision detection, gravity)
 - [ ] Texture support and texture editor
 - [ ] Performance monitoring GUI (FPS, draw calls, memory)
@@ -265,3 +273,4 @@ MIT
 - [ ] Monitor frame animations (fade, slide transitions)
 - [ ] Multiple monitor support
 - [ ] Mouse support for monitor (raycasting)
+- [ ] Audio system (ambient sounds, interaction feedback)

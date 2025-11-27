@@ -7,62 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-- **Object Interaction System** (Play Mode) - v1.1.0+
-  - InteractionSystem class for detecting and interacting with objects
-  - Raycast-based detection (5 unit range, throttled to every 5 frames)
-  - Visual crosshair feedback (white default, green when targeting interactables)
-  - "Press [F] to Interact" prompt when targeting objects
-  - Lock-on mode with smooth camera animation to interaction position
-  - Configurable camera positions per machine (InteractiveMachinesConfig)
-  - Exit lock-on with Escape or F key
-  - Pointer lock management (unlocked during lock-on for UI interaction)
-  - Optimized for 75+ FPS with minimal overhead
-- Interactive CRT Monitor System (documented in v1.1.0 section below)
-
-### Fixed
-- **Performance**: Aggressive optimization of InteractionSystem for stable 60+ FPS
-  - Removed HighlightLayer entirely (GPU post-processing overhead)
-  - Replaced 3D highlighting with lightweight CSS crosshair (changes color when targeting interactables)
-  - Throttled raycasts to every 5 frames instead of every frame (83% reduction)
-  - Removed debug raycasts and unnecessary vector cloning
-  - Eliminated all material modifications during gameplay
-  - FPS now stable at 75+ even during rapid camera movement
-
-### Added
-- Interactive CRT Monitor System
-  - MonitorController class for managing HTML frame rendering
-  - HTML-to-texture pipeline using html2canvas
-  - Keyboard-only navigation (Arrow keys/WASD + Enter)
-  - Frame configuration system (frames-config.json)
-  - Three sample frames (main menu, game start, credits)
-  - Dynamic texture rendering on 3D monitor mesh (SM_Prop_ComputerMonitor_A_29_screen_mesh)
-  - Text input support for interactive forms
-  - Frame transition validation system
-  - M key toggle for monitor activation/deactivation
-  - Emissive material for CRT glow effect
-  - Non-blocking initialization with mesh observer
-  - UV mapping correction (270° rotation, calibrated scaling)
-  - Debug tools for texture adjustment
-  - Corner markers test pattern for alignment verification
-  - Fallback rendering when html2canvas unavailable
-
-### Technical
-- Added html2canvas library (1.4.1) for HTML rendering
-- Created src/monitor/ directory structure
-- Integrated MonitorController into main render loop
-- Non-blocking async initialization
-- Interval-based mesh detection for scene loading
-- Texture rotation and scaling system (calibrated: 270°, uScale: 1.32, vScale: -0.96)
-- Test page (test.html) for texture debugging
-- Hidden iframe for HTML loading
-- Offscreen canvas for rendering
-- 30 FPS refresh rate for texture updates
-
-### Documentation
-- **README.md**: Added Interactive CRT Monitor System section, monitor controls, updated project structure with src/monitor/ directory
-- **CHANGELOG.md**: Documented monitor system implementation with technical details
-- **src/monitor/README.md**: Comprehensive monitor system documentation with architecture, usage, API, and troubleshooting
+### In Progress
+- Additional machine interactions (buttons, dials, switches)
+- Enhanced monitor frame system with animations
+- Story progression mechanics
 
 ## [1.0.0] - 2025-11-21
 
@@ -139,24 +87,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - ObjectPalette: Create primitives, lights, and import GLTF models
   - PropertyPanel: Edit transform, material, and light properties
   - SceneHierarchy: Tree view of all scene objects
+  - SettingsPanel: Post-processing controls (AA, bloom, grain, etc.)
+  - HtmlMeshAlignPanel: Debug tool for aligning HTML content to 3D meshes
 - **Transform Gizmos**: Interactive visual manipulation tools
   - Move Gizmo: Position objects with visual handles
   - Rotate Gizmo: Rotate objects around X, Y, Z axes
   - Scale Gizmo: Scale objects with uniform/non-uniform modes
   - Uniform Scaling: Lock aspect ratio checkbox for proportional scaling
   - Gizmo toggle buttons in Property Panel
+- **Object Interaction System** (Play Mode)
+  - InteractionSystem class for detecting and interacting with objects
+  - Raycast-based detection (5 unit range, throttled to every 5 frames)
+  - Visual crosshair feedback (white default, green when targeting interactables)
+  - "Press [F] to Interact" prompt when targeting objects
+  - Lock-on mode with smooth camera animation to interaction position
+  - Configurable camera positions per machine (InteractiveMachinesConfig)
+  - Exit lock-on with Escape or F key
+  - Pointer lock management (unlocked during lock-on for UI interaction)
+  - Optimized for 75+ FPS with minimal overhead
+- **Interactive CRT Monitor System**
+  - MonitorController class for managing HTML frame rendering
+  - HtmlMeshMonitor for rendering HTML to 3D mesh using @babylonjs/addons
+  - HTML-to-texture pipeline with html2canvas fallback
+  - Keyboard-only navigation (Arrow keys/WASD + Enter)
+  - Frame configuration system (frames-config.json)
+  - Three sample frames (main menu, game start, credits)
+  - Dynamic texture rendering on 3D monitor mesh
+  - Text input support for interactive forms
+  - Frame transition validation system
+  - M key toggle for monitor activation/deactivation
+  - Emissive material for CRT glow effect
+  - Non-blocking initialization with mesh observer
+  - UV mapping correction (270° rotation, calibrated scaling)
+  - Debug tools for texture adjustment
+  - Corner markers test pattern for alignment verification
+- **Machine Interactions System**
+  - MachineInteractions class for interactive buttons, dials, switches
+  - Button press animations with smooth transitions
+  - Dial rotation mechanics
+  - InteractiveMachinesConfig for centralized configuration
+  - Action manager integration for click detection
 - **Object Factory**: Centralized object creation with material pooling
-- **Keyboard Shortcuts**: E (mode toggle), Delete, Ctrl+D, Ctrl+S, Ctrl+O, F, Escape
+- **Keyboard Shortcuts**: E (mode toggle), Delete, Ctrl+D, Ctrl+S, Ctrl+O, F, Escape, M (monitor), H (alignment panel)
 - **Object Types**: Cylinder, Cone, Plane, Torus primitives
 - **Light Types**: Point, Directional, Spot, Hemispheric lights
-- **GLTF Import**: Load .gltf and .glb 3D models
+- **GLTF Import**: Load .gltf and .glb 3D models with proper transform handling
 - **Object Duplication**: Clone objects with Ctrl+D
 - **Camera Focus**: Focus on selected object with F key
 - **Object Renaming**: Edit object names in property panel
+- **Post-Processing Pipeline**: MSAA, FXAA, tone mapping, vignette, chromatic aberration, grain, sharpen
 - Material pooling system with 10 reusable materials per object type
 - Mesh instancing for boxes and spheres (80% VRAM reduction)
 - Resource disposal methods for proper cleanup
 - Cleanup on page unload (beforeunload event)
+- Debug helper tools (alignment, position, camera lock-on, button animation, dial rotation)
 
 ### Changed
 - **Architecture**: Modular class-based design with separation of concerns
@@ -186,10 +170,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 5-10x performance improvement with 100+ objects
 
 ### Documentation
-- **README.md**: Added transform gizmos (Move, Scale), uniform scaling feature, camera focus (F key), updated bundle size (37.45 KB app code), updated roadmap with rotation gizmo as next planned feature
-- **GAME_DESIGN.md**: Added transform gizmo mechanics (Move, Scale with uniform mode), gizmo UI controls in Property Panel, interactive manipulation workflows
-- **CHANGELOG.md**: Added transform gizmo features to v1.1.0 release notes
-- **PRE_PUSH_VALIDATION_REPORT.md**: Comprehensive pre-push validation with code quality, security, performance, and build verification (current run)
+- **README.md**: Complete feature documentation including interaction system, monitor system, machine interactions, all UI panels, keyboard shortcuts, and project structure
+- **GAME_DESIGN.md**: Comprehensive game design with mechanics, controls, object types, UI layout, monitor system, interaction system, and future roadmap
+- **ARCHITECTURE.md**: System architecture with all 16 classes documented, data flow diagrams, component interactions, and extension points
+- **PERFORMANCE.md**: Performance metrics, optimization results, bundle analysis, and testing guidelines
+- **CHANGELOG.md**: Complete version history with detailed feature additions and technical changes
+- **src/monitor/README.md**: Monitor system documentation with architecture, usage, API, and troubleshooting
+- **PRE_PUSH_VALIDATION_REPORT.md**: Comprehensive pre-push validation report (this run)
 
 ---
 

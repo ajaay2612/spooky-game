@@ -8,7 +8,6 @@ import { SceneHierarchy } from './src/editor/SceneHierarchy.js';
 import { SettingsPanel } from './src/editor/SettingsPanel.js';
 import { HtmlMeshAlignPanel } from './src/editor/HtmlMeshAlignPanel.js';
 import { MonitorController } from './src/monitor/MonitorController.js';
-import { HtmlMeshMonitor } from './src/monitor/HtmlMeshMonitor.js';
 import { MachineInteractions } from './src/story/MachineInteractions.js';
 
 // Global variables
@@ -497,8 +496,8 @@ async function initializeGame() {
     const settingsPanel = new SettingsPanel(guiTexture, postProcessingPipeline);
     window.settingsPanel = settingsPanel; // Make globally accessible for refresh
 
-    // Initialize Monitor Controller with HtmlMesh (non-blocking)
-    monitorController = new HtmlMeshMonitor(scene);
+    // Initialize Monitor Controller with GUI (non-blocking)
+    monitorController = new MonitorController(scene);
     window.monitorController = monitorController; // Make globally accessible for debugging
     
     // Initialize in background without blocking
@@ -521,8 +520,16 @@ async function initializeGame() {
           console.log('Monitor deactivated - press M to reactivate');
         } else {
           monitorController.activate();
-          console.log('Monitor activated - use Arrow keys/WASD to navigate, Enter to select, Escape to exit input');
+          console.log('Monitor activated - use Arrow keys/WASD to navigate, Enter to select');
         }
+        return;
+      }
+      
+      // Pass input to monitor if active
+      if (monitorController && monitorController.isActive) {
+        monitorController.handleInput(event.key);
+        event.preventDefault();
+        return;
       }
       
       // H key - HtmlMesh Alignment Panel
