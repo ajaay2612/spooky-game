@@ -12,12 +12,18 @@ export class MonitorController {
     this.guiTexture = null;
     this.originalMaterial = null;
     this.isActive = false;
+    this.isPoweredOn = false; // Monitor starts powered off
     this.debugPanel = null;
     
     // Menu state
     this.currentScreen = 'main'; // 'main', 'start', 'credits'
     this.selectedOption = 0;
     this.menuOptions = [];
+    
+    // Frame transition state
+    this.currentFrame = 1;
+    this.frameTimer = 0;
+    this.frameDuration = 5000; // 5 seconds per frame
     
     // Settings
     this.textureWidth = 2048;
@@ -47,7 +53,7 @@ export class MonitorController {
    */
   setupMonitorMesh() {
     // Try to find existing monitor mesh by name
-    this.monitorMesh = this.scene.getMeshByName('SM_Prop_ComputerMonitor_A_29_screen_mesh');
+    this.monitorMesh = this.scene.getMeshByName('SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.screen');
     
     if (!this.monitorMesh) {
       this.monitorMesh = this.scene.getMeshByName('monitor_screen');
@@ -70,7 +76,7 @@ export class MonitorController {
    */
   setupMeshObserver() {
     const checkInterval = setInterval(() => {
-      this.monitorMesh = this.scene.getMeshByName('SM_Prop_ComputerMonitor_A_29_screen_mesh');
+      this.monitorMesh = this.scene.getMeshByName('SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.screen');
       
       if (!this.monitorMesh) {
         this.monitorMesh = this.scene.getMeshByName('monitor_screen');
@@ -93,29 +99,16 @@ export class MonitorController {
   }
   
   /**
-   * Apply GUI texture to the monitor mesh
+   * Load a specific frame
    */
-  async applyMaterialToMesh() {
-    if (!this.monitorMesh) return;
-
-    console.log('✓ Monitor mesh found:', this.monitorMesh.name);
+  async loadFrame(frameNumber) {
+    if (!this.guiTexture) return;
     
-    // Store original material
-    this.originalMaterial = this.monitorMesh.material;
-    
-    // Load GUI from JSON file
     try {
-      const response = await fetch('textures/guiTexture.json');
+      const response = await fetch(`textures/monitorFrame${frameNumber}.json`);
       const guiData = await response.json();
       
-      // Create GUI texture for mesh
-      this.guiTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMeshTexture(
-        this.monitorMesh,
-        guiData.width || this.textureWidth,
-        guiData.height || this.textureHeight
-      );
-      
-      // Clear default content
+      // Clear existing controls
       this.guiTexture.rootContainer.clearControls();
       
       // Load the root container from JSON
@@ -128,16 +121,32 @@ export class MonitorController {
         });
       }
       
-      console.log('✓ GUI loaded from JSON with', guiData.root?.children?.length || 0, 'controls');
+      console.log(`✓ Frame ${frameNumber} loaded with`, guiData.root?.children?.length || 0, 'controls');
     } catch (error) {
-      console.error('Failed to load GUI JSON:', error);
-      // Fallback to empty GUI
-      this.guiTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMeshTexture(
-        this.monitorMesh,
-        this.textureWidth,
-        this.textureHeight
-      );
+      console.error(`Failed to load frame ${frameNumber}:`, error);
     }
+  }
+  
+  /**
+   * Apply GUI texture to the monitor mesh
+   */
+  async applyMaterialToMesh() {
+    if (!this.monitorMesh) return;
+
+    console.log('✓ Monitor mesh found:', this.monitorMesh.name);
+    
+    // Store original material
+    this.originalMaterial = this.monitorMesh.material;
+    
+    // Create GUI texture for mesh (start with black screen)
+    this.guiTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMeshTexture(
+      this.monitorMesh,
+      this.textureWidth,
+      this.textureHeight
+    );
+    
+    // Start with black screen (powered off)
+    this.showBlackScreen();
     
     // Apply calibrated alignment values for monitor GUI
     // Monitor GUI Alignment: rotation: 270°, uAng: π (180° flip)
@@ -226,6 +235,35 @@ export class MonitorController {
         if (data.sourceWidth !== undefined) control.sourceWidth = data.sourceWidth;
         if (data.sourceHeight !== undefined) control.sourceHeight = data.sourceHeight;
         if (data.autoScale !== undefined) control.autoScale = data.autoScale;
+        break;
+      case 'Line':
+        control = new BABYLON.GUI.Line(data.name);
+        if (data.lineWidth !== undefined) control.lineWidth = data.lineWidth;
+        if (data.color) control.color = data.color;
+        if (data.x1 !== undefined) control.x1 = data.x1;
+        if (data.y1 !== undefined) control.y1 = data.y1;
+        if (data.x2 !== undefined) control.x2 = data.x2;
+        if (data.y2 !== undefined) control.y2 = data.y2;
+        if (data.dash !== undefined) control.dash = data.dash;
+        if (data.connectedControl) control.connectedControl = data.connectedControl;
+        break;
+      case 'InputText':
+        control = new BABYLON.GUI.InputText(data.name);
+        if (data.text) control.text = data.text;
+        if (data.color) control.color = data.color;
+        if (data.background) control.background = data.background;
+        if (data.fontSize) control.fontSize = data.fontSize;
+        if (data.fontFamily) control.fontFamily = data.fontFamily;
+        if (data.fontStyle) control.fontStyle = data.fontStyle;
+        if (data.fontWeight) control.fontWeight = data.fontWeight;
+        if (data.placeholderText) control.placeholderText = data.placeholderText;
+        if (data.placeholderColor) control.placeholderColor = data.placeholderColor;
+        if (data.thickness !== undefined) control.thickness = data.thickness;
+        if (data.focusedBackground) control.focusedBackground = data.focusedBackground;
+        if (data.textHighlightColor) control.textHighlightColor = data.textHighlightColor;
+        if (data.highligherOpacity !== undefined) control.highligherOpacity = data.highligherOpacity;
+        if (data.maxWidth) control.maxWidth = data.maxWidth;
+        if (data.autoStretchWidth !== undefined) control.autoStretchWidth = data.autoStretchWidth;
         break;
       default:
         console.warn('Unknown control type:', data.className);
@@ -570,16 +608,62 @@ export class MonitorController {
 
 
   /**
+   * Show black screen (powered off state)
+   */
+  showBlackScreen() {
+    if (!this.guiTexture) return;
+    
+    this.guiTexture.rootContainer.clearControls();
+    
+    const background = new BABYLON.GUI.Rectangle();
+    background.width = '100%';
+    background.height = '100%';
+    background.background = '#000000';
+    background.thickness = 0;
+    this.guiTexture.addControl(background);
+  }
+
+  /**
+   * Power on the monitor and load frame 1
+   */
+  async powerOn() {
+    if (this.isPoweredOn) return;
+    
+    this.isPoweredOn = true;
+    this.currentFrame = 1;
+    this.frameTimer = 0;
+    
+    // Load frame 1
+    try {
+      const response = await fetch('textures/monitorFrame1.json');
+      const guiData = await response.json();
+      
+      this.guiTexture.rootContainer.clearControls();
+      
+      if (guiData.root && guiData.root.children) {
+        guiData.root.children.forEach(childData => {
+          const control = this.createControlFromJSON(childData);
+          if (control) {
+            this.guiTexture.addControl(control);
+          }
+        });
+      }
+      
+      console.log('✓ Monitor powered on - Frame 1 loaded');
+    } catch (error) {
+      console.error('Failed to load frame 1:', error);
+    }
+  }
+
+  /**
    * Activate monitor (enable keyboard input)
    */
   activate() {
+    if (!this.isPoweredOn) {
+      this.powerOn();
+    }
     this.isActive = true;
     console.log('✓ Monitor activated');
-    console.log('  Debug controls:');
-    console.log('  1/2 - Rotate ±90°');
-    console.log('  3 - Flip horizontal');
-    console.log('  4 - Flip vertical');
-    console.log('  0 - Reset');
   }
 
   deactivate() {
@@ -588,7 +672,16 @@ export class MonitorController {
   }
 
   update() {
-    // No updates needed
+    // Handle frame transitions only if powered on
+    if (this.isPoweredOn && this.guiTexture && this.currentFrame === 1) {
+      this.frameTimer += this.scene.getEngine().getDeltaTime();
+      
+      if (this.frameTimer >= this.frameDuration) {
+        this.currentFrame = 2;
+        this.loadFrame(2);
+        console.log('✓ Transitioned to frame 2');
+      }
+    }
   }
 
   /**

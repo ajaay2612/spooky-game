@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitor Lock-On Debug</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      background: #0a0a0a;
+      color: #00ff00;
+      padding: 20px;
+      margin: 0;
+    }
+    
+    .container {
+      max-width: 750px;
+      margin: 0 auto;
+      background: #1a1a1a;
+      padding: 20px;
+      border: 2px solid #00ff00;
+      border-radius: 8px;
+    }
+    
+    h1 {
+      text-align: center;
+      color: #00ff00;
+      text-shadow: 0 0 10px #00ff00;
+      margin-bottom: 10px;
+    }
+    
+    .info {
+      background: #0a0a0a;
+      padding: 10px;
+      margin: 10px 0;
+      border-left: 3px solid #00ff00;
+      font-size: 12px;
+    }
+    
+    .control {
+      margin: 20px 0;
+      padding: 15px;
+      background: #0f0f0f;
+      border: 1px solid #00ff00;
+      border-radius: 4px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #ffff00;
+    }
+    
+    input[type="range"] {
+      width: 100%;
+      margin: 10px 0;
+    }
+    
+    .value {
+      color: #00ff00;
+      font-size: 16px;
+      text-align: center;
+      padding: 5px;
+      background: #000;
+      border-radius: 3px;
+      margin-top: 5px;
+    }
+    
+    button {
+      background: #00ff00;
+      color: #0a0a0a;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 4px;
+      margin: 5px;
+      font-family: 'Courier New', monospace;
+      width: calc(50% - 10px);
+    }
+    
+    button:hover {
+      background: #00cc00;
+      box-shadow: 0 0 15px #00ff00;
+    }
+    
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    
+    .section {
+      border-top: 2px solid #00ff00;
+      padding-top: 15px;
+      margin-top: 20px;
+    }
+    
+    .code-output {
+      background: #000;
+      padding: 15px;
+      border: 1px solid #00ff00;
+      border-radius: 4px;
+      font-size: 12px;
+      white-space: pre;
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+    
+    .machine-selector {
+      margin: 15px 0;
+      padding: 10px;
+      background: #0f0f0f;
+      border: 1px solid #ffff00;
+      border-radius: 4px;
+    }
+    
+    select {
+      width: 100%;
+      padding: 8px;
+      background: #000;
+      color: #00ff00;
+      border: 1px solid #00ff00;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🖥️ Monitor Lock-On Debug 🖥️</h1>
+    
+    <div class="info">
+      Adjust camera position and rotation for the perfect monitor lock-on view. Changes apply in real-time.
+    </div>
+    
+    <div class="machine-selector">
+      <label>Select Machine:</label>
+      <select id="machineSelect" onchange="loadMachineConfig()">
+        <option value="computer_monitor">Computer Monitor</option>
+        <option value="monitor_frame">Monitor Frame</option>
+        <option value="computer_audio_machine">Computer & Audio Equipment</option>
+        <option value="cube18_machine">Cube18 Equipment</option>
+      </select>
+    </div>
+    
+    <div class="section">
+      <h3 style="color: #ffff00;">Camera Position</h3>
+      
+      <div class="control">
+        <label>X Position (Left/Right)</label>
+        <input type="range" id="posX" min="-2" max="2" step="0.01" value="0.20">
+        <div class="value" id="posXValue">0.20</div>
+      </div>
+      
+      <div class="control">
+        <label>Y Position (Up/Down)</label>
+        <input type="range" id="posY" min="1" max="4" step="0.01" value="2.40">
+        <div class="value" id="posYValue">2.40</div>
+      </div>
+      
+      <div class="control">
+        <label>Z Position (Forward/Back)</label>
+        <input type="range" id="posZ" min="-2" max="2" step="0.01" value="0.40">
+        <div class="value" id="posZValue">0.40</div>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h3 style="color: #ffff00;">Camera Rotation (Radians)</h3>
+      
+      <div class="control">
+        <label>X Rotation (Pitch - Look Up/Down)</label>
+        <input type="range" id="rotX" min="-1.57" max="1.57" step="0.01" value="0.23">
+        <div class="value" id="rotXValue">0.23</div>
+      </div>
+      
+      <div class="control">
+        <label>Y Rotation (Yaw - Look Left/Right)</label>
+        <input type="range" id="rotY" min="0" max="6.28" step="0.01" value="1.55">
+        <div class="value" id="rotYValue">1.55</div>
+      </div>
+      
+      <div class="control">
+        <label>Z Rotation (Roll - Tilt)</label>
+        <input type="range" id="rotZ" min="-0.5" max="0.5" step="0.01" value="0.00">
+        <div class="value" id="rotZValue">0.00</div>
+      </div>
+    </div>
+    
+    <div class="button-group">
+      <button onclick="applyToCamera()">✓ Apply to Camera</button>
+      <button onclick="copyCode()">📋 Copy Code</button>
+      <button onclick="resetValues()">↺ Reset</button>
+      <button onclick="getCurrentCamera()">📷 Get Current</button>
+      <button onclick="lockOnToMonitor()">🔒 Lock On</button>
+      <button onclick="exitLockOn()">🔓 Exit Lock-On</button>
+    </div>
+    
+    <div class="info" id="status">
+      Status: Ready
+    </div>
+    
+    <div class="code-output" id="codeOutput">
+// Monitor Lock-On Position & Rotation
+cameraPosition: { x: 0.20, y: 2.40, z: 0.40 },
+cameraRotation: { x: 0.23, y: 1.55, z: 0.00 }
+    </div>
+  </div>
+
+  <script>
+    // Machine configurations
+    const machineConfigs = {
+      computer_monitor: {
+        position: { x: 0.20, y: 2.40, z: 0.40 },
+        rotation: { x: 0.23, y: 1.55, z: 0.00 }
+      },
+      monitor_frame: {
+        position: { x: 0.20, y: 2.40, z: 0.40 },
+        rotation: { x: 0.23, y: 1.55, z: 0.00 }
+      },
+      computer_audio_machine: {
+        position: { x: 0.20, y: 2.30, z: 0.10 },
+        rotation: { x: -0.01, y: 2.38, z: 0 }
+      },
+      cube18_machine: {
+        position: { x: 0.00, y: 2.20, z: 0.10 },
+        rotation: { x: 0.14, y: 2.23, z: 0.00 }
+      }
+    };
+    
+    // Get all sliders
+    const sliders = {
+      posX: document.getElementById('posX'),
+      posY: document.getElementById('posY'),
+      posZ: document.getElementById('posZ'),
+      rotX: document.getElementById('rotX'),
+      rotY: document.getElementById('rotY'),
+      rotZ: document.getElementById('rotZ')
+    };
+    
+    // Get all value displays
+    const values = {
+      posX: document.getElementById('posXValue'),
+      posY: document.getElementById('posYValue'),
+      posZ: document.getElementById('posZValue'),
+      rotX: document.getElementById('rotXValue'),
+      rotY: document.getElementById('rotYValue'),
+      rotZ: document.getElementById('rotZValue')
+    };
+    
+    // Load machine config
+    function loadMachineConfig() {
+      const machineId = document.getElementById('machineSelect').value;
+      const config = machineConfigs[machineId];
+      
+      if (config) {
+        sliders.posX.value = config.position.x;
+        sliders.posY.value = config.position.y;
+        sliders.posZ.value = config.position.z;
+        sliders.rotX.value = config.rotation.x;
+        sliders.rotY.value = config.rotation.y;
+        sliders.rotZ.value = config.rotation.z;
+        
+        updateValues();
+        document.getElementById('status').textContent = `✓ Loaded config for ${machineId}`;
+      }
+    }
+    
+    // Update displays and apply to camera
+    function updateValues() {
+      const pos = {
+        x: parseFloat(sliders.posX.value),
+        y: parseFloat(sliders.posY.value),
+        z: parseFloat(sliders.posZ.value)
+      };
+      
+      const rot = {
+        x: parseFloat(sliders.rotX.value),
+        y: parseFloat(sliders.rotY.value),
+        z: parseFloat(sliders.rotZ.value)
+      };
+      
+      // Update displays
+      values.posX.textContent = pos.x.toFixed(2);
+      values.posY.textContent = pos.y.toFixed(2);
+      values.posZ.textContent = pos.z.toFixed(2);
+      values.rotX.textContent = rot.x.toFixed(2);
+      values.rotY.textContent = rot.y.toFixed(2);
+      values.rotZ.textContent = rot.z.toFixed(2);
+      
+      // Update code output
+      document.getElementById('codeOutput').textContent = 
+`// Monitor Lock-On Position & Rotation
+cameraPosition: { x: ${pos.x.toFixed(2)}, y: ${pos.y.toFixed(2)}, z: ${pos.z.toFixed(2)} },
+cameraRotation: { x: ${rot.x.toFixed(2)}, y: ${rot.y.toFixed(2)}, z: ${rot.z.toFixed(2)} }`;
+      
+      // Auto-apply to camera
+      applyToCamera(true);
+    }
+    
+    // Apply to main window camera
+    function applyToCamera(silent = false) {
+      try {
+        if (!window.opener || !window.opener.scene) {
+          if (!silent) {
+            document.getElementById('status').textContent = 'Error: Main window not found';
+          }
+          return;
+        }
+        
+        const scene = window.opener.scene;
+        const camera = scene.getCameraByName('playerCamera');
+        
+        if (!camera) {
+          if (!silent) {
+            document.getElementById('status').textContent = 'Error: Player camera not found';
+          }
+          return;
+        }
+        
+        const pos = {
+          x: parseFloat(sliders.posX.value),
+          y: parseFloat(sliders.posY.value),
+          z: parseFloat(sliders.posZ.value)
+        };
+        
+        const rot = {
+          x: parseFloat(sliders.rotX.value),
+          y: parseFloat(sliders.rotY.value),
+          z: parseFloat(sliders.rotZ.value)
+        };
+        
+        camera.position.set(pos.x, pos.y, pos.z);
+        camera.rotation.set(rot.x, rot.y, rot.z);
+        camera.rotationQuaternion = null; // Ensure Euler angles are used
+        
+        if (!silent) {
+          document.getElementById('status').textContent = '✓ Applied to camera!';
+        }
+      } catch (error) {
+        if (!silent) {
+          document.getElementById('status').textContent = 'Error: ' + error.message;
+        }
+      }
+    }
+    
+    // Get current camera values
+    function getCurrentCamera() {
+      try {
+        if (!window.opener || !window.opener.scene) {
+          document.getElementById('status').textContent = 'Error: Main window not found';
+          return;
+        }
+        
+        const scene = window.opener.scene;
+        const camera = scene.getCameraByName('playerCamera');
+        
+        if (!camera) {
+          document.getElementById('status').textContent = 'Error: Player camera not found';
+          return;
+        }
+        
+        sliders.posX.value = camera.position.x;
+        sliders.posY.value = camera.position.y;
+        sliders.posZ.value = camera.position.z;
+        sliders.rotX.value = camera.rotation.x;
+        sliders.rotY.value = camera.rotation.y;
+        sliders.rotZ.value = camera.rotation.z;
+        
+        updateValues();
+        document.getElementById('status').textContent = '✓ Got current camera values!';
+      } catch (error) {
+        document.getElementById('status').textContent = 'Error: ' + error.message;
+      }
+    }
+    
+    // Lock on to monitor
+    function lockOnToMonitor() {
+      try {
+        if (!window.opener || !window.opener.editorManager) {
+          document.getElementById('status').textContent = 'Error: Main window not found';
+          return;
+        }
+        
+        const interactionSystem = window.opener.editorManager.interactionSystem;
+        
+        if (!interactionSystem) {
+          document.getElementById('status').textContent = 'Error: Interaction system not found';
+          return;
+        }
+        
+        // Find monitor mesh
+        const scene = window.opener.scene;
+        const monitorMesh = scene.getMeshByName('SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.001') ||
+                           scene.getMeshByName('monitorFrame');
+        
+        if (!monitorMesh) {
+          document.getElementById('status').textContent = 'Error: Monitor mesh not found';
+          return;
+        }
+        
+        // Set focused object and lock on
+        interactionSystem.focusedObject = monitorMesh;
+        interactionSystem.lockOnToObject();
+        
+        document.getElementById('status').textContent = '✓ Locked on to monitor!';
+      } catch (error) {
+        document.getElementById('status').textContent = 'Error: ' + error.message;
+      }
+    }
+    
+    // Exit lock-on
+    function exitLockOn() {
+      try {
+        if (!window.opener || !window.opener.editorManager) {
+          document.getElementById('status').textContent = 'Error: Main window not found';
+          return;
+        }
+        
+        const interactionSystem = window.opener.editorManager.interactionSystem;
+        
+        if (!interactionSystem) {
+          document.getElementById('status').textContent = 'Error: Interaction system not found';
+          return;
+        }
+        
+        interactionSystem.exitLockOn();
+        
+        document.getElementById('status').textContent = '✓ Exited lock-on mode!';
+      } catch (error) {
+        document.getElementById('status').textContent = 'Error: ' + error.message;
+      }
+    }
+    
+    // Copy code to clipboard
+    function copyCode() {
+      const code = document.getElementById('codeOutput').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        document.getElementById('status').textContent = '✓ Code copied to clipboard!';
+      }).catch(() => {
+        document.getElementById('status').textContent = 'Error: Failed to copy';
+      });
+    }
+    
+    // Reset to defaults
+    function resetValues() {
+      loadMachineConfig();
+      document.getElementById('status').textContent = '↺ Reset to machine defaults';
+    }
+    
+    // Add event listeners
+    Object.values(sliders).forEach(slider => {
+      slider.addEventListener('input', updateValues);
+    });
+    
+    // Initial update
+    updateValues();
+  </script>
+</body>
+</html>

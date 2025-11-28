@@ -77,7 +77,7 @@ export class HtmlMeshMonitor {
     const retryDelay = 500;
     
     for (let i = 0; i < maxRetries; i++) {
-      this.monitorMesh = this.scene.getMeshByName('SM_Prop_ComputerMonitor_A_29_screen_mesh');
+      this.monitorMesh = this.scene.getMeshByName('SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.screen');
       
       if (this.monitorMesh) {
         console.log('Monitor mesh found:', this.monitorMesh.name);

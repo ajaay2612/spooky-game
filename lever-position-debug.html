@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lever Position Debug</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      background: #0a0a0a;
+      color: #00ff00;
+      padding: 20px;
+      margin: 0;
+    }
+    
+    .container {
+      max-width: 750px;
+      margin: 0 auto;
+      background: #1a1a1a;
+      padding: 20px;
+      border: 2px solid #00ff00;
+      border-radius: 8px;
+    }
+    
+    h1 {
+      text-align: center;
+      color: #00ff00;
+      text-shadow: 0 0 10px #00ff00;
+      margin-bottom: 10px;
+    }
+    
+    .info {
+      background: #0a0a0a;
+      padding: 10px;
+      margin: 10px 0;
+      border-left: 3px solid #00ff00;
+      font-size: 12px;
+    }
+    
+    .control {
+      margin: 15px 0;
+      padding: 12px;
+      background: #0f0f0f;
+      border: 1px solid #00ff00;
+      border-radius: 4px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #ffff00;
+      font-size: 13px;
+    }
+    
+    input[type="range"] {
+      width: 100%;
+      margin: 8px 0;
+    }
+    
+    .value {
+      color: #00ff00;
+      font-size: 14px;
+      text-align: center;
+      padding: 4px;
+      background: #000;
+      border-radius: 3px;
+      margin-top: 5px;
+    }
+    
+    button {
+      background: #00ff00;
+      color: #0a0a0a;
+      border: none;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 4px;
+      margin: 5px;
+      font-family: 'Courier New', monospace;
+      width: calc(50% - 10px);
+    }
+    
+    button:hover {
+      background: #00cc00;
+      box-shadow: 0 0 15px #00ff00;
+    }
+    
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      margin-top: 15px;
+    }
+    
+    .section {
+      border-top: 2px solid #00ff00;
+      padding-top: 15px;
+      margin-top: 15px;
+    }
+    
+    .code-output {
+      background: #000;
+      padding: 12px;
+      border: 1px solid #00ff00;
+      border-radius: 4px;
+      font-size: 11px;
+      white-space: pre;
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+    
+    select {
+      width: 100%;
+      padding: 8px;
+      background: #000;
+      color: #00ff00;
+      border: 1px solid #00ff00;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎚️ Lever Position Debug 🎚️</h1>
+    
+    <div class="info">
+      Adjust lever start and end positions. Select a lever, adjust positions, and test the movement.
+    </div>
+    
+    <div class="control">
+      <label>Select Lever (1-10):</label>
+      <select id="leverSelect" onchange="loadLeverMesh()">
+        <option value="1">Lever 1</option>
+        <option value="2">Lever 2</option>
+        <option value="3">Lever 3</option>
+        <option value="4">Lever 4</option>
+        <option value="5">Lever 5</option>
+        <option value="6">Lever 6</option>
+        <option value="7">Lever 7</option>
+        <option value="8">Lever 8</option>
+        <option value="9">Lever 9</option>
+        <option value="10">Lever 10</option>
+      </select>
+    </div>
+    
+    <div class="section">
+      <h3 style="color: #ffff00;">Start Position (Down)</h3>
+      
+      <div class="control">
+        <label>X Position</label>
+        <input type="range" id="startX" min="-0.5" max="0.5" step="0.001" value="0">
+        <div class="value" id="startXValue">0.000</div>
+      </div>
+      
+      <div class="control">
+        <label>Y Position</label>
+        <input type="range" id="startY" min="-0.5" max="0.5" step="0.001" value="0">
+        <div class="value" id="startYValue">0.000</div>
+      </div>
+      
+      <div class="control">
+        <label>Z Position</label>
+        <input type="range" id="startZ" min="-0.5" max="0.5" step="0.001" value="0">
+        <div class="value" id="startZValue">0.000</div>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h3 style="color: #ffff00;">End Position (Up)</h3>
+      
+      <div class="control">
+        <label>X Offset</label>
+        <input type="range" id="endX" min="-0.5" max="0.5" step="0.001" value="0">
+        <div class="value" id="endXValue">0.000</div>
+      </div>
+      
+      <div class="control">
+        <label>Y Offset</label>
+        <input type="range" id="endY" min="-0.5" max="0.5" step="0.001" value="0.1">
+        <div class="value" id="endYValue">0.100</div>
+      </div>
+      
+      <div class="control">
+        <label>Z Offset</label>
+        <input type="range" id="endZ" min="-0.5" max="0.5" step="0.001" value="0">
+        <div class="value" id="endZValue">0.000</div>
+      </div>
+    </div>
+    
+    <div class="button-group">
+      <button onclick="setStartPosition()">⬇ Set Start (Down)</button>
+      <button onclick="setEndPosition()">⬆ Set End (Up)</button>
+      <button onclick="getCurrentPosition()">📍 Get Current</button>
+      <button onclick="animateLever()">▶ Test Animation</button>
+      <button onclick="copyCode()">📋 Copy Code</button>
+      <button onclick="resetValues()">↺ Reset</button>
+    </div>
+    
+    <div class="info" id="status">
+      Status: Ready - Select a lever to begin
+    </div>
+    
+    <div class="code-output" id="codeOutput">
+// Lever Position Config
+startPosition: { x: 0.000, y: 0.000, z: 0.000 },
+endOffset: { x: 0.000, y: 0.100, z: 0.000 }
+    </div>
+  </div>
+
+  <script>
+    let currentLever = 1;
+    let originalPosition = null;
+    
+    // Get all sliders
+    const sliders = {
+      startX: document.getElementById('startX'),
+      startY: document.getElementById('startY'),
+      startZ: document.getElementById('startZ'),
+      endX: document.getElementById('endX'),
+      endY: document.getElementById('endY'),
+      endZ: document.getElementById('endZ')
+    };
+    
+    // Get all value displays
+    const values = {
+      startX: document.getElementById('startXValue'),
+      startY: document.getElementById('startYValue'),
+      startZ: document.getElementById('startZValue'),
+      endX: document.getElementById('endXValue'),
+      endY: document.getElementById('endYValue'),
+      endZ: document.getElementById('endZValue')
+    };
+    
+    // Load lever mesh
+    function loadLeverMesh() {
+      currentLever = parseInt(document.getElementById('leverSelect').value);
+      
+      try {
+        if (!window.opener || !window.opener.scene) {
+          document.getElementById('status').textContent = 'Error: Main window not found';
+          return;
+        }
+        
+        const scene = window.opener.scene;
+        const leverMesh = scene.getMeshByName(`Cube18_StaticMeshComponent0.lv.${currentLever}`);
+        
+        if (!leverMesh) {
+          document.getElementById('status').textContent = `Error: Lever ${currentLever} mesh not found`;
+          return;
+        }
+        
+        // Store original position
+        originalPosition = leverMesh.position.clone();
+        
+        document.getElementById('status').textContent = `✓ Loaded Lever ${currentLever}`;
+      } catch (error) {
+        document.getElementById('status').textContent = 'Error: ' + error.message;
+      }
+    }
+    
+    // Update displays
+    function updateValues() {
+      const start = {
+        x: parseFloat(sliders.startX.value),
+        y: parseFloat(sliders.startY.value),
+        z: parseFloat(sliders.startZ.value)
+      };
+      
+      const end = {
+        x: parseFloat(sliders.endX.value),
+        y: parseFloat(sliders.endY.value),
+        z: parseFloat(sliders.endZ.value)
+      };
+      
+      // Update displays
+      values.startX.textContent = start.x.toFixed(3);
+      values.startY.textContent = start.y.toFixed(3);
+      values.startZ.textContent = start.z.toFixed(3);
+      values.endX.textContent = end.x.toFixed(3);
+      values.endY.textContent = end.y.toFixed(3);
+      values.endZ.textContent = end.z.toFixed(3);
+      
+      // Update code output
+      document.getElementById('codeOutput').textContent = 
+`// Lever ${currentLever} Position Config
+startPosition: { x: ${start.x.toFixed(3)}, y: ${start.y.toFixed(3)}, z: ${start.z.toFixed(3)} },
+endOffset: { x: ${end.x.toFixed(3)}, y: ${end.y.toFixed(3)}, z: ${end.z.toFixed(3)} }`;
+      
+      // Auto-apply start position in real-time
+      setStartPosition(true);
+    }
+    
+    // Set start position
+    function setStartPosition(silent = false) {
+      try {
+        if (!window.opener || !window.opener.scene) {
+          if (!silent) {
+            document.getElementById('status').textContent = 'Error: Main window not found';
+          }
+          return;
+        }
+        
+        const scene = window.opener.scene;
+        const leverMesh = scene.getMeshByName(`Cube18_StaticMeshComponent0.lv.${currentLever}`);
+        
+        if (!leverMesh) {
+          if (!silent) {
+            document.getElementById('status').textContent = `Error: Lever ${currentLever} not found`;
+          }
+          return;
+        }
+        
+        if (!originalPosition) {
+          originalPosition = leverMesh.position.clone();
+        }
+        
+        const start = {
+          x: parseFloat(sliders.startX.value),
+          y: parseFloat(sliders.startY.value),
+          z: parseFloat(sliders.startZ.value)
+        };
+        
+        leverMesh.position.set(
+          originalPosition.x + start.x,
+          originalPosition.y + start.y,
+          originalPosition.z + start.z
+        );
+        
+        if (!silent) {
+          document.getElementById('status').textContent = '⬇ Start position set';
+        }
+      } catch (error) {
+        if (!silent) {
+          document.getElementById('status').textContent = 'Error: ' + error.message;
+        }
+      }
+    }
+    
+    // Set end position
+    function setEndPosition() {
+      try {
+        if (!window.opener || !window.opener.scene) {
+          document.getElementById('status').textContent = 'Error: Main window not found';
+          return;
+        }
+        
+        const scene = window.opener.scene;
+        const leverMesh = scene.getMeshByName(`Cube18_StaticMeshComponent0.lv.${currentLever}`);
+        
+        if (!leverMesh) {
+          document.getElementById('status').textContent = `Error: Lever ${currentLever} not found`;
+          return;
+        }
+        
+        if (!originalPosition) {
+          originalPosition = leverMesh.position.clone();
+        }
+        
+        const start = {
+          x: parseFloat(sliders.startX.value),
+          y: parseFloat(sliders.startY.value),
+          z: parseFloat(sliders.startZ.value)
+        };
+        
+        const end = {
+          x: parseFloat(sliders.endX.value),
+          y: parseFloat(sliders.endY.value),
+          z: parseFloat(sliders.endZ.value)
+        };
+        
+        leverMesh.position.set(
+          originalPosition.x + start.x + end.x,
+          originalPosition.y + start.y + end.y,
+          originalPosition.z + start.z + end.z
+        );
+        
+        document.getElementById('status').textContent = '⬆ End position set';
+      } catch (error) {
+        document.getElementById('status').textContent = 'Error: ' + error.message;
+      }
+    }
+    
+    // Get current position
+    function getCurrentPosition() {
+      try {
+        if (!window.opener || !window.opener.scene) {
+          document.getElementById('status').textContent = 'Error: Main window not found';
+          return;
+        }
+        
+        const scene = window.opener.scene;
+        const leverMesh = scene.getMeshByName(`Cube18_StaticMeshComponent0.lv.${currentLever}`);
+        
+        if (!leverMesh) {
+          document.getElementById('status').textContent = `Error: Lever ${currentLever} not found`;
+          return;
+        }
+        
+        if (!originalPosition) {
+          originalPosition = leverMesh.position.clone();
+        }
+        
+        const offset = leverMesh.position.subtract(originalPosition);
+        
+        sliders.startX.value = offset.x;
+        sliders.startY.value = offset.y;
+        sliders.startZ.value = offset.z;
+        
+        updateValues();
+        document.getElementById('status').textContent = '✓ Got current position';
+      } catch (error) {
+        document.getElementById('status').textContent = 'Error: ' + error.message;
+      }
+    }
+    
+    // Animate lever
+    function animateLever() {
+      try {
+        if (!window.opener || !window.opener.scene) {
+          document.getElementById('status').textContent = 'Error: Main window not found';
+          return;
+        }
+        
+        const scene = window.opener.scene;
+        const leverMesh = scene.getMeshByName(`Cube18_StaticMeshComponent0.lv.${currentLever}`);
+        
+        if (!leverMesh) {
+          document.getElementById('status').textContent = `Error: Lever ${currentLever} not found`;
+          return;
+        }
+        
+        if (!originalPosition) {
+          originalPosition = leverMesh.position.clone();
+        }
+        
+        const start = {
+          x: parseFloat(sliders.startX.value),
+          y: parseFloat(sliders.startY.value),
+          z: parseFloat(sliders.startZ.value)
+        };
+        
+        const end = {
+          x: parseFloat(sliders.endX.value),
+          y: parseFloat(sliders.endY.value),
+          z: parseFloat(sliders.endZ.value)
+        };
+        
+        const startPos = new window.opener.BABYLON.Vector3(
+          originalPosition.x + start.x,
+          originalPosition.y + start.y,
+          originalPosition.z + start.z
+        );
+        
+        const endPos = new window.opener.BABYLON.Vector3(
+          originalPosition.x + start.x + end.x,
+          originalPosition.y + start.y + end.y,
+          originalPosition.z + start.z + end.z
+        );
+        
+        // Animate up
+        const upAnimation = new window.opener.BABYLON.Animation(
+          'leverUp',
+          'position',
+          60,
+          window.opener.BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+          window.opener.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+        );
+        
+        upAnimation.setKeys([
+          { frame: 0, value: startPos },
+          { frame: 30, value: endPos }
+        ]);
+        
+        leverMesh.animations = [upAnimation];
+        scene.beginAnimation(leverMesh, 0, 30, false, 1, () => {
+          // Animate down
+          const downAnimation = new window.opener.BABYLON.Animation(
+            'leverDown',
+            'position',
+            60,
+            window.opener.BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+            window.opener.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+          );
+          
+          downAnimation.setKeys([
+            { frame: 0, value: endPos },
+            { frame: 30, value: startPos }
+          ]);
+          
+          leverMesh.animations = [downAnimation];
+          scene.beginAnimation(leverMesh, 0, 30, false, 1);
+        });
+        
+        document.getElementById('status').textContent = '▶ Animation playing';
+      } catch (error) {
+        document.getElementById('status').textContent = 'Error: ' + error.message;
+      }
+    }
+    
+    // Copy code to clipboard
+    function copyCode() {
+      const code = document.getElementById('codeOutput').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        document.getElementById('status').textContent = '✓ Code copied to clipboard!';
+      }).catch(() => {
+        document.getElementById('status').textContent = 'Error: Failed to copy';
+      });
+    }
+    
+    // Reset to defaults
+    function resetValues() {
+      sliders.startX.value = 0;
+      sliders.startY.value = 0;
+      sliders.startZ.value = 0;
+      sliders.endX.value = 0;
+      sliders.endY.value = 0.1;
+      sliders.endZ.value = 0;
+      updateValues();
+      document.getElementById('status').textContent = '↺ Reset to defaults';
+    }
+    
+    // Add event listeners
+    Object.values(sliders).forEach(slider => {
+      slider.addEventListener('input', updateValues);
+    });
+    
+    // Initial update
+    updateValues();
+    loadLeverMesh();
+  </script>
+</body>
+</html>

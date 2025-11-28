@@ -36,7 +36,7 @@ export const INTERACTIVE_MACHINES = {
     }
   },
   
-  // Machine 2: Cube18 Machine
+  // Machine 2: Cube18 Machine (Equalizer)
   'cube18_machine': {
     displayName: 'Cube18 Equipment',
     meshName: 'Cube18_StaticMeshComponent0',
@@ -52,6 +52,68 @@ export const INTERACTIVE_MACHINES = {
         meshName: 'Cube18_StaticMeshComponent0.power',
         pressOffset: { x: 0.006, y: 0.000, z: 0.004 },
         action: 'togglePower'
+      },
+      
+      // Equalizer levers (1-10) - Range: -0.043 (bottom) to +0.043 (top)
+      lever1: {
+        type: 'lever',
+        meshName: 'Cube18_StaticMeshComponent0.lv.1',
+        minOffset: { x: 0.000, y: -0.043, z: 0.000 },
+        maxOffset: { x: 0.000, y: 0.043, z: 0.000 }
+      },
+      lever2: {
+        type: 'lever',
+        meshName: 'Cube18_StaticMeshComponent0.lv.2',
+        minOffset: { x: 0.000, y: -0.043, z: 0.000 },
+        maxOffset: { x: 0.000, y: 0.043, z: 0.000 }
+      },
+      lever3: {
+        type: 'lever',
+        meshName: 'Cube18_StaticMeshComponent0.lv.3',
+        minOffset: { x: 0.000, y: -0.043, z: 0.000 },
+        maxOffset: { x: 0.000, y: 0.043, z: 0.000 }
+      },
+      lever4: {
+        type: 'lever',
+        meshName: 'Cube18_StaticMeshComponent0.lv.4',
+        minOffset: { x: 0.000, y: -0.043, z: 0.000 },
+        maxOffset: { x: 0.000, y: 0.043, z: 0.000 }
+      },
+      lever5: {
+        type: 'lever',
+        meshName: 'Cube18_StaticMeshComponent0.lv.5',
+        minOffset: { x: 0.000, y: -0.043, z: 0.000 },
+        maxOffset: { x: 0.000, y: 0.043, z: 0.000 }
+      },
+      lever6: {
+        type: 'lever',
+        meshName: 'Cube18_StaticMeshComponent0.lv.6',
+        minOffset: { x: 0.000, y: -0.043, z: 0.000 },
+        maxOffset: { x: 0.000, y: 0.043, z: 0.000 }
+      },
+      lever7: {
+        type: 'lever',
+        meshName: 'Cube18_StaticMeshComponent0.lv.7',
+        minOffset: { x: 0.000, y: -0.043, z: 0.000 },
+        maxOffset: { x: 0.000, y: 0.043, z: 0.000 }
+      },
+      lever8: {
+        type: 'lever',
+        meshName: 'Cube18_StaticMeshComponent0.lv.8',
+        minOffset: { x: 0.000, y: -0.043, z: 0.000 },
+        maxOffset: { x: 0.000, y: 0.043, z: 0.000 }
+      },
+      lever9: {
+        type: 'lever',
+        meshName: 'Cube18_StaticMeshComponent0.lv.9',
+        minOffset: { x: 0.000, y: -0.043, z: 0.000 },
+        maxOffset: { x: 0.000, y: 0.043, z: 0.000 }
+      },
+      lever10: {
+        type: 'lever',
+        meshName: 'Cube18_StaticMeshComponent0.lv.10',
+        minOffset: { x: 0.000, y: -0.043, z: 0.000 },
+        maxOffset: { x: 0.000, y: 0.043, z: 0.000 }
       }
     }
   },
@@ -59,14 +121,21 @@ export const INTERACTIVE_MACHINES = {
   // Machine 3: Computer Monitor
   'computer_monitor': {
     displayName: 'Computer Monitor',
-    meshName: 'SM_Prop_ComputerMonitor_A_29_StaticMeshComponent0',
+    meshName: 'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.001',
     
     // Camera lock-on position
-    cameraPosition: { x: 0.20, y: 2.40, z: 0.40 },
-    cameraRotation: { x: 0.23, y: 1.55, z: 0.00 },
+    cameraPosition: { x: 0.15, y: 2.29, z: 0.40 },
+    cameraRotation: { x: 0.09, y: 1.58, z: 0.00 },
     
     // Interactive elements on this machine
-    interactiveElements: {}
+    interactiveElements: {
+      powerButton: {
+        type: 'button',
+        meshName: 'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.power',
+        pressOffset: { x: 0.004, y: 0.000, z: 0.000 },
+        action: 'togglePower'
+      }
+    }
   },
   
   // Machine 4: Monitor Frame (alternative mesh name)
@@ -75,8 +144,8 @@ export const INTERACTIVE_MACHINES = {
     meshName: 'monitorFrame',
     
     // Camera lock-on position (same as monitor)
-    cameraPosition: { x: 0.20, y: 2.40, z: 0.40 },
-    cameraRotation: { x: 0.23, y: 1.55, z: 0.00 },
+    cameraPosition: { x: 0.15, y: 2.29, z: 0.40 },
+    cameraRotation: { x: 0.09, y: 1.58, z: 0.00 },
     
     // Interactive elements on this machine
     interactiveElements: {}

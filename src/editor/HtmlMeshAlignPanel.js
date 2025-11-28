@@ -83,7 +83,7 @@ export class HtmlMeshAlignPanel {
   }
   
   findMonitorMesh() {
-    this.monitorMesh = this.scene.getMeshByName('SM_Prop_ComputerMonitor_A_29_screen_mesh');
+    this.monitorMesh = this.scene.getMeshByName('SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.screen');
     
     if (this.monitorMesh) {
       this.monitorMesh.computeWorldMatrix(true);

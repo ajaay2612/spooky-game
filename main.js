@@ -59,6 +59,27 @@ window.openDialRotationDebug = function() {
   window.open(url, 'DialRotationDebug', 'width=750,height=950,scrollbars=yes');
   console.log('✓ Dial rotation debug tool opened. Find the correct rotation axis for the dial.');
 };
+
+// Helper function to open monitor lock-on debug tool
+window.openMonitorLockOnDebug = function() {
+  const url = window.location.origin + '/monitor-lockon-debug.html';
+  window.open(url, 'MonitorLockOnDebug', 'width=750,height=950,scrollbars=yes');
+  console.log('✓ Monitor lock-on debug tool opened. Adjust camera position/rotation for monitor lock-on view.');
+};
+
+// Helper function to open lever position debug tool
+window.openLeverPositionDebug = function() {
+  const url = window.location.origin + '/lever-position-debug.html';
+  window.open(url, 'LeverPositionDebug', 'width=750,height=950,scrollbars=yes');
+  console.log('✓ Lever position debug tool opened. Adjust lever start/end positions for equalizer.');
+};
+
+// Helper function to open radio alignment debug tool
+window.openRadioAlignDebug = function() {
+  const url = window.location.origin + '/radio-align-debug.html';
+  window.open(url, 'RadioAlignDebug', 'width=750,height=850,scrollbars=yes');
+  console.log('✓ Radio alignment debug tool opened. Adjust rotation and UV transforms for radio display.');
+};
 let loadStartTime = Date.now();
 let editorManager = null;
 let postProcessingPipeline = null;
@@ -513,18 +534,6 @@ async function initializeGame() {
 
     // Setup keyboard shortcuts
     window.addEventListener('keydown', (event) => {
-      // M key - Monitor activation
-      if (event.key === 'm' || event.key === 'M') {
-        if (monitorController.isActive) {
-          monitorController.deactivate();
-          console.log('Monitor deactivated - press M to reactivate');
-        } else {
-          monitorController.activate();
-          console.log('Monitor activated - use Arrow keys/WASD to navigate, Enter to select');
-        }
-        return;
-      }
-      
       // Pass input to monitor if active
       if (monitorController && monitorController.isActive) {
         monitorController.handleInput(event.key);

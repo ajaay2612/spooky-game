@@ -118,7 +118,7 @@ export class InteractionSystem {
     const allowedMeshNames = [
       'SM_ComputerParts_C05_N1_54_StaticMeshComponent0',
       'Cube18_StaticMeshComponent0',
-      'SM_Prop_ComputerMonitor_A_29_StaticMeshComponent0',
+      'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.001',
       'monitorFrame'
     ];
     
@@ -144,12 +144,10 @@ export class InteractionSystem {
   
   setupKeyboardListener() {
     window.addEventListener('keydown', (evt) => {
-      // F key - Toggle lock-on mode
+      // F key - Enter lock-on mode only
       if (evt.key === 'f' || evt.key === 'F') {
         if (this.focusedObject && !this.isLockedOn) {
           this.lockOnToObject();
-        } else if (this.isLockedOn) {
-          this.exitLockOn();
         }
       }
       
@@ -521,12 +519,8 @@ export class InteractionSystem {
     // For example, activate monitor, open UI, etc.
     console.log('Interacting with:', mesh.name);
     
-    // Example: If it's a monitor, activate it
-    if (mesh.name.toLowerCase().includes('monitor')) {
-      if (window.monitorController) {
-        window.monitorController.activate();
-      }
-    }
+    // Monitor activation is now handled by M key only
+    // F key just locks camera view
   }
   
   dispose() {

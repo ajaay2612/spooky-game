@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Radio Display Alignment Debug</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      background: #0a0a0a;
+      color: #00ff00;
+      padding: 20px;
+      margin: 0;
+    }
+    
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      background: #1a1a1a;
+      padding: 20px;
+      border: 2px solid #00ff00;
+      border-radius: 8px;
+    }
+    
+    h1 {
+      text-align: center;
+      color: #00ff00;
+      text-shadow: 0 0 10px #00ff00;
+      margin-bottom: 10px;
+    }
+    
+    .info {
+      background: #0a0a0a;
+      padding: 10px;
+      margin: 10px 0;
+      border-left: 3px solid #00ff00;
+      font-size: 12px;
+    }
+    
+    .control {
+      margin: 15px 0;
+      padding: 12px;
+      background: #0f0f0f;
+      border: 1px solid #00ff00;
+      border-radius: 4px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #ffff00;
+      font-size: 13px;
+    }
+    
+    input[type="range"] {
+      width: 100%;
+      margin: 8px 0;
+    }
+    
+    .value {
+      color: #00ff00;
+      font-size: 14px;
+      text-align: center;
+      padding: 4px;
+      background: #000;
+      border-radius: 3px;
+      margin-top: 5px;
+    }
+    
+    button {
+      background: #00ff00;
+      color: #0a0a0a;
+      border: none;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 4px;
+      margin: 5px;
+      font-family: 'Courier New', monospace;
+      width: calc(50% - 10px);
+    }
+    
+    button:hover {
+      background: #00cc00;
+      box-shadow: 0 0 15px #00ff00;
+    }
+    
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      margin-top: 15px;
+    }
+    
+    .section {
+      border-top: 2px solid #00ff00;
+      padding-top: 15px;
+      margin-top: 15px;
+    }
+    
+    .code-output {
+      background: #000;
+      padding: 12px;
+      border: 1px solid #00ff00;
+      border-radius: 4px;
+      font-size: 11px;
+      white-space: pre;
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📻 Radio Display Alignment 📻</h1>
+    
+    <div class="info">
+      Adjust rotation and UV transforms for the radio display. Changes apply in real-time.
+    </div>
+    
+    <div class="section">
+      <h3 style="color: #ffff00;">Container Rotation & Scale</h3>
+      
+      <div class="control">
+        <label>Rotation (degrees)</label>
+        <input type="range" id="rotation" min="0" max="360" step="1" value="270">
+        <div class="value" id="rotationValue">270°</div>
+      </div>
+      
+      <div class="control">
+        <label>Scale X</label>
+        <input type="range" id="scaleX" min="0.5" max="2" step="0.01" value="1">
+        <div class="value" id="scaleXValue">1.00</div>
+      </div>
+      
+      <div class="control">
+        <label>Scale Y</label>
+        <input type="range" id="scaleY" min="0.5" max="2" step="0.01" value="1">
+        <div class="value" id="scaleYValue">1.00</div>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h3 style="color: #ffff00;">Container Position Offset</h3>
+      
+      <div class="control">
+        <label>Left Offset (px)</label>
+        <input type="range" id="leftOffset" min="-1000" max="1000" step="1" value="0">
+        <div class="value" id="leftOffsetValue">0</div>
+      </div>
+      
+      <div class="control">
+        <label>Top Offset (px)</label>
+        <input type="range" id="topOffset" min="-1000" max="1000" step="1" value="0">
+        <div class="value" id="topOffsetValue">0</div>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h3 style="color: #ffff00;">UV Transform</h3>
+      
+      <div class="control">
+        <label>U Angle (degrees)</label>
+        <input type="range" id="uAng" min="0" max="360" step="1" value="180">
+        <div class="value" id="uAngValue">180°</div>
+      </div>
+      
+      <div class="control">
+        <label>V Angle (degrees)</label>
+        <input type="range" id="vAng" min="0" max="360" step="1" value="0">
+        <div class="value" id="vAngValue">0°</div>
+      </div>
+      
+      <div class="control">
+        <label>W Angle (degrees)</label>
+        <input type="range" id="wAng" min="0" max="360" step="1" value="0">
+        <div class="value" id="wAngValue">0°</div>
+      </div>
+    </div>
+    
+    <div class="button-group">
+      <button onclick="copyCode()">📋 Copy Code</button>
+      <button onclick="resetValues()">↺ Reset</button>
+    </div>
+    
+    <div class="info" id="status">
+      Status: Ready - Adjust sliders to align display
+    </div>
+    
+    <div class="code-output" id="codeOutput">
+// Radio Display Alignment
+this.radioGUITexture.rootContainer.rotation = 4.7124; // 270°
+this.radioGUITexture.rootContainer.scaleX = 1.00;
+this.radioGUITexture.rootContainer.scaleY = 1.00;
+this.radioGUITexture.uAng = Math.PI; // 180°
+this.radioGUITexture.vAng = 0.00;
+this.radioGUITexture.wAng = 0.00;
+    </div>
+  </div>
+
+  <script>
+    const sliders = {
+      rotation: document.getElementById('rotation'),
+      scaleX: document.getElementById('scaleX'),
+      scaleY: document.getElementById('scaleY'),
+      leftOffset: document.getElementById('leftOffset'),
+      topOffset: document.getElementById('topOffset'),
+      uAng: document.getElementById('uAng'),
+      vAng: document.getElementById('vAng'),
+      wAng: document.getElementById('wAng')
+    };
+    
+    const values = {
+      rotation: document.getElementById('rotationValue'),
+      scaleX: document.getElementById('scaleXValue'),
+      scaleY: document.getElementById('scaleYValue'),
+      leftOffset: document.getElementById('leftOffsetValue'),
+      topOffset: document.getElementById('topOffsetValue'),
+      uAng: document.getElementById('uAngValue'),
+      vAng: document.getElementById('vAngValue'),
+      wAng: document.getElementById('wAngValue')
+    };
+    
+    function updateValues() {
+      const rotation = parseFloat(sliders.rotation.value);
+      const scaleX = parseFloat(sliders.scaleX.value);
+      const scaleY = parseFloat(sliders.scaleY.value);
+      const leftOffset = parseFloat(sliders.leftOffset.value);
+      const topOffset = parseFloat(sliders.topOffset.value);
+      const uAng = parseFloat(sliders.uAng.value);
+      const vAng = parseFloat(sliders.vAng.value);
+      const wAng = parseFloat(sliders.wAng.value);
+      
+      // Update displays
+      values.rotation.textContent = rotation + '°';
+      values.scaleX.textContent = scaleX.toFixed(2);
+      values.scaleY.textContent = scaleY.toFixed(2);
+      values.leftOffset.textContent = leftOffset;
+      values.topOffset.textContent = topOffset;
+      values.uAng.textContent = uAng + '°';
+      values.vAng.textContent = vAng + '°';
+      values.wAng.textContent = wAng + '°';
+      
+      // Convert to radians
+      const rotRad = (rotation * Math.PI / 180).toFixed(4);
+      const uAngRad = (uAng * Math.PI / 180).toFixed(2);
+      const vAngRad = (vAng * Math.PI / 180).toFixed(2);
+      const wAngRad = (wAng * Math.PI / 180).toFixed(2);
+      
+      // Update code output
+      document.getElementById('codeOutput').textContent = 
+`// Radio Display Alignment
+this.radioGUITexture.rootContainer.rotation = ${rotRad}; // ${rotation}°
+this.radioGUITexture.rootContainer.scaleX = ${scaleX.toFixed(2)};
+this.radioGUITexture.rootContainer.scaleY = ${scaleY.toFixed(2)};
+this.radioGUITexture.rootContainer.left = ${leftOffset};
+this.radioGUITexture.rootContainer.top = ${topOffset};
+this.radioGUITexture.uAng = ${uAngRad}; // ${uAng}°
+this.radioGUITexture.vAng = ${vAngRad}; // ${vAng}°
+this.radioGUITexture.wAng = ${wAngRad}; // ${wAng}°`;
+      
+      // Apply to radio display
+      applyToRadio();
+    }
+    
+    function applyToRadio() {
+      try {
+        if (!window.opener || !window.opener.machineInteractions) {
+          return;
+        }
+        
+        const radioGUITexture = window.opener.machineInteractions.radioGUITexture;
+        
+        if (!radioGUITexture) {
+          return;
+        }
+        
+        const rotation = parseFloat(sliders.rotation.value);
+        const scaleX = parseFloat(sliders.scaleX.value);
+        const scaleY = parseFloat(sliders.scaleY.value);
+        const leftOffset = parseFloat(sliders.leftOffset.value);
+        const topOffset = parseFloat(sliders.topOffset.value);
+        const uAng = parseFloat(sliders.uAng.value);
+        const vAng = parseFloat(sliders.vAng.value);
+        const wAng = parseFloat(sliders.wAng.value);
+        
+        // Apply rotation, scale, and position
+        radioGUITexture.rootContainer.rotation = rotation * Math.PI / 180;
+        radioGUITexture.rootContainer.scaleX = scaleX;
+        radioGUITexture.rootContainer.scaleY = scaleY;
+        radioGUITexture.rootContainer.left = leftOffset;
+        radioGUITexture.rootContainer.top = topOffset;
+        
+        // Apply UV transforms
+        radioGUITexture.uAng = uAng * Math.PI / 180;
+        radioGUITexture.vAng = vAng * Math.PI / 180;
+        radioGUITexture.wAng = wAng * Math.PI / 180;
+        
+      } catch (error) {
+        console.error('Error applying to radio:', error);
+      }
+    }
+    
+    function copyCode() {
+      const code = document.getElementById('codeOutput').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        document.getElementById('status').textContent = '✓ Code copied to clipboard!';
+      }).catch(() => {
+        document.getElementById('status').textContent = 'Error: Failed to copy';
+      });
+    }
+    
+    function resetValues() {
+      sliders.rotation.value = 270;
+      sliders.scaleX.value = 1;
+      sliders.scaleY.value = 1;
+      sliders.leftOffset.value = 0;
+      sliders.topOffset.value = 0;
+      sliders.uAng.value = 180;
+      sliders.vAng.value = 0;
+      sliders.wAng.value = 0;
+      updateValues();
+      document.getElementById('status').textContent = '↺ Reset to defaults';
+    }
+    
+    // Add event listeners
+    Object.values(sliders).forEach(slider => {
+      slider.addEventListener('input', updateValues);
+    });
+    
+    // Initial update
+    updateValues();
+  </script>
+</body>
+</html>
