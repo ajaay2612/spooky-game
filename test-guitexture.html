@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GUI Texture Tester</title>
+  <script src="https://cdn.babylonjs.com/babylon.js"></script>
+  <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+  <style>
+    /* Font faces for GUI textures */
+    @font-face {
+      font-family: 'Roboto Mono';
+      src: url('/fonts/roboto_mono/RobotoMono-Regular.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+    
+    @font-face {
+      font-family: 'Roboto Mono';
+      src: url('/fonts/roboto_mono/RobotoMono-Bold.ttf') format('truetype');
+      font-weight: bold;
+      font-style: normal;
+    }
+    
+    @font-face {
+      font-family: 'Print Char';
+      src: url('/fonts/print-char-21/print-char-21.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+    
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      background: #1a1a1a;
+      color: #fff;
+    }
+    
+    #renderCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+    }
+    
+    #controls {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 15px;
+      border-radius: 8px;
+      z-index: 100;
+      max-width: 350px;
+    }
+    
+    #controls h2 {
+      margin: 0 0 15px 0;
+      font-size: 18px;
+      color: #4a9eff;
+    }
+    
+    .control-group {
+      margin-bottom: 15px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 12px;
+      color: #aaa;
+    }
+    
+    input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      background: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 4px;
+      color: #fff;
+      font-size: 12px;
+      box-sizing: border-box;
+    }
+    
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #4a9eff;
+      border: none;
+      border-radius: 4px;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    button:hover {
+      background: #3a8eef;
+    }
+    
+    button:active {
+      background: #2a7edf;
+    }
+    
+    #info {
+      margin-top: 15px;
+      padding: 10px;
+      background: rgba(74, 158, 255, 0.1);
+      border-radius: 4px;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+    
+    #error {
+      margin-top: 10px;
+      padding: 10px;
+      background: rgba(255, 74, 74, 0.2);
+      border: 1px solid rgba(255, 74, 74, 0.5);
+      border-radius: 4px;
+      font-size: 11px;
+      color: #ff4a4a;
+      display: none;
+    }
+    
+    .preset-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+      margin-top: 10px;
+    }
+    
+    .preset-buttons button {
+      font-size: 11px;
+      padding: 6px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="renderCanvas"></canvas>
+  
+  <div id="controls">
+    <h2>🎨 GUI Texture Tester</h2>
+    
+    <div class="control-group">
+      <label>Available GUI Files:</label>
+      <div id="fileList" style="max-height: 400px; overflow-y: auto; background: #2a2a2a; border: 1px solid #444; border-radius: 4px; padding: 5px;">
+        <div style="padding: 10px; color: #888; text-align: center;">Loading files...</div>
+      </div>
+    </div>
+    
+    <div id="error"></div>
+    
+    <div id="info">
+      <strong>Instructions:</strong><br>
+      Click any JSON file to preview it on the 3D plane<br>
+      Use mouse to rotate camera and inspect the GUI
+    </div>
+  </div>
+
+  <script>
+    // Babylon.js setup
+    const canvas = document.getElementById('renderCanvas');
+    const engine = new BABYLON.Engine(canvas, true);
+    
+    let scene = null;
+    let guiTexture = null;
+    let displayPlane = null;
+    
+    // Create scene
+    function createScene() {
+      scene = new BABYLON.Scene(engine);
+      scene.clearColor = new BABYLON.Color4(0.1, 0.1, 0.1, 1);
+      
+      // Camera (positioned to face the plane directly)
+      const camera = new BABYLON.ArcRotateCamera(
+        'camera',
+        0,           // Alpha: 0 = facing front
+        Math.PI / 2, // Beta: π/2 = horizontal (not tilted)
+        10,          // Radius: distance from plane
+        BABYLON.Vector3.Zero(),
+        scene
+      );
+      camera.attachControl(canvas, true);
+      
+      // Smooth zoom settings
+      camera.lowerRadiusLimit = 5;
+      camera.upperRadiusLimit = 20;
+      camera.wheelPrecision = 20; // Higher = slower zoom (default is 3)
+      camera.pinchPrecision = 50; // Slower pinch zoom on touch devices
+      
+      // Light
+      const light = new BABYLON.HemisphericLight(
+        'light',
+        new BABYLON.Vector3(0, 1, 0),
+        scene
+      );
+      light.intensity = 0.7;
+      
+      // Create display plane for GUI texture (2048x2048 aspect ratio)
+      displayPlane = BABYLON.MeshBuilder.CreatePlane(
+        'displayPlane',
+        { width: 6, height: 6 },
+        scene
+      );
+      
+      // Create material for the plane
+      const material = new BABYLON.StandardMaterial('planeMat', scene);
+      material.emissiveColor = new BABYLON.Color3(1, 1, 1);
+      material.disableLighting = true;
+      displayPlane.material = material;
+      
+      return scene;
+    }
+    
+    // Load GUI texture from JSON
+    async function loadGUITexture(jsonPath) {
+      const errorDiv = document.getElementById('error');
+      errorDiv.style.display = 'none';
+      
+      try {
+        console.log('Loading GUI texture from:', jsonPath);
+        
+        // Fetch JSON file
+        const response = await fetch(jsonPath);
+        if (!response.ok) {
+          throw new Error(`Failed to load: ${response.status} ${response.statusText}`);
+        }
+        
+        const guiData = await response.json();
+        console.log('GUI data loaded:', guiData);
+        
+        // Get resolution from JSON (default to 1024 if not specified)
+        const width = guiData.width || 1024;
+        const height = guiData.height || 1024;
+        console.log(`GUI resolution: ${width}x${height}`);
+        
+        // Adjust plane size based on resolution
+        const planeSize = Math.max(width, height) / 1024 * 6; // Scale: 1024=6 units, 2048=12 units
+        displayPlane.scaling = new BABYLON.Vector3(
+          width / Math.max(width, height),
+          height / Math.max(width, height),
+          1
+        );
+        displayPlane.scaling.scaleInPlace(planeSize / 6);
+        
+        // Dispose old texture if exists
+        if (guiTexture) {
+          guiTexture.dispose();
+        }
+        
+        // Create GUI texture with proper resolution from JSON
+        guiTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMeshTexture(
+          displayPlane,
+          width,
+          height
+        );
+        
+        // Clear existing controls
+        guiTexture.rootContainer.clearControls();
+        
+        // Load controls from JSON
+        if (guiData.root && guiData.root.children) {
+          for (const childData of guiData.root.children) {
+            const control = await createControlFromJSON(childData);
+            if (control) {
+              guiTexture.addControl(control);
+            }
+          }
+        }
+        
+        // Apply texture to material
+        if (displayPlane.material) {
+          displayPlane.material.diffuseTexture = guiTexture;
+          displayPlane.material.emissiveTexture = guiTexture;
+        }
+        
+        console.log('✓ GUI texture loaded successfully!');
+        
+      } catch (error) {
+        console.error('Failed to load GUI texture:', error);
+        errorDiv.textContent = `Error: ${error.message}`;
+        errorDiv.style.display = 'block';
+      }
+    }
+    
+    // Create control from JSON data
+    async function createControlFromJSON(data) {
+      const className = data.className;
+      let control = null;
+      
+      // Create control based on className
+      if (className === 'Image') {
+        control = new BABYLON.GUI.Image(data.name, data.source);
+        if (data.stretch !== undefined) control.stretch = data.stretch;
+      } else if (className === 'TextBlock') {
+        control = new BABYLON.GUI.TextBlock(data.name, data.text);
+        if (data.textHorizontalAlignment !== undefined) control.textHorizontalAlignment = data.textHorizontalAlignment;
+        if (data.textVerticalAlignment !== undefined) control.textVerticalAlignment = data.textVerticalAlignment;
+        if (data.fontSize) control.fontSize = data.fontSize;
+        if (data.fontFamily) control.fontFamily = data.fontFamily;
+        if (data.color) control.color = data.color;
+      } else if (className === 'Rectangle') {
+        control = new BABYLON.GUI.Rectangle(data.name);
+        if (data.background) control.background = data.background;
+        if (data.thickness !== undefined) control.thickness = data.thickness;
+        if (data.cornerRadius !== undefined) control.cornerRadius = data.cornerRadius;
+      } else if (className === 'Container') {
+        control = new BABYLON.GUI.Container(data.name);
+      } else if (className === 'StackPanel') {
+        control = new BABYLON.GUI.StackPanel(data.name);
+      } else if (className === 'Button') {
+        control = BABYLON.GUI.Button.CreateSimpleButton(data.name, data.text || '');
+        if (data.background) control.background = data.background;
+      } else if (className === 'Ellipse') {
+        control = new BABYLON.GUI.Ellipse(data.name);
+        if (data.background) control.background = data.background;
+        if (data.thickness !== undefined) control.thickness = data.thickness;
+      }
+      
+      if (!control) {
+        console.warn(`Unsupported control type: ${className}`);
+        return null;
+      }
+      
+      // Apply common properties
+      if (data.width) control.width = data.width;
+      if (data.height) control.height = data.height;
+      if (data.left) control.left = data.left;
+      if (data.top) control.top = data.top;
+      if (data.horizontalAlignment !== undefined) control.horizontalAlignment = data.horizontalAlignment;
+      if (data.verticalAlignment !== undefined) control.verticalAlignment = data.verticalAlignment;
+      if (data.isVisible !== undefined) control.isVisible = data.isVisible;
+      if (data.color) control.color = data.color;
+      if (data.alpha !== undefined) control.alpha = data.alpha;
+      if (data.zIndex !== undefined) control.zIndex = data.zIndex;
+      
+      return control;
+    }
+    
+    // Scan textures folder for JSON files
+    async function scanTexturesFolder() {
+      const fileListDiv = document.getElementById('fileList');
+      
+      // List of known GUI JSON files to check
+      const possibleFiles = [
+        'textures/monitorFrame1.json',
+        'textures/monitorFrame2.json',
+        'textures/guiTexture.json',
+        'textures/monitorBg.json',
+        'textures/casseteplayer/frame1.json',
+        'textures/radio/radioframe1.json',
+        'textures/radio/radioframe1-backup with bars.json'
+      ];
+      
+      const foundFiles = [];
+      
+      // Check each file
+      for (const filePath of possibleFiles) {
+        try {
+          const response = await fetch(filePath, { method: 'HEAD' });
+          if (response.ok) {
+            foundFiles.push(filePath);
+          }
+        } catch (e) {
+          // File doesn't exist, skip
+        }
+      }
+      
+      // Display files
+      if (foundFiles.length === 0) {
+        fileListDiv.innerHTML = '<div style="padding: 10px; color: #888; text-align: center;">No GUI JSON files found</div>';
+        return;
+      }
+      
+      fileListDiv.innerHTML = '';
+      
+      foundFiles.forEach(filePath => {
+        const fileButton = document.createElement('button');
+        fileButton.textContent = filePath.replace('textures/', '');
+        fileButton.style.cssText = `
+          width: 100%;
+          padding: 8px;
+          margin: 3px 0;
+          background: #3a3a3a;
+          border: 1px solid #555;
+          border-radius: 4px;
+          color: #fff;
+          font-size: 11px;
+          cursor: pointer;
+          text-align: left;
+          transition: background 0.2s;
+        `;
+        
+        fileButton.addEventListener('mouseenter', () => {
+          fileButton.style.background = '#4a9eff';
+        });
+        
+        fileButton.addEventListener('mouseleave', () => {
+          fileButton.style.background = '#3a3a3a';
+        });
+        
+        fileButton.addEventListener('click', () => {
+          loadGUITexture(filePath);
+          // Highlight selected
+          document.querySelectorAll('#fileList button').forEach(btn => {
+            btn.style.borderColor = '#555';
+          });
+          fileButton.style.borderColor = '#4a9eff';
+        });
+        
+        fileListDiv.appendChild(fileButton);
+      });
+      
+      console.log(`Found ${foundFiles.length} GUI JSON files`);
+    }
+    
+    // Initialize
+    createScene();
+    scanTexturesFolder();
+    
+    // Render loop
+    engine.runRenderLoop(() => {
+      scene.render();
+    });
+    
+    // Resize
+    window.addEventListener('resize', () => {
+      engine.resize();
+    });
+    
+    // Expose for console debugging
+    window.scene = scene;
+    window.loadGUITexture = loadGUITexture;
+    window.scanTexturesFolder = scanTexturesFolder;
+  </script>
+</body>
+</html>

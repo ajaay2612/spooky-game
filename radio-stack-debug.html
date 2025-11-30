@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Radio Stack Size Debug Tool</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #1a1a1a;
+      color: #fff;
+    }
+    
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #2a2a2a;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+    
+    h1 {
+      margin: 0 0 10px 0;
+      font-size: 24px;
+      color: #4a9eff;
+    }
+    
+    .subtitle {
+      margin: 0 0 30px 0;
+      font-size: 14px;
+      color: #888;
+    }
+    
+    .control-group {
+      margin-bottom: 25px;
+      padding: 20px;
+      background: #1a1a1a;
+      border-radius: 8px;
+      border: 1px solid #333;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #4a9eff;
+    }
+    
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    input[type="range"] {
+      flex: 1;
+      height: 6px;
+      background: #333;
+      border-radius: 3px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      background: #4a9eff;
+      cursor: pointer;
+      border-radius: 50%;
+      transition: background 0.2s;
+    }
+    
+    input[type="range"]::-webkit-slider-thumb:hover {
+      background: #3a8eef;
+    }
+    
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      background: #4a9eff;
+      cursor: pointer;
+      border-radius: 50%;
+      border: none;
+    }
+    
+    .value-display {
+      min-width: 60px;
+      padding: 8px 12px;
+      background: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 4px;
+      text-align: center;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      color: #4a9eff;
+    }
+    
+    .code-output {
+      margin-top: 30px;
+      padding: 20px;
+      background: #0a0a0a;
+      border: 1px solid #333;
+      border-radius: 8px;
+    }
+    
+    .code-output h3 {
+      margin: 0 0 15px 0;
+      font-size: 16px;
+      color: #4a9eff;
+    }
+    
+    pre {
+      margin: 0;
+      padding: 15px;
+      background: #1a1a1a;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #a8e6a1;
+    }
+    
+    .copy-btn {
+      margin-top: 10px;
+      padding: 10px 20px;
+      background: #4a9eff;
+      border: none;
+      border-radius: 4px;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .copy-btn:hover {
+      background: #3a8eef;
+    }
+    
+    .copy-btn:active {
+      background: #2a7edf;
+    }
+    
+    .info {
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(74, 158, 255, 0.1);
+      border-left: 3px solid #4a9eff;
+      border-radius: 4px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎚️ Radio Stack Size Debug Tool</h1>
+    <p class="subtitle">Adjust the size of equalizer stack bars</p>
+    
+    <div class="control-group">
+      <label>Bar Width (px)</label>
+      <div class="slider-container">
+        <input type="range" id="widthSlider" min="40" max="100" value="60" step="5">
+        <span class="value-display" id="widthValue">60px</span>
+      </div>
+    </div>
+    
+    <div class="control-group">
+      <label>Bar Height (px)</label>
+      <div class="slider-container">
+        <input type="range" id="heightSlider" min="8" max="20" value="10" step="1">
+        <span class="value-display" id="heightValue">10px</span>
+      </div>
+    </div>
+    
+    <div class="control-group">
+      <label>Vertical Spacing (px)</label>
+      <div class="slider-container">
+        <input type="range" id="spacingSlider" min="10" max="20" value="12" step="1">
+        <span class="value-display" id="spacingValue">12px</span>
+      </div>
+    </div>
+    
+    <div class="code-output">
+      <h3>📋 Code to Update</h3>
+      <pre id="codeOutput"></pre>
+      <button class="copy-btn" onclick="copyCode()">Copy Code</button>
+    </div>
+    
+    <div class="info">
+      <strong>Instructions:</strong><br>
+      1. Adjust the sliders to find the perfect size<br>
+      2. Copy the generated code<br>
+      3. Update <code>src/story/MachineInteractions.js</code> in the <code>updateEqualizerDisplay()</code> function<br>
+      4. Replace the bar width, height, and spacing values
+    </div>
+  </div>
+
+  <script>
+    const widthSlider = document.getElementById('widthSlider');
+    const heightSlider = document.getElementById('heightSlider');
+    const spacingSlider = document.getElementById('spacingSlider');
+    
+    const widthValue = document.getElementById('widthValue');
+    const heightValue = document.getElementById('heightValue');
+    const spacingValue = document.getElementById('spacingValue');
+    
+    const codeOutput = document.getElementById('codeOutput');
+    
+    function updateCode() {
+      const width = widthSlider.value;
+      const height = heightSlider.value;
+      const spacing = spacingSlider.value;
+      
+      widthValue.textContent = width + 'px';
+      heightValue.textContent = height + 'px';
+      spacingValue.textContent = spacing + 'px';
+      
+      const code = `// In updateEqualizerDisplay() function:
+
+const bar = new BABYLON.GUI.Rectangle(\`col\${leverIndex}_bar\${i}\`);
+bar.width = "${width}px";   // ← Updated width
+bar.height = "${height}px";  // ← Updated height
+bar.thickness = 0;
+bar.background = barColor;
+
+// Position: 5 columns with tighter spacing (140px between columns)
+bar.left = -280 + (leverIndex * 140);
+bar.top = -144 - (i * ${spacing});  // ← Updated spacing
+bar.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+bar.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;`;
+      
+      codeOutput.textContent = code;
+    }
+    
+    function copyCode() {
+      const code = codeOutput.textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        const originalText = btn.textContent;
+        btn.textContent = '✓ Copied!';
+        btn.style.background = '#2ecc71';
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.style.background = '#4a9eff';
+        }, 2000);
+      });
+    }
+    
+    widthSlider.addEventListener('input', updateCode);
+    heightSlider.addEventListener('input', updateCode);
+    spacingSlider.addEventListener('input', updateCode);
+    
+    // Initialize
+    updateCode();
+  </script>
+</body>
+</html>

@@ -80,6 +80,64 @@ window.openRadioAlignDebug = function() {
   window.open(url, 'RadioAlignDebug', 'width=750,height=850,scrollbars=yes');
   console.log('✓ Radio alignment debug tool opened. Adjust rotation and UV transforms for radio display.');
 };
+
+// Helper function to open lock-on position editor
+window.openLockOnEditor = function() {
+  const url = window.location.origin + '/lockon-position-editor.html';
+  window.open(url, 'LockOnEditor', 'width=700,height=900,scrollbars=yes');
+  console.log('✓ Lock-on position editor opened. Adjust camera positions for all interactive devices.');
+};
+
+// Global storage for lock-on position overrides
+window.lockOnOverrides = {};
+
+// Listen for lock-on position updates from editor
+window.addEventListener('message', (event) => {
+  if (event.data.type === 'updateLockOnPosition') {
+    const { device, cameraPosition, cameraRotation } = event.data.config;
+    
+    // Store override globally
+    window.lockOnOverrides[device] = {
+      cameraPosition,
+      cameraRotation
+    };
+    
+    console.log(`✓ Updated lock-on position for ${device}:`, cameraPosition, cameraRotation);
+    console.log('Lock on to the device again to see changes.');
+  }
+  
+  // Handle live updates (real-time camera movement)
+  if (event.data.type === 'updateLockOnPositionLive') {
+    const { device, cameraPosition, cameraRotation } = event.data.config;
+    
+    console.log('Received live update for', device, cameraPosition, cameraRotation);
+    
+    // Store override globally
+    window.lockOnOverrides[device] = {
+      cameraPosition,
+      cameraRotation
+    };
+    
+    // If we have a scene and camera, update it live
+    if (window.scene && window.scene.activeCamera) {
+      const camera = window.scene.activeCamera;
+      
+      console.log('Updating camera to:', cameraPosition, cameraRotation);
+      
+      // Always update camera position and rotation in real-time
+      camera.position.x = cameraPosition.x;
+      camera.position.y = cameraPosition.y;
+      camera.position.z = cameraPosition.z;
+      camera.rotation.x = cameraRotation.x;
+      camera.rotation.y = cameraRotation.y;
+      camera.rotation.z = cameraRotation.z;
+      camera.rotationQuaternion = null;
+    } else {
+      console.warn('No scene or camera available');
+    }
+  }
+});
+
 let loadStartTime = Date.now();
 let editorManager = null;
 let postProcessingPipeline = null;
@@ -457,9 +515,9 @@ async function initializeGame() {
       return;
     }
 
-    // Create scene instance with dark background color
+    // Create scene instance with black background
     scene = new BABYLON.Scene(engine);
-    scene.clearColor = new BABYLON.Color4(0.01, 0.01, 0.02, 0); // Very dark blue with transparent alpha for HtmlMesh
+    scene.clearColor = new BABYLON.Color4(0, 0, 0, 1); // Pure black background
     
     // Expose scene globally for debugging tools
     window.scene = scene;

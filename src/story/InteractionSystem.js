@@ -300,17 +300,34 @@ export class InteractionSystem {
     
     let targetPosition, targetRotation;
     if (machineConfig) {
-      targetPosition = new BABYLON.Vector3(
-        machineConfig.cameraPosition.x,
-        machineConfig.cameraPosition.y,
-        machineConfig.cameraPosition.z
-      );
-      targetRotation = new BABYLON.Vector3(
-        machineConfig.cameraRotation.x,
-        machineConfig.cameraRotation.y,
-        machineConfig.cameraRotation.z
-      );
-      console.log('Using camera config for machine:', machineConfig.displayName);
+      // Check for live override from editor
+      const override = window.lockOnOverrides && window.lockOnOverrides[machineConfig.id];
+      
+      if (override) {
+        targetPosition = new BABYLON.Vector3(
+          override.cameraPosition.x,
+          override.cameraPosition.y,
+          override.cameraPosition.z
+        );
+        targetRotation = new BABYLON.Vector3(
+          override.cameraRotation.x,
+          override.cameraRotation.y,
+          override.cameraRotation.z
+        );
+        console.log('Using OVERRIDE camera config for machine:', machineConfig.displayName);
+      } else {
+        targetPosition = new BABYLON.Vector3(
+          machineConfig.cameraPosition.x,
+          machineConfig.cameraPosition.y,
+          machineConfig.cameraPosition.z
+        );
+        targetRotation = new BABYLON.Vector3(
+          machineConfig.cameraRotation.x,
+          machineConfig.cameraRotation.y,
+          machineConfig.cameraRotation.z
+        );
+        console.log('Using camera config for machine:', machineConfig.displayName);
+      }
     } else {
       // Fallback to default position
       targetPosition = new BABYLON.Vector3(0.20, 2.30, 0.10);

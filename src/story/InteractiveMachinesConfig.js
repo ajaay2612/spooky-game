@@ -14,8 +14,8 @@ export const INTERACTIVE_MACHINES = {
     meshName: 'SM_ComputerParts_C05_N1_54_StaticMeshComponent0',
     
     // Camera lock-on position
-    cameraPosition: { x: 0.20, y: 2.30, z: 0.10 },
-    cameraRotation: { x: -0.01, y: 2.38, z: 0 },
+    cameraPosition: { x: 0.320, y: 2.297, z: -0.099 },
+    cameraRotation: { x: 0.024, y: 2.336, z: 0.000 },
     
     // Interactive elements on this machine
     interactiveElements: {
@@ -42,8 +42,8 @@ export const INTERACTIVE_MACHINES = {
     meshName: 'Cube18_StaticMeshComponent0',
     
     // Camera lock-on position
-    cameraPosition: { x: 0.00, y: 2.20, z: 0.10 },
-    cameraRotation: { x: 0.14, y: 2.23, z: 0.00 },
+    cameraPosition: { x: 0.222, y: 2.115, z: -0.058 },
+    cameraRotation: { x: 0.003, y: 2.230, z: 0.000 },
     
     // Interactive elements on this machine
     interactiveElements: {
@@ -124,8 +124,8 @@ export const INTERACTIVE_MACHINES = {
     meshName: 'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.001',
     
     // Camera lock-on position
-    cameraPosition: { x: 0.15, y: 2.29, z: 0.40 },
-    cameraRotation: { x: 0.09, y: 1.58, z: 0.00 },
+    cameraPosition: { x: 0.208, y: 2.202, z: 0.414 },
+    cameraRotation: { x: -0.028, y: 1.580, z: 0.000 },
     
     // Interactive elements on this machine
     interactiveElements: {
@@ -144,8 +144,8 @@ export const INTERACTIVE_MACHINES = {
     meshName: 'monitorFrame',
     
     // Camera lock-on position (same as monitor)
-    cameraPosition: { x: 0.15, y: 2.29, z: 0.40 },
-    cameraRotation: { x: 0.09, y: 1.58, z: 0.00 },
+    cameraPosition: { x: 0.208, y: 2.202, z: 0.414 },
+    cameraRotation: { x: -0.028, y: 1.580, z: 0.000 },
     
     // Interactive elements on this machine
     interactiveElements: {}

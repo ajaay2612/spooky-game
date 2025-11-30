@@ -14,22 +14,29 @@ export class MachineInteractions {
     this.interactiveButtons = new Map();
     this.buttonStates = new Map();
     
-    // Equalizer puzzle state
+    // Equalizer puzzle state - 5 columns, 2 levers per column
     this.rightSequence = this.generateRandomSequence();
-    this.currentSequence = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]; // Current lever positions (1-10)
-    this.solvedColumns = [false, false, false, false, false, false, false, false, false, false];
+    this.currentSequence = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]; // Current lever positions (1-10 for 10 levers)
+    this.solvedColumns = [false, false, false, false, false]; // 5 columns
+    
+    // Lever drag state tracking
+    this.currentDraggingLever = null;
+    this.leverObserversSetup = false;
     
     this.initialize();
   }
   
   generateRandomSequence() {
-    // Fixed target sequence
-    const sequence = [5, 6, 2, 3, 7, 5, 6, 8, 4, 2];
-    console.log('🎯 Target sequence:', sequence);
+    // Fixed target sequence for 5 columns (each column controlled by 2 levers)
+    const sequence = [4, 3, 8, 2, 6]; // 5 target heights for 5 columns
+    console.log('🎯 Target sequence (5 columns):', sequence);
     return sequence;
   }
   
   initialize() {
+    // Setup global lever observers (once for all levers)
+    this.setupGlobalLeverObservers();
+    
     // Register all interactive elements from config
     this.registerAllInteractiveElements();
     
@@ -735,6 +742,10 @@ export class MachineInteractions {
       // Clear existing controls
       this.radioGUITexture.rootContainer.clearControls();
       
+      // IMPORTANT: Clear bar references since controls were just deleted
+      this.columnBars = {}; // Reset all column bar references
+      this.columnNumbers = {}; // Reset number text references
+      
       // Load controls from JSON and store references
       this.radioBarControls = []; // Array of arrays - each column has multiple bars
       this.radioNumberControls = []; // Store number text controls
@@ -745,6 +756,12 @@ export class MachineInteractions {
           const childData = guiData.root.children[i];
           const control = await this.createControlFromJSON(childData);
           if (control) {
+            // IMPORTANT: Set background image behind bars
+            if (childData.className === 'Image') {
+              control.zIndex = -1; // Behind all bars
+              control.isPointerBlocker = false; // Don't block pointer events
+            }
+            
             this.radioGUITexture.addControl(control);
             this.radioAllControls.push({ control, data: childData });
             
@@ -762,9 +779,51 @@ export class MachineInteractions {
       console.log(`  Total controls: ${this.radioAllControls.length}`);
       console.log(`  Rectangle controls: ${this.radioBarControls.length}`);
       console.log(`  TextBlock controls: ${this.radioNumberControls.length}`);
+      
+      // Initialize all columns with their current positions
+      this.initializeAllColumns();
     } catch (error) {
       console.error('Failed to load radio GUI:', error);
     }
+  }
+  
+  initializeAllColumns() {
+    // Render all 5 columns (each controlled by 2 levers)
+    console.log('🎚️ Initializing all equalizer columns (5 columns, 2 levers each)...');
+    
+    // IMPORTANT: Only initialize if radio is powered on
+    if (!this.radioPowered) {
+      console.log('⚠️ Radio is OFF - skipping column initialization');
+      return;
+    }
+    
+    // First, read current lever positions from the 3D meshes
+    for (let leverIndex = 0; leverIndex < 10; leverIndex++) {
+      const leverId = `cube18_machine_lever${leverIndex + 1}`;
+      const leverData = this.interactiveButtons.get(leverId);
+      
+      if (leverData && leverData.currentOffset !== undefined) {
+        // Convert offset (-1 to +1) to bar height (1 to 10)
+        const barHeight = Math.round(((leverData.currentOffset + 1) / 2) * 9) + 1;
+        this.currentSequence[leverIndex] = barHeight;
+        console.log(`  Lever ${leverIndex + 1}: offset=${leverData.currentOffset.toFixed(2)}, height=${barHeight}`);
+      }
+    }
+    
+    // Now render all 5 columns based on actual lever positions
+    for (let columnIndex = 0; columnIndex < 5; columnIndex++) {
+      const lever1Index = columnIndex * 2;
+      const lever2Index = columnIndex * 2 + 1;
+      const lever1Height = this.currentSequence[lever1Index];
+      const lever2Height = this.currentSequence[lever2Index];
+      const combinedHeight = Math.round((lever1Height + lever2Height) / 2);
+      
+      this.updateEqualizerDisplay(columnIndex, combinedHeight);
+      
+      // Check if this column matches the target sequence
+      this.checkLeverMatch(columnIndex, combinedHeight);
+    }
+    console.log('✓ All 5 columns initialized from current lever positions');
   }
   
   registerLever(leverId, config) {
@@ -803,6 +862,10 @@ export class MachineInteractions {
     const leverMatch = leverId.match(/lever(\d+)/);
     const leverIndex = leverMatch ? parseInt(leverMatch[1]) - 1 : -1;
     
+    // Store lever ID in leverData for filtering
+    leverData.leverId = leverId;
+    leverData.leverIndex = leverIndex;
+    
     lever.actionManager = new BABYLON.ActionManager(this.scene);
     
     lever.actionManager.registerAction(
@@ -831,15 +894,25 @@ export class MachineInteractions {
         (evt) => {
           leverData.isDragging = true;
           leverData.lastMouseY = this.scene.pointerY;
+          this.currentDraggingLever = leverId; // Track which lever is being dragged
           document.body.style.cursor = 'ns-resize';
           console.log('🎚️ Started dragging lever', leverIndex + 1);
         }
       )
     );
+  }
+  
+  setupGlobalLeverObservers() {
+    // Single global observer for all lever movements (called once in initialize)
+    if (this.leverObserversSetup) return;
+    this.leverObserversSetup = true;
     
     // Mouse move - drag lever vertically
     this.scene.onPointerObservable.add((pointerInfo) => {
-      if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERMOVE && leverData.isDragging) {
+      if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERMOVE && this.currentDraggingLever) {
+        const leverData = this.interactiveButtons.get(this.currentDraggingLever);
+        if (!leverData || !leverData.isDragging) return;
+        
         const deltaY = this.scene.pointerY - leverData.lastMouseY;
         leverData.lastMouseY = this.scene.pointerY;
         
@@ -854,173 +927,201 @@ export class MachineInteractions {
         const offsetVector = leverData.minOffset.scale((1 - leverData.currentOffset) / 2)
           .add(leverData.maxOffset.scale((1 + leverData.currentOffset) / 2));
         
-        lever.position = leverData.originalPosition.add(offsetVector);
+        leverData.mesh.position = leverData.originalPosition.add(offsetVector);
         
-        // Update current sequence (map -1 to +1 into 1 to 10)
+        // Map lever to column: 2 levers per column (0-1→col0, 2-3→col1, 4-5→col2, 6-7→col3, 8-9→col4)
+        const leverIndex = leverData.leverIndex;
         if (leverIndex >= 0 && leverIndex < 10) {
           const barHeight = Math.round(((leverData.currentOffset + 1) / 2) * 9) + 1; // 1 to 10
           this.currentSequence[leverIndex] = barHeight;
-          this.updateEqualizerDisplay(leverIndex, barHeight);
+          
+          // Calculate which column this lever controls (2 levers per column)
+          const columnIndex = Math.floor(leverIndex / 2); // 0-1→0, 2-3→1, 4-5→2, 6-7→3, 8-9→4
+          
+          // Calculate combined height from both levers in this column
+          const lever1Index = columnIndex * 2;
+          const lever2Index = columnIndex * 2 + 1;
+          const lever1Height = this.currentSequence[lever1Index];
+          const lever2Height = this.currentSequence[lever2Index];
+          const combinedHeight = Math.round((lever1Height + lever2Height) / 2); // Average of both levers
+          
+          this.updateEqualizerDisplay(columnIndex, combinedHeight);
+          
+          // Hide number while dragging (will show again on mouse up if correct)
+          if (this.columnNumbers && this.columnNumbers[columnIndex]) {
+            this.columnNumbers[columnIndex].isVisible = false;
+          }
         }
       }
     });
     
     // Mouse up - stop dragging
     this.scene.onPointerObservable.add((pointerInfo) => {
-      if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERUP && leverData.isDragging) {
+      if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERUP && this.currentDraggingLever) {
+        const leverData = this.interactiveButtons.get(this.currentDraggingLever);
+        if (!leverData) return;
+        
         leverData.isDragging = false;
         document.body.style.cursor = 'default';
         
+        const leverIndex = leverData.leverIndex;
         if (leverIndex >= 0 && leverIndex < 10) {
-          const barHeight = this.currentSequence[leverIndex];
-          console.log(`🎚️ Lever ${leverIndex + 1} set to ${barHeight}/10`);
-          this.checkLeverMatch(leverIndex, barHeight);
+          const leverHeight = this.currentSequence[leverIndex];
+          const columnIndex = Math.floor(leverIndex / 2);
+          
+          // Calculate combined height from both levers
+          const lever1Index = columnIndex * 2;
+          const lever2Index = columnIndex * 2 + 1;
+          const lever1Height = this.currentSequence[lever1Index];
+          const lever2Height = this.currentSequence[lever2Index];
+          const combinedHeight = Math.round((lever1Height + lever2Height) / 2);
+          
+          console.log(`🎚️ Lever ${leverIndex + 1} set to ${leverHeight}/10 → Column ${columnIndex + 1} = ${combinedHeight}/10`);
+          this.checkLeverMatch(columnIndex, combinedHeight);
         }
+        
+        this.currentDraggingLever = null; // Clear dragging state
       }
     });
   }
   
   updateEqualizerDisplay(leverIndex, barHeight) {
-    // Update the GUI display for this column in real-time
+    // Update ONLY this column - complete isolation
     if (!this.radioGUITexture) return;
+    
+    // IMPORTANT: Only update GUI if radio is powered on
+    if (!this.radioPowered) {
+      console.log(`⚠️ Radio is OFF - skipping GUI update for column ${leverIndex + 1}`);
+      return;
+    }
     
     // Initialize column bars if not exists
     if (!this.columnBars) {
       this.columnBars = {}; // Store bars for each column
     }
     
-    if (!this.columnBars[leverIndex]) {
-      this.columnBars[leverIndex] = [];
+    // IMPORTANT: Dispose old bars for this column to prevent overlap
+    if (this.columnBars[leverIndex]) {
+      this.columnBars[leverIndex].forEach(bar => {
+        if (bar && !bar.isDisposed) {
+          this.radioGUITexture.removeControl(bar);
+          bar.dispose();
+        }
+      });
     }
     
+    // Create fresh array for this column
+    this.columnBars[leverIndex] = [];
     const column = this.columnBars[leverIndex];
     
-    // Create or show bars up to barHeight (stack from bottom to top)
-    for (let i = 0; i < 10; i++) {
-      if (i < barHeight) {
-        // Show this bar
-        if (!column[i]) {
-          // Create new bar
-          const bar = new BABYLON.GUI.Rectangle(`column${leverIndex}_bar${i}`);
-          bar.width = "60px";
-          bar.height = "10px";
-          bar.thickness = 0;
-          bar.background = "#E77123FF"; // Orange
-          bar.left = -420 + (leverIndex * 95); // Position based on column (95px spacing)
-          bar.top = -144 - (i * 12); // Stack vertically (negative to go up)
-          bar.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-          bar.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
-          
-          this.radioGUITexture.addControl(bar);
-          column[i] = bar;
-        } else {
-          column[i].isVisible = true;
-        }
-      } else {
-        // Hide this bar
-        if (column[i]) {
-          column[i].isVisible = false;
-        }
-      }
+    // Determine the correct color for this column
+    const isColumnSolved = this.solvedColumns[leverIndex];
+    const barColor = isColumnSolved ? '#A2E723FF' : '#E77123FF'; // Green if solved, orange otherwise
+    
+    // Create bars from bottom to top (only up to barHeight)
+    for (let i = 0; i < barHeight; i++) {
+      // Create new bar with unique z-index per bar
+      const bar = new BABYLON.GUI.Rectangle(`col${leverIndex}_bar${i}`);
+      bar.width = "108px";  // 90 * 1.2 = 108 (total 1.8x from original)
+      bar.height = "18px";  // 15 * 1.2 = 18 (total 1.8x from original)
+      bar.thickness = 0;
+      bar.background = barColor;
+      
+      // Position: 5 columns with tighter spacing (140px between columns)
+      bar.left = -280 + (leverIndex * 140);
+      bar.top = -144 - (i * 22); // 18 * 1.2 = 21.6 ≈ 22
+      bar.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+      bar.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+      
+      // Unique z-index: column * 100 + bar position (ensures no overlap)
+      bar.zIndex = 100 + (leverIndex * 10) + i;
+      
+      this.radioGUITexture.addControl(bar);
+      column[i] = bar;
     }
     
-    this.radioGUITexture.markAsDirty();
-    console.log(`Column ${leverIndex + 1}: Showing ${barHeight} bars`);
+    console.log(`✓ Column ${leverIndex + 1}: Rendered ${barHeight} bars (${isColumnSolved ? 'GREEN' : 'ORANGE'})`);
   }
   
-  checkLeverMatch(leverIndex, barHeight) {
-    const targetHeight = this.rightSequence[leverIndex];
+  checkLeverMatch(columnIndex, barHeight) {
+    // columnIndex is 0-4 (5 columns)
+    const targetHeight = this.rightSequence[columnIndex];
     
-    if (barHeight === targetHeight && !this.solvedColumns[leverIndex]) {
-      // Correct! Mark as solved
-      this.solvedColumns[leverIndex] = true;
-      console.log(`✅ Lever ${leverIndex + 1} CORRECT! (${barHeight}/10)`);
+    if (barHeight === targetHeight) {
+      // Correct! Mark as solved and show number
+      if (!this.solvedColumns[columnIndex]) {
+        this.solvedColumns[columnIndex] = true;
+        console.log(`✅ Column ${columnIndex + 1} CORRECT! (${barHeight}/10)`);
+      }
       
-      // Update GUI to show green and display number
-      this.showCorrectColumn(leverIndex, barHeight);
+      // Always update GUI to show green and display number (even if already solved)
+      this.showCorrectColumn(columnIndex, barHeight);
       
       // Check if all columns are solved
       if (this.solvedColumns.every(solved => solved)) {
-        console.log('🎉 PUZZLE SOLVED! All levers correct!');
+        console.log('🎉 PUZZLE SOLVED! All 5 columns correct!');
         this.onPuzzleSolved();
       }
-    } else if (this.solvedColumns[leverIndex] && barHeight !== targetHeight) {
+    } else if (this.solvedColumns[columnIndex] && barHeight !== targetHeight) {
       // Was correct, now wrong
-      this.solvedColumns[leverIndex] = false;
-      console.log(`❌ Lever ${leverIndex + 1} no longer correct`);
-      this.showIncorrectColumn(leverIndex);
+      this.solvedColumns[columnIndex] = false;
+      console.log(`❌ Column ${columnIndex + 1} no longer correct`);
+      this.showIncorrectColumn(columnIndex);
     }
   }
   
-  showCorrectColumn(leverIndex, barHeight) {
+  showCorrectColumn(columnIndex, barHeight) {
     // Update the GUI to show this column in green with the number
-    console.log(`🟢 Column ${leverIndex + 1} turned green, showing number ${barHeight}`);
+    console.log(`🟢 Column ${columnIndex + 1} turned green, showing number ${barHeight}`);
     
-    // Change all bars in this column to green
-    if (this.columnBars && this.columnBars[leverIndex]) {
-      const column = this.columnBars[leverIndex];
-      for (let i = 0; i < barHeight; i++) {
-        if (column[i]) {
-          column[i].background = '#A2E723FF'; // Green
-        }
-      }
-    }
+    // IMPORTANT: Redraw the column with green color (updateEqualizerDisplay reads solvedColumns state)
+    this.updateEqualizerDisplay(columnIndex, barHeight);
     
     // Create or show number text above the stack
     if (!this.columnNumbers) {
       this.columnNumbers = {};
     }
     
-    if (!this.columnNumbers[leverIndex]) {
+    if (!this.columnNumbers[columnIndex]) {
       // Create number text
-      const numberText = new BABYLON.GUI.TextBlock(`column${leverIndex}_number`, barHeight.toString());
-      numberText.width = "60px";
-      numberText.height = "40px";
+      const numberText = new BABYLON.GUI.TextBlock(`column${columnIndex}_number`, barHeight.toString());
+      numberText.width = "80px";
+      numberText.height = "50px";
       numberText.color = "#A2E723FF"; // Green
-      numberText.fontSize = "30px";
+      numberText.fontSize = "45px"; // Increased from 30px
       numberText.fontFamily = "Print Char";
-      numberText.left = -420 + (leverIndex * 95);
-      numberText.top = -144 - (barHeight * 12) - 30; // Above the stack
+      numberText.left = -280 + (columnIndex * 140); // Match column spacing
+      numberText.top = -144 - (barHeight * 22) - 35; // Margin below number (22 = new spacing)
       numberText.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
       numberText.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+      numberText.zIndex = 200 + columnIndex; // High z-index above all bars
       
       this.radioGUITexture.addControl(numberText);
-      this.columnNumbers[leverIndex] = numberText;
+      this.columnNumbers[columnIndex] = numberText;
     } else {
       // Update existing number
-      this.columnNumbers[leverIndex].text = barHeight.toString();
-      this.columnNumbers[leverIndex].top = -144 - (barHeight * 12) - 30;
-      this.columnNumbers[leverIndex].isVisible = true;
-    }
-    
-    // Force GUI refresh
-    if (this.radioGUITexture) {
-      this.radioGUITexture.markAsDirty();
+      this.columnNumbers[columnIndex].text = barHeight.toString();
+      this.columnNumbers[columnIndex].top = -144 - (barHeight * 22) - 35; // Margin below number (22 = new spacing)
+      this.columnNumbers[columnIndex].isVisible = true;
     }
   }
   
-  showIncorrectColumn(leverIndex) {
+  showIncorrectColumn(columnIndex) {
     // Update the GUI to show this column in orange (default color)
-    console.log(`🟠 Column ${leverIndex + 1} back to orange`);
+    console.log(`🟠 Column ${columnIndex + 1} back to orange`);
     
-    // Change all bars in this column back to orange
-    if (this.columnBars && this.columnBars[leverIndex]) {
-      const column = this.columnBars[leverIndex];
-      for (let i = 0; i < column.length; i++) {
-        if (column[i] && column[i].isVisible) {
-          column[i].background = '#E77123FF'; // Orange
-        }
-      }
-    }
+    // IMPORTANT: Redraw the column with orange color (updateEqualizerDisplay reads solvedColumns state)
+    const lever1Index = columnIndex * 2;
+    const lever2Index = columnIndex * 2 + 1;
+    const lever1Height = this.currentSequence[lever1Index];
+    const lever2Height = this.currentSequence[lever2Index];
+    const combinedHeight = Math.round((lever1Height + lever2Height) / 2);
+    
+    this.updateEqualizerDisplay(columnIndex, combinedHeight);
     
     // Hide the number
-    if (this.columnNumbers && this.columnNumbers[leverIndex]) {
-      this.columnNumbers[leverIndex].isVisible = false;
-    }
-    
-    // Force GUI refresh
-    if (this.radioGUITexture) {
-      this.radioGUITexture.markAsDirty();
+    if (this.columnNumbers && this.columnNumbers[columnIndex]) {
+      this.columnNumbers[columnIndex].isVisible = false;
     }
   }
   

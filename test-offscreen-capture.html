@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SVG foreignObject → Canvas → Texture</title>
+  <script src="https://cdn.babylonjs.com/babylon.js"></script>
+  <style>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #1a1a1a;
+      color: #fff;
+      overflow: hidden;
+    }
+
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+
+    .left-panel {
+      flex: 1;
+      border-right: 2px solid #333;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .right-panel {
+      flex: 1;
+      position: relative;
+    }
+
+    .panel-label {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 14px;
+      z-index: 100;
+      font-weight: bold;
+    }
+
+    #source-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    #hidden-iframe {
+      position: absolute;
+      left: -9999px;
+      width: 2048px;
+      height: 2048px;
+      border: none;
+      background: #0a0a0a;
+      transform: scale(1);
+      transform-origin: 0 0;
+    }
+
+    #renderCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+    }
+
+    .controls {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.9);
+      padding: 15px 25px;
+      border-radius: 8px;
+      z-index: 200;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .controls button {
+      background: #7FB746;
+      color: #0a0a0a;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+
+    .controls button:hover {
+      background: #9fd766;
+    }
+
+    .controls button:active {
+      background: #6f9736;
+    }
+
+    .controls button:disabled {
+      background: #555;
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    .controls .status {
+      font-size: 12px;
+      color: #7FB746;
+    }
+
+    .fps-counter {
+      position: absolute;
+      top: 50px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 12px;
+      z-index: 100;
+      font-family: monospace;
+    }
+
+    .info-box {
+      position: absolute;
+      top: 90px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 11px;
+      z-index: 100;
+      max-width: 300px;
+      line-height: 1.4;
+    }
+
+    .info-box.success {
+      color: #7FB746;
+    }
+
+    .info-box.error {
+      color: #ff4444;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Left Panel: Source HTML -->
+    <div class="left-panel">
+      <div class="panel-label">📄 Source HTML (boot-sequence.html)</div>
+      <iframe id="source-iframe" src="src/monitor/frames/boot-sequence-base64.html"></iframe>
+    </div>
+
+    <!-- Right Panel: Babylon.js Scene -->
+    <div class="right-panel">
+      <div class="panel-label">🎮 Babylon.js Texture (iframe + base64 fonts)</div>
+      <div class="fps-counter" id="fps-counter">FPS: 0 | Updates: 0</div>
+      <div class="info-box" id="info-box">Waiting for iframe to load...</div>
+      <canvas id="renderCanvas"></canvas>
+    </div>
+  </div>
+
+  <!-- Hidden iframe for capture (with embedded base64 fonts) -->
+  <iframe id="hidden-iframe" src="src/monitor/frames/boot-sequence-base64.html"></iframe>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button id="startBtn" disabled>▶ Start Auto-Update</button>
+    <button id="stopBtn" disabled>⏹ Stop Auto-Update</button>
+    <button id="refreshBtn" disabled>🔄 Refresh Once</button>
+    <div class="status">
+      <div>Method: <span style="color: #7FB746;">SVG foreignObject + base64 fonts</span></div>
+      <div>Update Rate: <span id="updateRate">30</span> FPS</div>
+    </div>
+  </div>
+
+  <script>
+    // Configuration
+    const CONFIG = {
+      textureWidth: 2048,
+      textureHeight: 2048,
+      updateFPS: 30
+    };
+
+    // State
+    let isUpdating = false;
+    let updateInterval = null;
+    let updateCount = 0;
+    let frameCount = 0;
+    let lastFPSUpdate = Date.now();
+
+    // Elements
+    const hiddenIframe = document.getElementById('hidden-iframe');
+    const canvas = document.getElementById('renderCanvas');
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const fpsCounter = document.getElementById('fps-counter');
+    const infoBox = document.getElementById('info-box');
+
+    // Babylon.js setup
+    let engine, scene, dynamicTexture, plane;
+    let captureCanvas; // Reusable canvas for capturing
+
+    // Wait for hidden iframe to load
+    hiddenIframe.addEventListener('load', async () => {
+      console.log('✓ Hidden iframe loaded');
+      updateInfo('Hidden iframe loaded. Waiting for fonts...', 'success');
+      
+      // Wait for fonts to load in the iframe
+      const iframeDoc = hiddenIframe.contentDocument;
+      if (iframeDoc && iframeDoc.fonts) {
+        try {
+          await iframeDoc.fonts.ready;
+          console.log('✓ All fonts loaded in iframe');
+          updateInfo('Fonts loaded. Initializing Babylon.js...', 'success');
+        } catch (e) {
+          console.warn('Font loading check failed:', e);
+        }
+      }
+      
+      // Additional delay to ensure fonts are rendered
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      initBabylon();
+    });
+
+    function updateInfo(message, type = 'success') {
+      infoBox.textContent = message;
+      infoBox.className = `info-box ${type}`;
+      console.log(message);
+    }
+
+    function initBabylon() {
+      try {
+        // Create engine
+        engine = new BABYLON.Engine(canvas, true, {
+          preserveDrawingBuffer: true,
+          stencil: true
+        });
+
+        // Create scene
+        scene = new BABYLON.Scene(engine);
+        scene.clearColor = new BABYLON.Color4(0.1, 0.1, 0.1, 1);
+
+        // Create camera
+        const camera = new BABYLON.ArcRotateCamera(
+          'camera',
+          -Math.PI / 2,
+          Math.PI / 2.5,
+          3,
+          new BABYLON.Vector3(0, 0, 0),
+          scene
+        );
+        camera.attachControl(canvas, true);
+        camera.lowerRadiusLimit = 2;
+        camera.upperRadiusLimit = 10;
+
+        // Create light
+        const light = new BABYLON.HemisphericLight(
+          'light',
+          new BABYLON.Vector3(0, 1, 0),
+          scene
+        );
+        light.intensity = 0.7;
+
+        // Create dynamic texture
+        dynamicTexture = new BABYLON.DynamicTexture(
+          'dynamicTexture',
+          {
+            width: CONFIG.textureWidth,
+            height: CONFIG.textureHeight
+          },
+          scene,
+          false
+        );
+
+        // Create plane to display texture
+        plane = BABYLON.MeshBuilder.CreatePlane(
+          'plane',
+          { width: 2, height: 2 },
+          scene
+        );
+
+        // Create material with dynamic texture
+        const material = new BABYLON.StandardMaterial('material', scene);
+        material.diffuseTexture = dynamicTexture;
+        material.emissiveTexture = dynamicTexture;
+        material.emissiveColor = new BABYLON.Color3(1, 1, 1);
+        material.disableLighting = true;
+        plane.material = material;
+
+        // Create reusable capture canvas
+        captureCanvas = document.createElement('canvas');
+        captureCanvas.width = CONFIG.textureWidth;
+        captureCanvas.height = CONFIG.textureHeight;
+
+        // Start render loop
+        engine.runRenderLoop(() => {
+          scene.render();
+          frameCount++;
+          
+          // Update FPS counter
+          const now = Date.now();
+          if (now - lastFPSUpdate >= 1000) {
+            const fps = Math.round(frameCount * 1000 / (now - lastFPSUpdate));
+            fpsCounter.textContent = `FPS: ${fps} | Updates: ${updateCount}`;
+            frameCount = 0;
+            lastFPSUpdate = now;
+          }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+          engine.resize();
+        });
+
+        console.log('✓ Babylon.js initialized');
+        updateInfo('Ready! Click "Refresh Once" to test, or "Start Auto-Update" for live updates.', 'success');
+        startBtn.disabled = false;
+        refreshBtn.disabled = false;
+
+      } catch (error) {
+        console.error('Babylon init error:', error);
+        updateInfo(`Error: ${error.message}`, 'error');
+      }
+    }
+
+    // Capture iframe with embedded base64 fonts using SVG foreignObject
+    async function captureIframeToTexture() {
+      try {
+        const iframeDoc = hiddenIframe.contentDocument || hiddenIframe.contentWindow.document;
+        
+        if (!iframeDoc) {
+          throw new Error('Cannot access iframe document');
+        }
+
+        // Wait for fonts to load (base64 fonts load instantly)
+        console.log('⏳ Waiting for fonts to load...');
+        if (iframeDoc.fonts) {
+          await iframeDoc.fonts.ready;
+          console.log('✓ Fonts loaded:', iframeDoc.fonts.size, 'fonts');
+          
+          // Log loaded fonts
+          iframeDoc.fonts.forEach(font => {
+            console.log(`  - ${font.family} ${font.weight} ${font.style}: ${font.status}`);
+          });
+        }
+
+        // Additional wait for rendering
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        console.log('📸 Capturing with SVG foreignObject...');
+
+        // Serialize the entire HTML document (fonts are now embedded as base64)
+        const serializer = new XMLSerializer();
+        const htmlString = serializer.serializeToString(iframeDoc.documentElement);
+
+        // Create SVG with foreignObject
+        const svgString = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="${CONFIG.textureWidth}" height="${CONFIG.textureHeight}">
+            <foreignObject width="100%" height="100%">
+              ${htmlString}
+            </foreignObject>
+          </svg>
+        `;
+
+        // Create blob and load as image
+        // Use data URI instead of blob URL to avoid tainted canvas
+        const svgBase64 = btoa(unescape(encodeURIComponent(svgString)));
+        const dataUrl = `data:image/svg+xml;base64,${svgBase64}`;
+        const img = new Image();
+
+        return new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error('Image load timeout'));
+          }, 5000);
+
+          img.onload = () => {
+            clearTimeout(timeout);
+            try {
+              console.log('✓ SVG image loaded with fonts!');
+              
+              // Draw to temporary canvas first (avoids tainted canvas issue)
+              const tempCanvas = document.createElement('canvas');
+              tempCanvas.width = CONFIG.textureWidth;
+              tempCanvas.height = CONFIG.textureHeight;
+              const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
+              tempCtx.drawImage(img, 0, 0, CONFIG.textureWidth, CONFIG.textureHeight);
+              
+              // Now draw to Babylon texture from clean canvas
+              const textureCtx = dynamicTexture.getContext();
+              textureCtx.clearRect(0, 0, CONFIG.textureWidth, CONFIG.textureHeight);
+              textureCtx.drawImage(tempCanvas, 0, 0, CONFIG.textureWidth, CONFIG.textureHeight);
+              dynamicTexture.update();
+
+              updateCount++;
+              console.log('✓ Texture updated successfully with custom fonts!');
+              resolve();
+            } catch (err) {
+              reject(err);
+            }
+          };
+
+          img.onerror = (err) => {
+            clearTimeout(timeout);
+            console.error('❌ SVG image load error:', err);
+            reject(new Error('Failed to load SVG image'));
+          };
+
+          img.src = dataUrl;
+        });
+
+      } catch (error) {
+        console.error('Capture error:', error);
+        throw error;
+      }
+    }
+
+    // Start auto-update
+    function startAutoUpdate() {
+      if (isUpdating) return;
+
+      isUpdating = true;
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+      refreshBtn.disabled = true;
+
+      const interval = 1000 / CONFIG.updateFPS;
+      updateInterval = setInterval(async () => {
+        try {
+          await captureIframeToTexture();
+        } catch (error) {
+          console.error('Update error:', error);
+          updateInfo(`Update error: ${error.message}`, 'error');
+        }
+      }, interval);
+
+      updateInfo(`Auto-updating at ${CONFIG.updateFPS} FPS...`, 'success');
+      console.log('✓ Auto-update started');
+    }
+
+    // Stop auto-update
+    function stopAutoUpdate() {
+      if (!isUpdating) return;
+
+      isUpdating = false;
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+      refreshBtn.disabled = false;
+
+      if (updateInterval) {
+        clearInterval(updateInterval);
+        updateInterval = null;
+      }
+
+      updateInfo('Auto-update stopped.', 'success');
+      console.log('✓ Auto-update stopped');
+    }
+
+    // Refresh once
+    async function refreshOnce() {
+      try {
+        refreshBtn.disabled = true;
+        updateInfo('Capturing...', 'success');
+        await captureIframeToTexture();
+        updateInfo('Capture complete!', 'success');
+        refreshBtn.disabled = false;
+      } catch (error) {
+        console.error('Refresh error:', error);
+        updateInfo(`Error: ${error.message}`, 'error');
+        refreshBtn.disabled = false;
+      }
+    }
+
+    // Event listeners
+    startBtn.addEventListener('click', startAutoUpdate);
+    stopBtn.addEventListener('click', stopAutoUpdate);
+    refreshBtn.addEventListener('click', refreshOnce);
+
+    // Initial state
+    stopBtn.disabled = true;
+
+    console.log('✓ Test page ready');
+    console.log('📝 Method: SVG foreignObject → Canvas → Babylon DynamicTexture');
+  </script>
+</body>
+</html>

@@ -5,25 +5,7 @@
       "id": "boot-sequence",
       "file": "boot-sequence.html",
       "name": "Boot Sequence",
-      "transitions": ["main-menu"]
-    },
-    "main-menu": {
-      "id": "main-menu",
-      "file": "main-menu.html",
-      "name": "Main Menu",
-      "transitions": ["game-start", "credits"]
-    },
-    "game-start": {
-      "id": "game-start",
-      "file": "game-start.html",
-      "name": "Game Start",
-      "transitions": ["main-menu"]
-    },
-    "credits": {
-      "id": "credits",
-      "file": "credits.html",
-      "name": "Credits",
-      "transitions": ["main-menu"]
+      "transitions": []
     }
   }
 }
