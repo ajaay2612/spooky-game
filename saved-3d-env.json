@@ -73,7 +73,7 @@
     }
   ],
   "postProcessing": {
-    "fxaaEnabled": false,
+    "fxaaEnabled": true,
     "bloomEnabled": true,
     "bloomThreshold": 0,
     "bloomWeight": 0.2839285714285714,

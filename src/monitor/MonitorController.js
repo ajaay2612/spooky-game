@@ -14,6 +14,7 @@ export class MonitorController {
     this.isActive = false;
     this.isPoweredOn = false; // Monitor starts powered off
     this.debugPanel = null;
+    this.isLockedOn = false; // Track if camera is locked on to monitor
     
     // iframe for HTML rendering
     this.iframe = null;
@@ -27,6 +28,11 @@ export class MonitorController {
     // Settings
     this.textureWidth = 2048;
     this.textureHeight = 2048;
+    
+    // Mouse tracking
+    this.lastMouseX = 0;
+    this.lastMouseY = 0;
+    this.isMouseOverMonitor = false;
     
     console.log('MonitorController initialized (iframe + base64 fonts mode)');
   }
@@ -46,6 +52,9 @@ export class MonitorController {
       
       // Find or create monitor mesh
       this.setupMonitorMesh();
+      
+      // Setup mouse event forwarding
+      this.setupMouseEventForwarding();
       
       console.log('MonitorController initialized - iframe rendering ready');
       return true;
@@ -449,6 +458,135 @@ export class MonitorController {
   deactivate() {
     this.isActive = false;
     console.log('✓ Monitor deactivated');
+  }
+
+  /**
+   * Setup mouse event forwarding from 3D scene to iframe
+   */
+  setupMouseEventForwarding() {
+    const canvas = this.scene.getEngine().getRenderingCanvas();
+    
+    // Only capture on click and initial hover - maximum performance
+    let updatePending = false;
+    let hasInitialCapture = false;
+    
+    // Mouse move event
+    canvas.addEventListener('pointermove', (evt) => {
+      // Only process mouse events when locked on to monitor
+      if (!this.isLockedOn || !this.monitorMesh || !this.iframe || !this.isPoweredOn) return;
+      
+      const pickResult = this.scene.pick(this.scene.pointerX, this.scene.pointerY);
+      
+      if (pickResult.hit && pickResult.pickedMesh === this.monitorMesh) {
+        // Hide native cursor when over monitor
+        if (!this.isMouseOverMonitor) {
+          canvas.style.cursor = 'none';
+          
+          // Capture once when first entering to show initial content
+          if (!hasInitialCapture && !updatePending) {
+            hasInitialCapture = true;
+            updatePending = true;
+            this.captureIframeToTexture().finally(() => {
+              updatePending = false;
+            });
+          }
+        }
+        this.isMouseOverMonitor = true;
+        
+        // Get UV coordinates from pick
+        const uv = pickResult.getTextureCoordinates();
+        if (uv) {
+          // Convert UV to iframe coordinates with 90-degree rotation correction
+          // Swap X and Y, flip X axis
+          const iframeX = (1 - uv.y) * this.textureWidth;
+          const iframeY = uv.x * this.textureHeight;
+          
+          this.lastMouseX = iframeX;
+          this.lastMouseY = iframeY;
+          
+          // Send coordinates to iframe via postMessage (instant, no capture)
+          this.iframe.contentWindow.postMessage({
+            type: 'mousemove',
+            x: iframeX,
+            y: iframeY
+          }, '*');
+        }
+      } else {
+        // Show native cursor when leaving monitor
+        if (this.isMouseOverMonitor) {
+          canvas.style.cursor = 'default';
+        }
+        this.isMouseOverMonitor = false;
+      }
+    });
+    
+    // Mouse click event
+    canvas.addEventListener('pointerdown', (evt) => {
+      // Only process clicks when locked on to monitor
+      if (!this.isLockedOn || !this.isMouseOverMonitor || !this.iframe) return;
+      
+      console.log('Sending click to iframe at:', this.lastMouseX, this.lastMouseY);
+      
+      // Send click event to iframe via postMessage
+      this.iframe.contentWindow.postMessage({
+        type: 'click',
+        x: this.lastMouseX,
+        y: this.lastMouseY
+      }, '*');
+      
+      // Capture texture after click to show updated state
+      if (!updatePending) {
+        updatePending = true;
+        setTimeout(() => {
+          this.captureIframeToTexture().finally(() => {
+            updatePending = false;
+          });
+        }, 50);
+      }
+    });
+    
+    // Listen for capture requests from iframe
+    window.addEventListener('message', (event) => {
+      if (event.data.type === 'requestCapture' && !updatePending) {
+        updatePending = true;
+        requestAnimationFrame(() => {
+          this.captureIframeToTexture().finally(() => {
+            updatePending = false;
+          });
+        });
+      }
+    });
+    
+    console.log('✓ Mouse event forwarding setup complete (postMessage mode)');
+  }
+  
+  /**
+   * Forward mouse event to iframe document
+   */
+  forwardMouseEvent(eventType, x, y) {
+    if (!this.iframe) return;
+    
+    const iframeDoc = this.iframe.contentDocument || this.iframe.contentWindow.document;
+    if (!iframeDoc) return;
+    
+    // Create and dispatch mouse event in iframe
+    const mouseEvent = new MouseEvent(eventType, {
+      bubbles: true,
+      cancelable: true,
+      view: this.iframe.contentWindow,
+      clientX: x,
+      clientY: y,
+      screenX: x,
+      screenY: y
+    });
+    
+    // Dispatch to iframe document
+    const elementAtPoint = iframeDoc.elementFromPoint(x, y);
+    if (elementAtPoint) {
+      elementAtPoint.dispatchEvent(mouseEvent);
+    } else {
+      iframeDoc.dispatchEvent(mouseEvent);
+    }
   }
 
   update() {

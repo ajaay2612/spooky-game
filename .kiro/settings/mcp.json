@@ -43,6 +43,21 @@
         "search_docs",
         "get_page"
       ]
+    },
+    "figma": {
+      "command": "figma-mcp",
+      "args": [],
+      "env": {
+        "FIGMA_API_KEY": "figd_ST-OVMNcyqQRj48y92fJDXZe1Oybo1AX5ptKu6uA"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "mcp_figma_add_figma_file",
+        "mcp_figma_view_node",
+        "mcp_figma_read_comments",
+        "add_figma_file",
+        "view_node"
+      ]
     }
   }
 }

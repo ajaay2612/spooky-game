@@ -29,6 +29,9 @@ export class InteractionSystem {
     this.raycastThrottle = 0; // Frame counter for throttling raycasts
     this.raycastInterval = 5; // Only raycast every N frames (performance optimization)
     
+    // FXAA state tracking
+    this.fxaaWasEnabled = true; // Track previous FXAA state
+    
     this.initialize();
   }
   
@@ -259,6 +262,21 @@ export class InteractionSystem {
     
     this.isLockedOn = true;
     
+    // Disable FXAA post-processing only when locking on to monitor
+    const isMonitor = this.focusedObject.name === 'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.001' || 
+                      this.focusedObject.name === 'monitorFrame';
+    
+    if (isMonitor && window.postProcessingPipeline && window.postProcessingPipeline.fxaaEnabled !== undefined) {
+      this.fxaaWasEnabled = window.postProcessingPipeline.fxaaEnabled;
+      window.postProcessingPipeline.fxaaEnabled = false;
+      console.log('✓ FXAA disabled for monitor lock-on');
+      
+      // Notify monitor controller that it's locked on
+      if (window.monitorController) {
+        window.monitorController.isLockedOn = true;
+      }
+    }
+    
     // Hide crosshair when locked on
     if (this.crosshairElement) {
       this.crosshairElement.style.display = 'none';
@@ -405,6 +423,22 @@ export class InteractionSystem {
     }
     
     this.isLockedOn = false;
+    
+    // Re-enable FXAA post-processing only if it was disabled (monitor lock-on)
+    const isMonitor = this.focusedObject && (
+      this.focusedObject.name === 'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.001' || 
+      this.focusedObject.name === 'monitorFrame'
+    );
+    
+    if (isMonitor && window.postProcessingPipeline && this.fxaaWasEnabled !== undefined) {
+      window.postProcessingPipeline.fxaaEnabled = this.fxaaWasEnabled;
+      console.log('✓ FXAA re-enabled after monitor lock-on exit');
+      
+      // Notify monitor controller that lock-on ended
+      if (window.monitorController) {
+        window.monitorController.isLockedOn = false;
+      }
+    }
     
     // Keep white highlight if still looking at object
     
