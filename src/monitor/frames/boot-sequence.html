@@ -139,7 +139,7 @@
         }
 
         .status-fail {
-            color: #ff0000;
+            color: #A90000;
         }
 
         .status-found {
@@ -234,7 +234,7 @@
             bottom: 0;
             left: 0;
             right: 0;
-            z-index: 10;
+            z-index: 1000;
             margin: 0 7em 6em;
             border-bottom: 5px solid #7FB746;
         }
@@ -286,6 +286,8 @@
         }
 
 
+        .core3exe-popup,
+        .core2exe-popup,
         .core1exe-popup,
         .mainexe-popup,
         .notification-popup {
@@ -299,6 +301,12 @@
             padding: 6em;
         }
 
+        .notification-popup{
+            z-index: 1005;
+        }
+
+        .core3exe-popup-content,
+        .core2exe-popup-content,
         .core1exe-popup-content,
         .mainexe-popup-content,
         .notification-popup-content {
@@ -311,12 +319,16 @@
 
         }
 
+        .core3exe-popup-content-top-bar,
+        .core2exe-popup-content-top-bar,
         .core1exe-popup-content-top-bar,
         .mainexe-popup-content-top-bar,
         .notification-popup-content-top-bar {
             display: flex;
         }
 
+        .core3exe-popup-content-head ,
+        .core2exe-popup-content-head ,
         .core1exe-popup-content-head ,
         .mainexe-popup-content-head ,
         .notification-popup-content-head {
@@ -329,6 +341,8 @@
             flex-grow: 1;
         }
 
+        .core3exe-popup-content-close ,
+        .core2exe-popup-content-close ,
         .core1exe-popup-content-close ,
         .mainexe-popup-content-close ,
         .notification-popup-content-close {
@@ -400,15 +414,17 @@
             position: absolute;
             pointer-events: none;
             top: 50%;
-            left: 53%;
+            left: 50%;
             transform: translate(-50%, -50%);
-            width: 47em; 
+            width: 75em; 
         }
 
+        .begin-proc-button-3,
+        .begin-proc-button-2,
         .begin-proc-button{
             position: absolute;
             top: 16em;
-            right: 12em;
+            right: 11em;
             font-size: 1.48em;
             color: #7FB746;
             cursor: pointer;
@@ -416,12 +432,18 @@
             border: 5px solid #7FB746;
         }
 
+        .begin-proc-button-3 > div,
+        .begin-proc-button-2 > div,
         .begin-proc-button > div{
             width: 3.5em;
             height: 3.5em;
             padding: 0.2em;
             border-right: 5px solid #7FB746;
         }
+
+
+        .begin-proc-button-3 > p,
+        .begin-proc-button-2 > p,
         .begin-proc-button > p{
             display: flex;
             align-items: center;
@@ -429,7 +451,7 @@
             font-size: 1.3em;
         }
 
-        .mainexe-frame2{
+        .activation-form-main-cont{
             display: flex;
             justify-content: center;
             align-items: center;
@@ -437,30 +459,59 @@
             font-size: 1.8em;
         }
 
+        .act-form-input-cont-2,
         .act-form-input-cont{
             display: flex;
             justify-content: center;
             gap: 1em;
         }
 
+
+        .act-form-cont-2,
         .act-form-cont{
             margin-bottom: 5em;
         }
 
+        .act-form-cont-2 h1,
         .act-form-cont h1{
             font-size: 1.8em;
             margin-bottom: 1.8em;
             font-weight: normal;
         }
 
+        .act-form-input-cont-2 input,
         .act-form-input-cont input{
             background: transparent;
-            width: 3.5em;
-            height: 3.8em;
-            font-size: inherit;
-            border: 10px solid #FF0000;
+            border: 10px solid #A90000;
+            color: #7FB746;
+            font-family: inherit;
+            font-size: 2.5em;
+            height: 2em;
+            width: 1.8em;
+            text-align: center;
+            outline: none;
+            caret-color: #7FB746;
         }
 
+        .act-form-input-cont-2 input:focus,
+        .act-form-input-cont input:focus {
+            outline: none;
+            border-color: #A90000;
+        }
+
+        /* Shake animation for wrong code */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-20px); }
+            75% { transform: translateX(20px); }
+        }
+
+        .shake {
+            animation: shake 0.2s ease-in-out 2;
+        }
+
+        .core3exe-frame1-container,
+        .core2exe-frame1-container,
         .core1exe-frame1-container{
             display: flex;
             justify-content: center;
@@ -501,12 +552,109 @@
             font-weight: normal;
         }
 
+        .core2exe-frame1-container{
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 75%;
+            margin: auto;
+        }
+
+        .timerBar{
+            position: absolute;
+            top: 5.5em;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            height: 5.5em;
+            border: 5px solid #7FB746;
+        }
+
+        .timerBar > div{
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: #7FB746;
+        }
+
+        .shape-key-cont > p{
+            font-size: 2.35em;
+        }
+        .shape-key-cont > div{
+            width: 15em;
+            margin: 5em auto 0;
+        }
+      
+        .shapeBoxes-cont{
+            width: 40em;
+        }
+
+        .notifPopup{
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12em;
+            color: #000;
+            padding: 0.25em 0.7em 0.15em;
+            border: 5px solid #000;
+            z-index: 9000;
+        }        
+
+        .complete-green{
+            background: #7FB746;
+        }
+        .wrong-red{
+            background: #A90000;
+        }
+
+        .power-source-fix-cont{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            font-size: 1.8em;
+        }
+        .power-source-fix-cont > div{
+            margin-bottom: 9em;
+        }
+
+        .warning-icon{
+            width: 7em;
+            margin:  0 auto 3.2em;
+        }
+
+        *{
+            font-weight: normal;
+        }
+
+        .core3exe-frame1-container{
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 85%;
+        }
+        .core3exe-frame1-container > div{
+            width: 48em;
+        }
 
 
     </style>
 </head>
 
 <body>
+
+    <div class="notifPopup complete-green hidden" id="completePopup">
+        COMPLETE
+    </div>
+
+    <div class="notifPopup wrong-red hidden" id="wrongPopup">
+        WRONG
+    </div>
 
     <div class="cursorMain hidden">
         <svg viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -606,7 +754,7 @@
     </div>
 
     <!-- main exe -->
-    <div class="mainexe-popup hidden" id="mainexePopup">
+    <div class="mainexe-popup" id="mainexePopup">
         <div class="mainexe-popup-content">
             <div class="mainexe-popup-content-top-bar">
                 <p class="mainexe-popup-content-head">MAIN.EXE</p>
@@ -620,12 +768,13 @@
                 </div>
             </div>
 
-            <div class="mainexe-frame2 hidden">
+
+
+            <div class="mainexe-frame2 activation-form-main-cont hidden">
                 <div class="act-form-cont">
                     <h1>ENTER ACTIVATION CODE</h1>
 
                     <div class="act-form-input-cont">
-                        <input type="text" name="" id="">
                         <input type="text" name="" id="">
                         <input type="text" name="" id="">
                         <input type="text" name="" id="">
@@ -636,7 +785,7 @@
                 </div>
             </div>
 
-            <div class="mainexe-frame1 ">
+            <div class="mainexe-frame1 hidden">
                 <div class="begin-proc-button">
                     <div class="">
                         <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -653,15 +802,15 @@
                     <p>BEGIN PROCEDURE</p>
                 </div>
                 <div class="mainGame-svg">
-                    <svg viewBox="0 0 214 249" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M82.3782 163.587L49.6839 106.898L115.073 106.898L82.3782 163.587Z" fill="#A90000"/>
-                        <path d="M115.071 106.897L49.6827 106.897L1.29512 22.9973L66.6838 22.9973L115.071 106.897Z" fill="#A90000"/>
-                        <path d="M82.3782 163.587L49.6839 106.898M82.3782 163.587L115.073 106.898M82.3782 163.587L180.307 163.587L213.001 106.898L115.073 106.898M82.3782 163.587L33.6954 247.999L1.0011 191.31L49.6839 106.898M49.6839 106.898L115.073 106.898M49.6839 106.898L1.29628 22.9985L66.685 22.9985L115.073 106.898M49.6827 106.897L115.071 106.897L66.6838 22.9973L1.29512 22.9973L49.6827 106.897Z" stroke="#A90000" stroke-dasharray="4 4"/>
-                        <path d="M63.1495 113.749H103.853L83.5011 149L63.1495 113.749Z" stroke="#FF0000" stroke-width="3"/>
-                        <path d="M69.2127 117.249H97.7928L83.5027 141.999L69.2127 117.249Z" fill="#A90000" stroke="#FF0000"/>
-                        <rect width="66" height="20" fill="#A90000"/>
-                        <path d="M40.5958 70.4795V71.9985H36.0387V70.4795H40.5958ZM40.5958 61.3654V62.8844H36.0387V61.3654H40.5958ZM42.1148 64.4034H40.5958V62.8844H42.1148V64.4034ZM42.1148 68.9605V70.4795H40.5958V68.9605H42.1148ZM34.5197 70.4795V62.8844H36.0387V70.4795H34.5197ZM49.2846 70.4795V71.9985H44.7275V70.4795H49.2846ZM50.8036 70.4795H49.2846V62.8844H50.8036V70.4795ZM49.2846 61.3654V62.8844H44.7275V61.3654H49.2846ZM43.2085 62.8844H44.7275V70.4795H43.2085V62.8844ZM57.9734 70.4795H59.4924V71.9985H57.9734V70.4795ZM57.9734 61.3654V62.8844H53.4163V65.9224H57.9734V67.4415H56.4544V68.9605H54.9353V67.4415H53.4163V71.9985H51.8973V61.3654H57.9734ZM56.4544 70.4795V68.9605H57.9734V70.4795H56.4544ZM59.4924 62.8844V65.9224H57.9734V62.8844H59.4924ZM66.6622 67.4415H62.1051V70.4795H68.1812V71.9985H60.5861V61.3654H68.1812V62.8844H62.1051V65.9224H66.6622V67.4415ZM84.0398 70.4795V71.9985H79.4827V70.4795H81.0018V64.4034H79.4827V62.8844H81.0018V61.3654H82.5208V70.4795H84.0398Z" fill="white"/>
-                        <path d="M18.7507 12.8735V13.9985H13.1257V6.12354H14.2507V12.8735H18.7507ZM24.0607 12.8735V13.9985H20.6857V12.8735H24.0607ZM25.1857 12.8735H24.0607V7.24854H25.1857V12.8735ZM24.0607 6.12354V7.24854H20.6857V6.12354H24.0607ZM19.5607 7.24854H20.6857V12.8735H19.5607V7.24854ZM30.4957 12.8735V13.9985H27.1207V12.8735H30.4957ZM30.4957 6.12354V7.24854H27.1207V6.12354H30.4957ZM31.6207 8.37354H30.4957V7.24854H31.6207V8.37354ZM31.6207 11.7485V12.8735H30.4957V11.7485H31.6207ZM25.9957 12.8735V7.24854H27.1207V12.8735H25.9957ZM36.9307 12.8735H38.0557V13.9985H36.9307V12.8735ZM34.6807 10.6235H35.8057V11.7485H34.6807V10.6235ZM33.5557 13.9985H32.4307V6.12354H33.5557V9.49854H34.6807V10.6235H33.5557V13.9985ZM34.6807 8.37354H35.8057V9.49854H34.6807V8.37354ZM38.0557 7.24854H36.9307V6.12354H38.0557V7.24854ZM36.9307 8.37354H35.8057V7.24854H36.9307V8.37354ZM35.8057 11.7485H36.9307V12.8735H35.8057V11.7485ZM43.3657 10.6235H39.9907V12.8735H44.4907V13.9985H38.8657V6.12354H44.4907V7.24854H39.9907V9.49854H43.3657V10.6235ZM49.8007 12.8735V13.9985H45.3007V6.12354H49.8007V7.24854H46.4257V12.8735H49.8007ZM50.9257 12.8735H49.8007V7.24854H50.9257V12.8735Z" fill="white"/>
+                    <svg viewBox="0 0 330 330" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M164.377 208.589L131.683 151.9L197.071 151.9L164.377 208.589Z" fill="#A90000"/>
+                        <path d="M197.07 151.898L131.682 151.898L83.294 67.9988L148.683 67.9988L197.07 151.898Z" fill="#A90000"/>
+                        <path d="M164.377 208.589L131.683 151.9M164.377 208.589L197.071 151.9M164.377 208.589L262.306 208.589L295 151.9L197.071 151.9M164.377 208.589L115.694 293L83 236.311L131.683 151.9M131.683 151.9L197.071 151.9M131.683 151.9L83.2952 68L148.684 68L197.071 151.9M131.682 151.898L197.07 151.898L148.683 67.9988L83.294 67.9988L131.682 151.898Z" stroke="#A90000" stroke-dasharray="4 4"/>
+                        <path d="M144.148 158.75H184.852L164.5 194.001L144.148 158.75Z" stroke="#FF0000" stroke-width="3"/>
+                        <path d="M150.211 162.25H178.791L164.501 187L150.211 162.25Z" fill="#A90000" stroke="#FF0000"/>
+                        <rect x="82" y="45" width="66" height="20" fill="#A90000"/>
+                        <path d="M122.595 115.481V117H118.038V115.481H122.595ZM122.595 106.367V107.886H118.038V106.367H122.595ZM124.114 109.405H122.595V107.886H124.114V109.405ZM124.114 113.962V115.481H122.595V113.962H124.114ZM116.519 115.481V107.886H118.038V115.481H116.519ZM131.284 115.481V117H126.727V115.481H131.284ZM132.803 115.481H131.284V107.886H132.803V115.481ZM131.284 106.367V107.886H126.727V106.367H131.284ZM125.208 107.886H126.727V115.481H125.208V107.886ZM139.973 115.481H141.492V117H139.973V115.481ZM139.973 106.367V107.886H135.416V110.924H139.973V112.443H138.454V113.962H136.935V112.443H135.416V117H133.897V106.367H139.973ZM138.454 115.481V113.962H139.973V115.481H138.454ZM141.492 107.886V110.924H139.973V107.886H141.492ZM148.662 112.443H144.104V115.481H150.181V117H142.585V106.367H150.181V107.886H144.104V110.924H148.662V112.443ZM166.039 115.481V117H161.482V115.481H163.001V109.405H161.482V107.886H163.001V106.367H164.52V115.481H166.039Z" fill="white"/>
+                        <path d="M100.75 57.875V59H95.125V51.125H96.25V57.875H100.75ZM106.06 57.875V59H102.685V57.875H106.06ZM107.185 57.875H106.06V52.25H107.185V57.875ZM106.06 51.125V52.25H102.685V51.125H106.06ZM101.56 52.25H102.685V57.875H101.56V52.25ZM112.495 57.875V59H109.12V57.875H112.495ZM112.495 51.125V52.25H109.12V51.125H112.495ZM113.62 53.375H112.495V52.25H113.62V53.375ZM113.62 56.75V57.875H112.495V56.75H113.62ZM107.995 57.875V52.25H109.12V57.875H107.995ZM118.93 57.875H120.055V59H118.93V57.875ZM116.68 55.625H117.805V56.75H116.68V55.625ZM115.555 59H114.43V51.125H115.555V54.5H116.68V55.625H115.555V59ZM116.68 53.375H117.805V54.5H116.68V53.375ZM120.055 52.25H118.93V51.125H120.055V52.25ZM118.93 53.375H117.805V52.25H118.93V53.375ZM117.805 56.75H118.93V57.875H117.805V56.75ZM125.365 55.625H121.99V57.875H126.49V59H120.865V51.125H126.49V52.25H121.99V54.5H125.365V55.625ZM131.8 57.875V59H127.3V51.125H131.8V52.25H128.425V57.875H131.8ZM132.925 57.875H131.8V52.25H132.925V57.875Z" fill="white"/>
                     </svg>
                 </div>
                 <div class="asthetic-left-svg">
@@ -690,12 +839,148 @@
                     </svg>
                 </div>
             </div>
+
+
+            <div class="mainexe-frame3 hidden">
+                <div class="begin-proc-button-2">
+                    <div class="">
+                        <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="0.5" y="0.5" width="1" height="1" fill="#7FB746" stroke="#7FB746"/>
+                            <rect x="24.5" y="0.5" width="1" height="1" fill="#7FB746" stroke="#7FB746"/>
+                            <rect x="0.5" y="24.5" width="1" height="1" fill="#7FB746" stroke="#7FB746"/>
+                            <rect x="24.5" y="24.5" width="1" height="1" fill="#7FB746" stroke="#7FB746"/>
+                            <circle cx="13" cy="13" r="9.5" stroke="#7FB746"/>
+                            <path d="M22 13C22 11.8181 21.7672 10.6478 21.3149 9.55585C20.8626 8.46392 20.1997 7.47177 19.364 6.63604C18.5282 5.80031 17.5361 5.13738 16.4442 4.68508C15.3522 4.23279 14.1819 4 13 4L13 13H22Z" fill="#81B849"/>
+                            <path d="M4 13C4 14.1819 4.23279 15.3522 4.68508 16.4442C5.13738 17.5361 5.80031 18.5282 6.63604 19.364C7.47177 20.1997 8.46392 20.8626 9.55585 21.3149C10.6478 21.7672 11.8181 22 13 22L13 13H4Z" fill="#81B849"/>
+                            <circle cx="13" cy="13" r="3.5" fill="black" stroke="#81B849"/>
+                        </svg>
+                    </div>
+                    <p>BEGIN PROCEDURE</p>
+                </div>
+                <div class="mainGame-svg">
+                    <svg viewBox="0 0 330 330" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M164.377 208.604L131.683 151.915L197.071 151.915L164.377 208.604Z" fill="#A90000"/>
+                        <path d="M197.071 151.907L131.683 151.907L83.2952 68.0078L148.684 68.0078L197.071 151.907Z" fill="#7FB746"/>
+                        <path d="M164.377 208.602L197.071 151.913L295 151.913L262.306 208.602L164.377 208.602Z" fill="#A90000"/>
+                        <path d="M164.377 208.604L131.683 151.915M164.377 208.604L197.071 151.915M164.377 208.604L262.306 208.604L295 151.915L197.071 151.915M164.377 208.604L115.694 293.016L83 236.327L131.683 151.915M131.683 151.915L197.071 151.915M131.683 151.915L83.2952 68.0156L148.684 68.0156L197.071 151.915M131.683 151.905L197.071 151.905L148.684 68.0052M131.683 151.907L197.071 151.907L148.684 68.0078L83.2952 68.0078L131.683 151.907ZM197.071 151.913L164.377 208.602L262.306 208.602L295 151.913L197.071 151.913Z" stroke="#A90000" stroke-dasharray="4 4"/>
+                        <path d="M144.148 158.766H184.852L164.5 194.017L144.148 158.766Z" stroke="#FF0000" stroke-width="3"/>
+                        <path d="M150.211 162.266H178.791L164.501 187.016L150.211 162.266Z" fill="#A90000" stroke="#FF0000"/>
+                        <rect x="266" y="209.172" width="66" height="20" transform="rotate(-60 266 209.172)" fill="#A90000"/>
+                        <path d="M208.595 183.489V185.008H204.038V183.489H208.595ZM208.595 174.375V175.894H204.038V174.375H208.595ZM210.114 177.413H208.595V175.894H210.114V177.413ZM210.114 181.97V183.489H208.595V181.97H210.114ZM202.519 183.489V175.894H204.038V183.489H202.519ZM217.284 183.489V185.008H212.727V183.489H217.284ZM218.803 183.489H217.284V175.894H218.803V183.489ZM217.284 174.375V175.894H212.727V174.375H217.284ZM211.208 175.894H212.727V183.489H211.208V175.894ZM225.973 183.489H227.492V185.008H225.973V183.489ZM225.973 174.375V175.894H221.416V178.932H225.973V180.451H224.454V181.97H222.935V180.451H221.416V185.008H219.897V174.375H225.973ZM224.454 183.489V181.97H225.973V183.489H224.454ZM227.492 175.894V178.932H225.973V175.894H227.492ZM234.662 180.451H230.104V183.489H236.181V185.008H228.585V174.375H236.181V175.894H230.104V178.932H234.662V180.451ZM252.039 174.375V175.894H247.482V174.375H252.039ZM245.963 185.008V181.97H247.482V183.489H253.558V185.008H245.963ZM249.001 180.451V181.97H247.482V180.451H249.001ZM253.558 175.894V178.932H252.039V175.894H253.558ZM249.001 178.932H252.039V180.451H249.001V178.932ZM245.963 175.894H247.482V177.413H245.963V175.894Z" fill="white"/>
+                        <path d="M122.595 115.481V117H118.038V115.481H122.595ZM122.595 106.367V107.886H118.038V106.367H122.595ZM124.114 109.405H122.595V107.886H124.114V109.405ZM124.114 113.962V115.481H122.595V113.962H124.114ZM116.519 115.481V107.886H118.038V115.481H116.519ZM131.284 115.481V117H126.727V115.481H131.284ZM132.803 115.481H131.284V107.886H132.803V115.481ZM131.284 106.367V107.886H126.727V106.367H131.284ZM125.208 107.886H126.727V115.481H125.208V107.886ZM139.973 115.481H141.492V117H139.973V115.481ZM139.973 106.367V107.886H135.416V110.924H139.973V112.443H138.454V113.962H136.935V112.443H135.416V117H133.897V106.367H139.973ZM138.454 115.481V113.962H139.973V115.481H138.454ZM141.492 107.886V110.924H139.973V107.886H141.492ZM148.662 112.443H144.104V115.481H150.181V117H142.585V106.367H150.181V107.886H144.104V110.924H148.662V112.443ZM166.039 115.481V117H161.482V115.481H163.001V109.405H161.482V107.886H163.001V106.367H164.52V115.481H166.039Z" fill="white"/>
+                        <path d="M285.841 199.17L286.815 199.732L284.002 204.604L277.182 200.666L277.745 199.692L283.591 203.067L285.841 199.17ZM288.496 194.571L289.47 195.134L287.782 198.057L286.808 197.494L288.496 194.571ZM289.058 193.597L288.496 194.571L283.624 191.759L284.187 190.785L289.058 193.597ZM282.65 191.196L283.624 191.759L281.937 194.682L280.962 194.119L282.65 191.196ZM281.374 195.656L281.937 194.682L286.808 197.494L286.246 198.468L281.374 195.656ZM291.713 188.998L292.687 189.561L291 192.484L290.026 191.921L291.713 188.998ZM285.867 185.623L286.842 186.186L285.154 189.109L284.18 188.546L285.867 185.623ZM288.379 185.774L287.816 186.748L286.842 186.186L287.404 185.212L288.379 185.774ZM291.301 187.462L292.276 188.024L291.713 188.998L290.739 188.436L291.301 187.462ZM289.463 192.896L284.592 190.083L285.154 189.109L290.026 191.921L289.463 192.896ZM294.931 183.426L295.493 182.451L296.467 183.014L295.905 183.988L294.931 183.426ZM291.857 184.249L292.42 183.275L293.394 183.837L292.831 184.812L291.857 184.249ZM294.217 186.911L293.655 187.885L286.835 183.948L287.397 182.973L290.32 184.661L290.883 183.687L291.857 184.249L291.295 185.223L294.217 186.911ZM289.909 183.124L290.471 182.15L291.445 182.712L290.883 183.687L289.909 183.124ZM290.622 179.639L290.059 180.613L289.085 180.051L289.647 179.076L290.622 179.639ZM291.034 181.176L290.471 182.15L289.497 181.587L290.059 180.613L291.034 181.176ZM293.394 183.837L293.956 182.863L294.931 183.426L294.368 184.4L293.394 183.837ZM296.2 176.728L294.512 179.651L296.461 180.776L298.711 176.878L299.685 177.441L296.872 182.312L290.052 178.375L292.865 173.503L293.839 174.066L291.589 177.963L293.538 179.088L295.225 176.165L296.2 176.728ZM301.366 172.28L302.34 172.842L300.09 176.739L293.27 172.802L295.52 168.905L296.494 169.467L294.807 172.39L299.678 175.203L301.366 172.28ZM301.928 171.306L301.366 172.28L296.494 169.467L297.057 168.493L301.928 171.306Z" fill="white"/>
+                    </svg>
+                </div>
+                <div class="asthetic-left-svg">
+                    <svg viewBox="0 0 81 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="77" y="60" width="2" height="2" fill="#7FB746"/>
+                        <rect x="75" y="58" width="2" height="2" fill="#7FB746"/>
+                        <rect x="79" y="58" width="2" height="2" fill="#7FB746"/>
+                        <rect x="75" y="62" width="2" height="2" fill="#7FB746"/>
+                        <rect x="79" y="62" width="2" height="2" fill="#7FB746"/>
+                        <rect y="58" width="73" height="6" fill="#7FB746"/>
+                        <rect x="0.25" y="26.0938" width="20.3451" height="20.3451" stroke="#7FB746" stroke-width="0.5"/>
+                        <rect x="26.0938" y="26.0938" width="20.3451" height="20.3451" stroke="#7FB746" stroke-width="0.5"/>
+                        <rect x="51.9375" y="26.0938" width="20.3451" height="20.3451" stroke="#7FB746" stroke-width="0.5"/>
+                        <rect x="0.25" y="0.25" width="20.3451" height="20.3451" stroke="#7FB746" stroke-width="0.5"/>
+                        <path d="M10 4.5C13.0376 4.5 15.5 6.96243 15.5 10C15.5 13.0376 13.0376 15.5 10 15.5C6.96243 15.5 4.5 13.0376 4.5 10C4.5 6.96243 6.96243 4.5 10 4.5Z" fill="#7FB746" stroke="#7FB746"/>
+                        <rect x="26.0938" y="0.25" width="20.3451" height="20.3451" stroke="#7FB746" stroke-width="0.5"/>
+                        <rect x="51.9375" y="0.25" width="20.3451" height="20.3451" stroke="#7FB746" stroke-width="0.5"/>
+                        <rect x="31" y="31" width="10" height="10" fill="#7FB746"/>
+                        <path d="M62 4.5C65.0376 4.5 67.5 6.96243 67.5 10C67.5 13.0376 65.0376 15.5 62 15.5C58.9624 15.5 56.5 13.0376 56.5 10C56.5 6.96243 58.9624 4.5 62 4.5Z" fill="white" stroke="white"/>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="mainexe-frame4 activation-form-main-cont hidden">
+                <div class="act-form-cont-2">
+                    <h1>ENTER ACTIVATION CODE</h1>
+
+                    <div class="act-form-input-cont-2">
+                        <input type="text" name="" id="">
+                        <input type="text" name="" id="">
+                        <input type="text" name="" id="">
+                        <input type="text" name="" id="">
+                    </div>
+
+                </div>
+            </div>
+
+
+            <div class="mainexe-frame5 hidden">
+                <div class="begin-proc-button-3">
+                    <div class="">
+                        <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="0.5" y="0.5" width="1" height="1" fill="#7FB746" stroke="#7FB746"/>
+                            <rect x="24.5" y="0.5" width="1" height="1" fill="#7FB746" stroke="#7FB746"/>
+                            <rect x="0.5" y="24.5" width="1" height="1" fill="#7FB746" stroke="#7FB746"/>
+                            <rect x="24.5" y="24.5" width="1" height="1" fill="#7FB746" stroke="#7FB746"/>
+                            <circle cx="13" cy="13" r="9.5" stroke="#7FB746"/>
+                            <path d="M22 13C22 11.8181 21.7672 10.6478 21.3149 9.55585C20.8626 8.46392 20.1997 7.47177 19.364 6.63604C18.5282 5.80031 17.5361 5.13738 16.4442 4.68508C15.3522 4.23279 14.1819 4 13 4L13 13H22Z" fill="#81B849"/>
+                            <path d="M4 13C4 14.1819 4.23279 15.3522 4.68508 16.4442C5.13738 17.5361 5.80031 18.5282 6.63604 19.364C7.47177 20.1997 8.46392 20.8626 9.55585 21.3149C10.6478 21.7672 11.8181 22 13 22L13 13H4Z" fill="#81B849"/>
+                            <circle cx="13" cy="13" r="3.5" fill="black" stroke="#81B849"/>
+                        </svg>
+                    </div>
+                    <p>BEGIN PROCEDURE</p>
+                </div>
+                <div class="mainGame-svg">
+                    <svg viewBox="0 0 330 330" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M164.377 208.604L131.683 151.915L197.071 151.915L164.377 208.604Z" fill="#A90000"/>
+                        <path d="M197.071 151.907L131.683 151.907L83.2952 68.0078L148.684 68.0078L197.071 151.907Z" fill="#7FB746"/>
+                        <path d="M164.377 208.602L197.071 151.913L295 151.913L262.306 208.602L164.377 208.602Z" fill="#A90000"/>
+                        <path d="M164.377 208.604L131.683 151.915M164.377 208.604L197.071 151.915M164.377 208.604L262.306 208.604L295 151.915L197.071 151.915M164.377 208.604L115.694 293.016L83 236.327L131.683 151.915M131.683 151.915L197.071 151.915M131.683 151.915L83.2952 68.0156L148.684 68.0156L197.071 151.915M131.683 151.905L197.071 151.905L148.684 68.0052M131.683 151.907L197.071 151.907L148.684 68.0078L83.2952 68.0078L131.683 151.907ZM197.071 151.913L164.377 208.602L262.306 208.602L295 151.913L197.071 151.913Z" stroke="#A90000" stroke-dasharray="4 4"/>
+                        <path d="M144.148 158.766H184.852L164.5 194.017L144.148 158.766Z" stroke="#FF0000" stroke-width="3"/>
+                        <path d="M150.211 162.266H178.791L164.501 187.016L150.211 162.266Z" fill="#A90000" stroke="#FF0000"/>
+                        <rect x="266" y="209.172" width="66" height="20" transform="rotate(-60 266 209.172)" fill="#A90000"/>
+                        <path d="M208.595 183.489V185.008H204.038V183.489H208.595ZM208.595 174.375V175.894H204.038V174.375H208.595ZM210.114 177.413H208.595V175.894H210.114V177.413ZM210.114 181.97V183.489H208.595V181.97H210.114ZM202.519 183.489V175.894H204.038V183.489H202.519ZM217.284 183.489V185.008H212.727V183.489H217.284ZM218.803 183.489H217.284V175.894H218.803V183.489ZM217.284 174.375V175.894H212.727V174.375H217.284ZM211.208 175.894H212.727V183.489H211.208V175.894ZM225.973 183.489H227.492V185.008H225.973V183.489ZM225.973 174.375V175.894H221.416V178.932H225.973V180.451H224.454V181.97H222.935V180.451H221.416V185.008H219.897V174.375H225.973ZM224.454 183.489V181.97H225.973V183.489H224.454ZM227.492 175.894V178.932H225.973V175.894H227.492ZM234.662 180.451H230.104V183.489H236.181V185.008H228.585V174.375H236.181V175.894H230.104V178.932H234.662V180.451ZM252.039 174.375V175.894H247.482V174.375H252.039ZM245.963 185.008V181.97H247.482V183.489H253.558V185.008H245.963ZM249.001 180.451V181.97H247.482V180.451H249.001ZM253.558 175.894V178.932H252.039V175.894H253.558ZM249.001 178.932H252.039V180.451H249.001V178.932ZM245.963 175.894H247.482V177.413H245.963V175.894Z" fill="white"/>
+                        <path d="M122.595 115.481V117H118.038V115.481H122.595ZM122.595 106.367V107.886H118.038V106.367H122.595ZM124.114 109.405H122.595V107.886H124.114V109.405ZM124.114 113.962V115.481H122.595V113.962H124.114ZM116.519 115.481V107.886H118.038V115.481H116.519ZM131.284 115.481V117H126.727V115.481H131.284ZM132.803 115.481H131.284V107.886H132.803V115.481ZM131.284 106.367V107.886H126.727V106.367H131.284ZM125.208 107.886H126.727V115.481H125.208V107.886ZM139.973 115.481H141.492V117H139.973V115.481ZM139.973 106.367V107.886H135.416V110.924H139.973V112.443H138.454V113.962H136.935V112.443H135.416V117H133.897V106.367H139.973ZM138.454 115.481V113.962H139.973V115.481H138.454ZM141.492 107.886V110.924H139.973V107.886H141.492ZM148.662 112.443H144.104V115.481H150.181V117H142.585V106.367H150.181V107.886H144.104V110.924H148.662V112.443ZM166.039 115.481V117H161.482V115.481H163.001V109.405H161.482V107.886H163.001V106.367H164.52V115.481H166.039Z" fill="white"/>
+                        <path d="M285.841 199.17L286.815 199.732L284.002 204.604L277.182 200.666L277.745 199.692L283.591 203.067L285.841 199.17ZM288.496 194.571L289.47 195.134L287.782 198.057L286.808 197.494L288.496 194.571ZM289.058 193.597L288.496 194.571L283.624 191.759L284.187 190.785L289.058 193.597ZM282.65 191.196L283.624 191.759L281.937 194.682L280.962 194.119L282.65 191.196ZM281.374 195.656L281.937 194.682L286.808 197.494L286.246 198.468L281.374 195.656ZM291.713 188.998L292.687 189.561L291 192.484L290.026 191.921L291.713 188.998ZM285.867 185.623L286.842 186.186L285.154 189.109L284.18 188.546L285.867 185.623ZM288.379 185.774L287.816 186.748L286.842 186.186L287.404 185.212L288.379 185.774ZM291.301 187.462L292.276 188.024L291.713 188.998L290.739 188.436L291.301 187.462ZM289.463 192.896L284.592 190.083L285.154 189.109L290.026 191.921L289.463 192.896ZM294.931 183.426L295.493 182.451L296.467 183.014L295.905 183.988L294.931 183.426ZM291.857 184.249L292.42 183.275L293.394 183.837L292.831 184.812L291.857 184.249ZM294.217 186.911L293.655 187.885L286.835 183.948L287.397 182.973L290.32 184.661L290.883 183.687L291.857 184.249L291.295 185.223L294.217 186.911ZM289.909 183.124L290.471 182.15L291.445 182.712L290.883 183.687L289.909 183.124ZM290.622 179.639L290.059 180.613L289.085 180.051L289.647 179.076L290.622 179.639ZM291.034 181.176L290.471 182.15L289.497 181.587L290.059 180.613L291.034 181.176ZM293.394 183.837L293.956 182.863L294.931 183.426L294.368 184.4L293.394 183.837ZM296.2 176.728L294.512 179.651L296.461 180.776L298.711 176.878L299.685 177.441L296.872 182.312L290.052 178.375L292.865 173.503L293.839 174.066L291.589 177.963L293.538 179.088L295.225 176.165L296.2 176.728ZM301.366 172.28L302.34 172.842L300.09 176.739L293.27 172.802L295.52 168.905L296.494 169.467L294.807 172.39L299.678 175.203L301.366 172.28ZM301.928 171.306L301.366 172.28L296.494 169.467L297.057 168.493L301.928 171.306Z" fill="white"/>
+                    </svg>
+                </div>
+                <div class="asthetic-left-svg">
+                    <svg viewBox="0 0 81 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="77" y="60" width="2" height="2" fill="#7FB746"/>
+                        <rect x="75" y="58" width="2" height="2" fill="#7FB746"/>
+                        <rect x="79" y="58" width="2" height="2" fill="#7FB746"/>
+                        <rect x="75" y="62" width="2" height="2" fill="#7FB746"/>
+                        <rect x="79" y="62" width="2" height="2" fill="#7FB746"/>
+                        <rect y="58" width="73" height="6" fill="#7FB746"/>
+                        <rect x="0.25" y="26.0938" width="20.3451" height="20.3451" stroke="#7FB746" stroke-width="0.5"/>
+                        <rect x="26.0938" y="26.0938" width="20.3451" height="20.3451" stroke="#7FB746" stroke-width="0.5"/>
+                        <rect x="51.9375" y="26.0938" width="20.3451" height="20.3451" stroke="#7FB746" stroke-width="0.5"/>
+                        <rect x="0.25" y="0.25" width="20.3451" height="20.3451" stroke="#7FB746" stroke-width="0.5"/>
+                        <path d="M10 4.5C13.0376 4.5 15.5 6.96243 15.5 10C15.5 13.0376 13.0376 15.5 10 15.5C6.96243 15.5 4.5 13.0376 4.5 10C4.5 6.96243 6.96243 4.5 10 4.5Z" fill="#7FB746" stroke="#7FB746"/>
+                        <rect x="26.0938" y="0.25" width="20.3451" height="20.3451" stroke="#7FB746" stroke-width="0.5"/>
+                        <rect x="51.9375" y="0.25" width="20.3451" height="20.3451" stroke="#7FB746" stroke-width="0.5"/>
+                        <rect x="31" y="31" width="10" height="10" fill="#7FB746"/>
+                        <path d="M62 4.5C65.0376 4.5 67.5 6.96243 67.5 10C67.5 13.0376 65.0376 15.5 62 15.5C58.9624 15.5 56.5 13.0376 56.5 10C56.5 6.96243 58.9624 4.5 62 4.5Z" fill="white" stroke="white"/>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="mainexe-frame6 power-source-fix-cont">
+                <div class="">
+                    
+                    <div class="warning-icon">
+                        <svg viewBox="0 0 55 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M24.0359 6C25.5755 3.33333 29.4245 3.33333 30.9641 6L51.5359 41.6314C53.0755 44.2981 51.151 47.6314 48.0718 47.6314H6.9282C3.849 47.6314 1.9245 44.2981 3.4641 41.6314L24.0359 6Z" fill="#A90000"/>
+                            <path d="M29.7387 40.3281V44.3281H25.7387V40.3281H29.7387ZM29.7387 16.3281V36.3281H25.7387V16.3281H29.7387Z" fill="#190000"/>
+                        </svg>
+                    </div>
+
+                    <h1>FIX POWER SOURCE OUTPUT</h1>
+
+                </div>
+            </div>
+
     
         </div>
     </div>
     
+    
+    
     <!-- core 1.exe -->
-    <div class="core1exe-popup" id="core1exePopup">
+    <div class="core1exe-popup hidden" id="core1exePopup">
         <div class="core1exe-popup-content">
             <div class="core1exe-popup-content-top-bar">
                 <p class="core1exe-popup-content-head">CORE 1.EXE</p>
@@ -715,117 +1000,258 @@
                     <p class="pointA">POINT A</p>
                     <p class="pointX">POINT X</p>
 
-                    <svg width="240" height="240" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M47 39H53" stroke="#A90000" stroke-width="2"/>
-                        <path d="M41 77V83" stroke="#A90000" stroke-width="2"/>
-                        <path d="M169 77V83" stroke="#A90000" stroke-width="2"/>
-                        <path d="M41 109V115" stroke="#A90000" stroke-width="2"/>
-                        <path d="M61 71H67" stroke="#A90000" stroke-width="2"/>
-                        <path d="M143 167H149" stroke="#A90000" stroke-width="2"/>
-                        <path d="M157 199H163" stroke="#A90000" stroke-width="2"/>
-                        <path d="M169 109V115" stroke="#A90000" stroke-width="2"/>
-                        <path d="M201 77V83" stroke="#A90000" stroke-width="2"/>
-                        <path d="M189 103H195" stroke="#A90000" stroke-width="2"/>
-                        <path d="M73 28V34" stroke="#A90000" stroke-width="2"/>
-                        <path d="M93 39H99" stroke="#A90000" stroke-width="2"/>
-                        <path d="M105 141V147" stroke="#A90000" stroke-width="2"/>
-                        <path d="M105 173V179" stroke="#A90000" stroke-width="2"/>
-                        <path d="M105 109V115" stroke="#A90000" stroke-width="2"/>
-                        <path d="M137 123V129" stroke="#A90000" stroke-width="2"/>
-                        <path d="M41 155V161" stroke="#A90000" stroke-width="2"/>
-                        <path d="M41 173V179" stroke="#A90000" stroke-width="2"/>
-                        <path d="M73 173V179" stroke="#A90000" stroke-width="2"/>
-                        <path d="M169 155V161" stroke="#A90000" stroke-width="2"/>
-                        <path d="M201 173V179" stroke="#A90000" stroke-width="2"/>
-                        <path d="M201 205V211" stroke="#A90000" stroke-width="2"/>
-                        <path d="M157 135H163" stroke="#A90000" stroke-width="2"/>
-                        <path d="M189 135H195" stroke="#A90000" stroke-width="2"/>
-                        <path d="M61 135H67" stroke="#A90000" stroke-width="2"/>
-                        <path d="M79 103H85" stroke="#A90000" stroke-width="2"/>
-                        <path d="M29 135H35" stroke="#A90000" stroke-width="2"/>
-                        <path d="M125 199H131" stroke="#A90000" stroke-width="2"/>
-                        <path d="M93 199H99" stroke="#A90000" stroke-width="2"/>
-                        <path d="M125 39H131" stroke="#A90000" stroke-width="2"/>
-                        <path d="M157 39H163" stroke="#A90000" stroke-width="2"/>
-                        <path d="M189 39H195" stroke="#A90000" stroke-width="2"/>
-                        <path d="M111 71L132 71" stroke="#A90000" stroke-width="2"/>
+                    <svg viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg" id="puzzle">
                         <rect x="0.5" y="0.5" width="239" height="239" stroke="#7FB746"/>
-                        <path d="M44.5 35.5V42.5H37.5V35.5H44.5Z" stroke="#7FB746"/>
-                        <rect x="35.5" y="33.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M76.5 35.5V42.5H69.5V35.5H76.5Z" stroke="#7FB746"/>
-                        <rect x="67.5" y="33.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M172.5 35.5V42.5H165.5V35.5H172.5Z" stroke="#7FB746"/>
-                        <rect x="163.5" y="33.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M204.5 35.5V42.5H197.5V35.5H204.5Z" stroke="#7FB746"/>
-                        <rect x="195.5" y="33.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M172.5 67.5V74.5H165.5V67.5H172.5Z" stroke="#7FB746"/>
-                        <rect x="163.5" y="65.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M204.5 67.5V74.5H197.5V67.5H204.5Z" stroke="#7FB746"/>
-                        <rect x="195.5" y="65.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M44.5 67.5V74.5H37.5V67.5H44.5Z" stroke="#7FB746"/>
-                        <rect x="35.5" y="65.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M76.5 67.5V74.5H69.5V67.5H76.5Z" stroke="#7FB746"/>
-                        <rect x="67.5" y="65.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M108.5 67.5V74.5H101.5V67.5H108.5Z" stroke="#FF0000"/>
-                        <rect x="99.5" y="65.5" width="11" height="11" stroke="#FF0000"/>
-                        <path d="M140.5 67.5V74.5H133.5V67.5H140.5Z" stroke="#FF0000"/>
-                        <rect x="131.5" y="65.5" width="11" height="11" stroke="#FF0000"/>
-                        <path d="M108.5 35.5V42.5H101.5V35.5H108.5Z" stroke="#7FB746"/>
-                        <rect x="99.5" y="33.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M140.5 35.5V42.5H133.5V35.5H140.5Z" stroke="#7FB746"/>
-                        <rect x="131.5" y="33.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M44.5 99.5V106.5H37.5V99.5H44.5Z" stroke="#7FB746"/>
-                        <rect x="35.5" y="97.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M76.5 99.5V106.5H69.5V99.5H76.5Z" stroke="#7FB746"/>
-                        <rect x="67.5" y="97.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M172.5 99.5V106.5H165.5V99.5H172.5Z" stroke="#7FB746"/>
-                        <rect x="163.5" y="97.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M204.5 99.5V106.5H197.5V99.5H204.5Z" stroke="#7FB746"/>
-                        <rect x="195.5" y="97.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M172.5 131.5V138.5H165.5V131.5H172.5Z" stroke="#7FB746"/>
-                        <rect x="163.5" y="129.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M204.5 131.5V138.5H197.5V131.5H204.5Z" stroke="#7FB746"/>
-                        <rect x="195.5" y="129.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M44.5 131.5V138.5H37.5V131.5H44.5Z" stroke="#7FB746"/>
-                        <rect x="35.5" y="129.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M76.5 131.5V138.5H69.5V131.5H76.5Z" stroke="#7FB746"/>
-                        <rect x="67.5" y="129.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M108.5 131.5V138.5H101.5V131.5H108.5Z" stroke="#7FB746"/>
-                        <rect x="99.5" y="129.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M140.5 131.5V138.5H133.5V131.5H140.5Z" stroke="#7FB746"/>
-                        <rect x="131.5" y="129.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M108.5 99.5V106.5H101.5V99.5H108.5Z" stroke="#7FB746"/>
-                        <rect x="99.5" y="97.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M140.5 99.5V106.5H133.5V99.5H140.5Z" stroke="#7FB746"/>
-                        <rect x="131.5" y="97.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M44.5 163.5V170.5H37.5V163.5H44.5Z" stroke="#7FB746"/>
-                        <rect x="35.5" y="161.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M76.5 163.5V170.5H69.5V163.5H76.5Z" stroke="#7FB746"/>
-                        <rect x="67.5" y="161.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M172.5 163.5V170.5H165.5V163.5H172.5Z" stroke="#7FB746"/>
-                        <rect x="163.5" y="161.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M204.5 163.5V170.5H197.5V163.5H204.5Z" stroke="#7FB746"/>
-                        <rect x="195.5" y="161.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M172.5 195.5V202.5H165.5V195.5H172.5Z" stroke="#7FB746"/>
-                        <rect x="163.5" y="193.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M204.5 195.5V202.5H197.5V195.5H204.5Z" stroke="#7FB746"/>
-                        <rect x="195.5" y="193.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M44.5 195.5V202.5H37.5V195.5H44.5Z" stroke="#7FB746"/>
-                        <rect x="35.5" y="193.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M76.5 195.5V202.5H69.5V195.5H76.5Z" stroke="#7FB746"/>
-                        <rect x="67.5" y="193.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M108.5 195.5V202.5H101.5V195.5H108.5Z" stroke="#7FB746"/>
-                        <rect x="99.5" y="193.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M140.5 195.5V202.5H133.5V195.5H140.5Z" stroke="#7FB746"/>
-                        <rect x="131.5" y="193.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M108.5 163.5V170.5H101.5V163.5H108.5Z" stroke="#7FB746"/>
-                        <rect x="99.5" y="161.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M140.5 163.5V170.5H133.5V163.5H140.5Z" stroke="#7FB746"/>
-                        <rect x="131.5" y="161.5" width="11" height="11" stroke="#7FB746"/>
-                        <path d="M41 187V193" stroke="#A90000" stroke-width="2"/>
-                        <path d="M41 205V211" stroke="#A90000" stroke-width="2"/>
-                        <path d="M73 205V211" stroke="#A90000" stroke-width="2"/>
-                        <path d="M61 199H67" stroke="#A90000" stroke-width="2"/>
+                        <g id="connections"></g>
+                        
+                        <!-- Row 0 -->
+                        <g class="box-group" data-row="0" data-col="0">
+                            <path d="M23 35H29" stroke="#A90000" stroke-width="2"/>
+                            <path d="M35 23V29" stroke="#A90000" stroke-width="2"/>
+                            <rect x="29.5" y="29.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="31.5" y="31.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="0" data-col="1">
+                            <path d="M57 35H63" stroke="#A90000" stroke-width="2"/>
+                            <path d="M75 35H81" stroke="#A90000" stroke-width="2"/>
+                            <rect x="63.5" y="29.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="65.5" y="31.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="0" data-col="2">
+                            <path d="M103 23V29" stroke="#A90000" stroke-width="2"/>
+                            <rect x="97.5" y="29.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="99.5" y="31.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="0" data-col="3">
+                            <path d="M137 41V47" stroke="#A90000" stroke-width="2"/>
+                            <path d="M137 23V29" stroke="#A90000" stroke-width="2"/>
+                            <rect x="131.5" y="29.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="133.5" y="31.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="0" data-col="4">
+                            <path d="M171 41V47" stroke="#A90000" stroke-width="2"/>
+                            <path d="M159 35H165" stroke="#A90000" stroke-width="2"/>
+                            <rect x="165.5" y="29.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="167.5" y="31.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="0" data-col="5">
+                            <path d="M205 41V47" stroke="#A90000" stroke-width="2"/>
+                            <path d="M205 23V29" stroke="#A90000" stroke-width="2"/>
+                            <rect x="199.5" y="29.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="201.5" y="31.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <!-- Row 1 -->
+                        <g class="box-group" data-row="1" data-col="0">
+                            <path d="M35 75V81" stroke="#A90000" stroke-width="2"/>
+                            <rect x="29.5" y="63.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="31.5" y="65.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="1" data-col="1">
+                            <path d="M75 69H81" stroke="#A90000" stroke-width="2"/>
+                            <path d="M69 57V63" stroke="#A90000" stroke-width="2"/>
+                            <rect x="63.5" y="63.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="65.5" y="65.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="1" data-col="2">
+                            <path d="M103 75V81" stroke="#A90000" stroke-width="2"/>
+                            <path d="M103 57V63" stroke="#A90000" stroke-width="2"/>
+                            <rect x="97.5" y="63.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="99.5" y="65.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="1" data-col="3">
+                            <path d="M137 75V81" stroke="#A90000" stroke-width="2"/>
+                            <path d="M137 57V63" stroke="#A90000" stroke-width="2"/>
+                            <rect x="131.5" y="63.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="133.5" y="65.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="1" data-col="4">
+                            <path d="M171 75V81" stroke="#A90000" stroke-width="2"/>
+                            <path d="M171 57V63" stroke="#A90000" stroke-width="2"/>
+                            <rect x="165.5" y="63.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="167.5" y="65.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="1" data-col="5">
+                            <path d="M205 75V81" stroke="#A90000" stroke-width="2"/>
+                            <rect x="199.5" y="63.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="201.5" y="65.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <!-- Row 2 -->
+                        <g class="box-group" data-row="2" data-col="0">
+                            <path d="M35 109V115" stroke="#A90000" stroke-width="2"/>
+                            <path d="M35 91V97" stroke="#A90000" stroke-width="2"/>
+                            <rect x="29.5" y="97.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="31.5" y="99.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="2" data-col="1">
+                            <path d="M69 109V115" stroke="#A90000" stroke-width="2"/>
+                            <path d="M57 103H63" stroke="#A90000" stroke-width="2"/>
+                            <rect x="63.5" y="97.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="65.5" y="99.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="2" data-col="2">
+                            <path d="M103 109V115" stroke="#A90000" stroke-width="2"/>
+                            <path d="M103 91V97" stroke="#A90000" stroke-width="2"/>
+                            <rect x="97.5" y="97.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="99.5" y="99.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="2" data-col="3">
+                            <path d="M143 103H149" stroke="#A90000" stroke-width="2"/>
+                            <path d="M125 103H131" stroke="#A90000" stroke-width="2"/>
+                            <rect x="131.5" y="97.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="133.5" y="99.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="2" data-col="4">
+                            <path d="M177 103H183" stroke="#A90000" stroke-width="2"/>
+                            <path d="M159 103H165" stroke="#A90000" stroke-width="2"/>
+                            <rect x="165.5" y="97.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="167.5" y="99.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="2" data-col="5">
+                            <path d="M205 109V115" stroke="#A90000" stroke-width="2"/>
+                            <path d="M205 91V97" stroke="#A90000" stroke-width="2"/>
+                            <rect x="199.5" y="97.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="201.5" y="99.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <!-- Row 3 -->
+                        <g class="box-group" data-row="3" data-col="0">
+                            <path d="M41 137H47" stroke="#A90000" stroke-width="2"/>
+                            <path d="M35 125V131" stroke="#A90000" stroke-width="2"/>
+                            <rect x="29.5" y="131.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="31.5" y="133.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="3" data-col="1">
+                            <path d="M75 137H81" stroke="#A90000" stroke-width="2"/>
+                            <path d="M57 137H63" stroke="#A90000" stroke-width="2"/>
+                            <rect x="63.5" y="131.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="65.5" y="133.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="3" data-col="2">
+                            <path d="M103 143V149" stroke="#A90000" stroke-width="2"/>
+                            <rect x="97.5" y="131.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="99.5" y="133.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="3" data-col="3">
+                            <path d="M137 143V149" stroke="#A90000" stroke-width="2"/>
+                            <path d="M137 125V131" stroke="#A90000" stroke-width="2"/>
+                            <rect x="131.5" y="131.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="133.5" y="133.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="3" data-col="4">
+                            <path d="M171 143V149" stroke="#A90000" stroke-width="2"/>
+                            <path d="M171 125V131" stroke="#A90000" stroke-width="2"/>
+                            <rect x="165.5" y="131.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="167.5" y="133.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="3" data-col="5">
+                            <path d="M211 137H217" stroke="#A90000" stroke-width="2"/>
+                            <rect x="199.5" y="131.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="201.5" y="133.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <!-- Row 4 -->
+                        <g class="box-group" data-row="4" data-col="0">
+                            <path d="M35 177V183" stroke="#A90000" stroke-width="2"/>
+                            <path d="M35 159V165" stroke="#A90000" stroke-width="2"/>
+                            <rect x="29.5" y="165.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="31.5" y="167.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="4" data-col="1">
+                            <path d="M69 177V183" stroke="#A90000" stroke-width="2"/>
+                            <path d="M75 171H81" stroke="#A90000" stroke-width="2"/>
+                            <rect x="63.5" y="165.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="65.5" y="167.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="4" data-col="2">
+                            <path d="M103 177V183" stroke="#A90000" stroke-width="2"/>
+                            <path d="M103 159V165" stroke="#A90000" stroke-width="2"/>
+                            <rect x="97.5" y="165.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="99.5" y="167.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="4" data-col="3">
+                            <path d="M143 171H149" stroke="#A90000" stroke-width="2"/>
+                            <path d="M125 171H131" stroke="#A90000" stroke-width="2"/>
+                            <rect x="131.5" y="165.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="133.5" y="167.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="4" data-col="4">
+                            <path d="M171 177V183" stroke="#A90000" stroke-width="2"/>
+                            <path d="M159 171H165" stroke="#A90000" stroke-width="2"/>
+                            <rect x="165.5" y="165.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="167.5" y="167.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="4" data-col="5">
+                            <path d="M205 159V165" stroke="#A90000" stroke-width="2"/>
+                            <rect x="199.5" y="165.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="201.5" y="167.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <!-- Row 5 -->
+                        <g class="box-group" data-row="5" data-col="0">
+                            <path d="M41 205H47" stroke="#A90000" stroke-width="2"/>
+                            <path d="M23 205H29" stroke="#A90000" stroke-width="2"/>
+                            <rect x="29.5" y="199.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="31.5" y="201.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="5" data-col="1">
+                            <path d="M69 211V217" stroke="#A90000" stroke-width="2"/>
+                            <path d="M57 205H63" stroke="#A90000" stroke-width="2"/>
+                            <rect x="63.5" y="199.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="65.5" y="201.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="5" data-col="2">
+                            <path d="M103 211V217" stroke="#A90000" stroke-width="2"/>
+                            <rect x="97.5" y="199.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="99.5" y="201.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="5" data-col="3">
+                            <path d="M125 205H131" stroke="#A90000" stroke-width="2"/>
+                            <rect x="131.5" y="199.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="133.5" y="201.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="5" data-col="4">
+                            <path d="M171.004 211.016V217.016" stroke="#A90000" stroke-width="2"/>
+                            <path d="M171.004 193.016V199.016" stroke="#A90000" stroke-width="2"/>
+                            <rect x="165.5" y="199.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="167.5" y="201.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
+                        
+                        <g class="box-group" data-row="5" data-col="5">
+                            <path d="M205 193V199" stroke="#A90000" stroke-width="2"/>
+                            <rect x="199.5" y="199.5" width="11" height="11" stroke="#7FB746"/>
+                            <rect x="201.5" y="201.5" width="7" height="7" stroke="#7FB746" class="inner-box"/>
+                        </g>
                     </svg>
                 </div>
             </div>
@@ -833,6 +1259,208 @@
 
 
           
+        </div>
+    </div>
+
+    <!-- core 2.exe -->
+    <div class="core2exe-popup hidden" id="core2exePopup">
+        <div class="core2exe-popup-content">
+            <div class="core2exe-popup-content-top-bar">
+                <p class="core2exe-popup-content-head">CORE 2.EXE</p>
+                <div class="core2exe-popup-content-close">
+                    <svg viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9.06067 1.06067L1.06067 9.06067" stroke="#7FB746" stroke-width="1.5"
+                            stroke-linecap="square" stroke-linejoin="round" />
+                        <path d="M1.06067 1.06067L9.06067 9.06067" stroke="#7FB746" stroke-width="1.5"
+                            stroke-linecap="square" stroke-linejoin="round" />
+                    </svg>
+                </div>
+            </div>
+
+            <div class="core2exe-frame1-container">
+
+                <!-- <div class="timerBar">
+                    <div
+                    style="width: 50%"
+                    class=""></div>
+                </div> -->
+
+                <div class="shape-key-cont">
+                    <p>CONVERSION KEY</p>
+                    <div class="">
+                        <svg viewBox="0 0 60 49" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8.5 0.5C12.9183 0.5 16.5 4.08172 16.5 8.5C16.5 12.9183 12.9183 16.5 8.5 16.5C4.08172 16.5 0.5 12.9183 0.5 8.5C0.5 4.08172 4.08172 0.5 8.5 0.5Z" fill="#7FB746" stroke="#7FB746"/>
+                            <path d="M44 41.5C44 37.3579 47.3579 34 51.5 34C55.6421 34 59 37.3579 59 41.5C59 45.6421 55.6421 49 51.5 49C47.3579 49 44 45.6421 44 41.5Z" fill="white"/>
+                            <path d="M51.5 1L58.8612 13.75H44.1388L51.5 1Z" fill="#7FB746"/>
+                            <path d="M31.25 11.75H30V10.5H31.25V11.75ZM32.5 9.25V10.5H31.25V9.25H25V8H31.25V6.75H32.5V8H33.75V9.25H32.5ZM30 11.75V13H28.75V11.75H30ZM30 4.25V5.5H28.75V4.25H30ZM30 6.75V5.5H31.25V6.75H30Z" fill="white"/>
+                            <path d="M31.25 44.75H30V43.5H31.25V44.75ZM32.5 42.25V43.5H31.25V42.25H25V41H31.25V39.75H32.5V41H33.75V42.25H32.5ZM30 44.75V46H28.75V44.75H30ZM30 37.25V38.5H28.75V37.25H30ZM30 39.75V38.5H31.25V39.75H30Z" fill="white"/>
+                            <rect x="1" y="34" width="15" height="15" fill="#7FB746"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="shapeBoxes-cont">
+                     <svg width="169" height="169" viewBox="0 0 169 169" fill="none" xmlns="http://www.w3.org/2000/svg" id="puzzle">
+                        <!-- Grid cells -->
+                        <rect class="cell" x="0.5" y="0.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="0" data-col="0"/>
+                        <rect class="cell" x="24.5" y="0.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="0" data-col="1"/>
+                        <rect class="cell" x="48.5" y="0.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="0" data-col="2"/>
+                        <rect class="cell" x="72.5" y="0.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="0" data-col="3"/>
+                        <rect class="cell" x="96.5" y="0.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="0" data-col="4"/>
+                        <rect class="cell" x="120.5" y="0.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="0" data-col="5"/>
+                        <rect class="cell" x="144.5" y="0.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="0" data-col="6"/>
+                        
+                        <rect class="cell" x="0.5" y="24.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="1" data-col="0"/>
+                        <rect class="cell" x="24.5" y="24.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="1" data-col="1"/>
+                        <rect class="cell" x="48.5" y="24.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="1" data-col="2"/>
+                        <rect class="cell" x="72.5" y="24.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="1" data-col="3"/>
+                        <rect class="cell" x="96.5" y="24.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="1" data-col="4"/>
+                        <rect class="cell" x="120.5" y="24.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="1" data-col="5"/>
+                        <rect class="cell" x="144.5" y="24.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="1" data-col="6"/>
+                        
+                        <rect class="cell" x="0.5" y="48.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="2" data-col="0"/>
+                        <rect class="cell" x="24.5" y="48.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="2" data-col="1"/>
+                        <rect class="cell" x="48.5" y="48.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="2" data-col="2"/>
+                        <rect class="cell" x="72.5" y="48.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="2" data-col="3"/>
+                        <rect class="cell" x="96.5" y="48.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="2" data-col="4"/>
+                        <rect class="cell" x="120.5" y="48.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="2" data-col="5"/>
+                        <rect class="cell" x="144.5" y="48.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="2" data-col="6"/>
+                        
+                        <rect class="cell" x="0.5" y="72.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="3" data-col="0"/>
+                        <rect class="cell" x="24.5" y="72.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="3" data-col="1"/>
+                        <rect class="cell" x="48.5" y="72.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="3" data-col="2"/>
+                        <rect class="cell" x="72.5" y="72.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="3" data-col="3"/>
+                        <rect class="cell" x="96.5" y="72.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="3" data-col="4"/>
+                        <rect class="cell" x="120.5" y="72.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="3" data-col="5"/>
+                        <rect class="cell" x="144.5" y="72.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="3" data-col="6"/>
+                        
+                        <rect class="cell" x="0.5" y="96.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="4" data-col="0"/>
+                        <rect class="cell" x="24.5" y="96.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="4" data-col="1"/>
+                        <rect class="cell" x="48.5" y="96.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="4" data-col="2"/>
+                        <rect class="cell" x="72.5" y="96.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="4" data-col="3"/>
+                        <rect class="cell" x="96.5" y="96.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="4" data-col="4"/>
+                        <rect class="cell" x="120.5" y="96.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="4" data-col="5"/>
+                        <rect class="cell" x="144.5" y="96.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="4" data-col="6"/>
+                        
+                        <rect class="cell" x="0.5" y="120.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="5" data-col="0"/>
+                        <rect class="cell" x="24.5" y="120.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="5" data-col="1"/>
+                        <rect class="cell" x="48.5" y="120.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="5" data-col="2"/>
+                        <rect class="cell" x="72.5" y="120.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="5" data-col="3"/>
+                        <rect class="cell" x="96.5" y="120.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="5" data-col="4"/>
+                        <rect class="cell" x="120.5" y="120.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="5" data-col="5"/>
+                        <rect class="cell" x="144.5" y="120.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="5" data-col="6"/>
+                        
+                        <rect class="cell" x="0.5" y="144.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="6" data-col="0"/>
+                        <rect class="cell" x="24.5" y="144.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="6" data-col="1"/>
+                        <rect class="cell" x="48.5" y="144.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="6" data-col="2"/>
+                        <rect class="cell" x="72.5" y="144.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="6" data-col="3"/>
+                        <rect class="cell" x="96.5" y="144.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="6" data-col="4"/>
+                        <rect class="cell" x="120.5" y="144.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="6" data-col="5"/>
+                        <rect class="cell" x="144.5" y="144.5" width="24" height="24" stroke="#7FB746" fill="transparent" data-row="6" data-col="6"/>
+                        
+                        <rect x="0.5" y="0.5" width="168" height="168" stroke="#7FB746"/>
+                        
+                        <g id="shapes"></g>
+                    </svg>
+                </div>
+
+
+            </div>
+     
+
+
+          
+        </div>
+    </div>
+
+    <!-- core 3.exe -->
+    <div class="core3exe-popup hidden" id="core3exePopup">
+        <div class="core3exe-popup-content">
+            <div class="core3exe-popup-content-top-bar">
+                <p class="core3exe-popup-content-head">CORE 3.EXE</p>
+                <div class="core3exe-popup-content-close">
+                    <svg viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9.06067 1.06067L1.06067 9.06067" stroke="#7FB746" stroke-width="1.5"
+                            stroke-linecap="square" stroke-linejoin="round" />
+                        <path d="M1.06067 1.06067L9.06067 9.06067" stroke="#7FB746" stroke-width="1.5"
+                            stroke-linecap="square" stroke-linejoin="round" />
+                    </svg>
+                </div>
+            </div>
+
+            <div class="core3exe-frame1-container">
+                <div class="">
+                    <svg viewBox="0 0 206 205" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M103 34.5C106.59 34.5 109.5 37.4101 109.5 41C109.5 44.5899 106.59 47.5 103 47.5C99.4101 47.5 96.5 44.5899 96.5 41C96.5 37.4101 99.4101 34.5 103 34.5Z" stroke="white"/>
+                        <path d="M72.2969 96.5C75.8867 96.5 78.7969 99.4101 78.7969 103C78.7969 106.59 75.8867 109.5 72.2969 109.5C68.707 109.5 65.7969 106.59 65.7969 103C65.7969 99.4101 68.707 96.5 72.2969 96.5Z" stroke="white"/>
+                        <path d="M103 127.5C106.59 127.5 109.5 130.41 109.5 134C109.5 137.59 106.59 140.5 103 140.5C99.4101 140.5 96.5 137.59 96.5 134C96.5 130.41 99.4101 127.5 103 127.5Z" stroke="white"/>
+                        <path d="M165 127.5C168.59 127.5 171.5 130.41 171.5 134C171.5 137.59 168.59 140.5 165 140.5C161.41 140.5 158.5 137.59 158.5 134C158.5 130.41 161.41 127.5 165 127.5Z" stroke="white"/>
+                        
+                        <rect x="25.1" y="25.1001" width="31" height="31" stroke="#7FB746" stroke-dasharray="1.6 1.6"/>
+                        <rect x="56.3" y="25.1001" width="31" height="31" stroke="#7FB746" stroke-dasharray="1.6 1.6"/>
+                        <rect x="87.5" y="25.1001" width="31" height="31" stroke="#7FB746" stroke-dasharray="1.6 1.6"/>
+                        <rect x="118.7" y="25.1001" width="31" height="31" stroke="#7FB746" stroke-dasharray="1.6 1.6"/>
+                        <rect x="25.1" y="56.2998" width="31" height="31" stroke="#7FB746" stroke-dasharray="1.6 1.6"/>
+                        <rect x="56.3" y="56.2998" width="31" height="31" stroke="#7FB746" stroke-dasharray="1.6 1.6"/>
+                        <rect x="87.5" y="56.2998" width="31" height="31" stroke="#7FB746" stroke-dasharray="1.6 1.6"/>
+                        <rect x="118.7" y="56.2998" width="31" height="31" stroke="#7FB746" stroke-dasharray="1.6 1.6"/>
+                        <rect x="25.1" y="87.5" width="31" height="31" stroke="#7FB746" stroke-dasharray="1.6 1.6"/>
+                        <rect x="56.3" y="87.5" width="31" height="31" stroke="#7FB746" stroke-dasharray="1.6 1.6"/>
+                        <rect x="87.5" y="87.5" width="31" height="31" stroke="#7FB746" stroke-dasharray="1.6 1.6"/>
+                        <rect x="118.7" y="87.5" width="31" height="31" stroke="#7FB746" stroke-dasharray="1.6 1.6"/>
+                        <rect x="25.1" y="118.7" width="31" height="31" stroke="#7FB746" stroke-dasharray="1.6 1.6"/>
+                        <rect x="56.3" y="118.7" width="31" height="31" stroke="#7FB746" stroke-dasharray="1.6 1.6"/>
+                        <rect x="87.5" y="118.7" width="31" height="31" stroke="#7FB746" stroke-dasharray="1.6 1.6"/>
+                        <rect x="118.7" y="118.7" width="31" height="31" stroke="#7FB746" stroke-dasharray="1.6 1.6"/>
+                        <rect x="149.9" y="25.1001" width="31" height="31" stroke="#7FB746" stroke-dasharray="1.6 1.6"/>
+                        <rect x="149.9" y="56.2998" width="31" height="31" stroke="#7FB746" stroke-dasharray="1.6 1.6"/>
+                        <rect x="149.9" y="87.5" width="31" height="31" stroke="#7FB746" stroke-dasharray="1.6 1.6"/>
+                        <rect x="149.9" y="118.7" width="31" height="31" stroke="#7FB746" stroke-dasharray="1.6 1.6"/>
+                        <rect x="25.1" y="149.9" width="31" height="31" stroke="#7FB746" stroke-dasharray="1.6 1.6"/>
+                        <rect x="56.3" y="149.9" width="31" height="31" stroke="#7FB746" stroke-dasharray="1.6 1.6"/>
+                        <rect x="87.5" y="149.9" width="31" height="31" stroke="#7FB746" stroke-dasharray="1.6 1.6"/>
+                        <rect x="118.7" y="149.9" width="31" height="31" stroke="#7FB746" stroke-dasharray="1.6 1.6"/>
+                        <rect x="149.9" y="149.9" width="31" height="31" stroke="#7FB746" stroke-dasharray="1.6 1.6"/>
+                        <rect x="25.1" y="25.1001" width="155.8" height="155.8" stroke="#7FB746"/>
+                        
+                        <g class="arrow-btn" data-col="0" data-dir="up"><rect x="0.5" y="0.5" width="15" height="15" transform="matrix(0 1 1 0 33 0)" stroke="#7FB746" fill="transparent"/><path d="M39.627 6.4445V7.06519H40.2556V6.4445H39.627ZM40.8842 5.82381H40.2556V6.4445H40.8842V11.2031H41.5127V6.4445H42.1413V5.82381H41.5127V5.20312H40.8842V5.82381ZM39.627 7.06519H38.9984V7.68588H39.627V7.06519ZM43.3984 7.06519H42.7699V7.68588H43.3984V7.06519ZM42.1413 7.06519H42.7699V6.4445H42.1413V7.06519Z" fill="white"/></g>
+                        <g class="arrow-btn" data-col="1" data-dir="up"><rect x="0.5" y="0.5" width="15" height="15" transform="matrix(0 1 1 0 64 0)" stroke="#7FB746" fill="transparent"/><path d="M70.627 6.4445V7.06519H71.2556V6.4445H70.627ZM71.8842 5.82381H71.2556V6.4445H71.8842V11.2031H72.5127V6.4445H73.1413V5.82381H72.5127V5.20312H71.8842V5.82381ZM70.627 7.06519H69.9984V7.68588H70.627V7.06519ZM74.3984 7.06519H73.7699V7.68588H74.3984V7.06519ZM73.1413 7.06519H73.7699V6.4445H73.1413V7.06519Z" fill="white"/></g>
+                        <g class="arrow-btn" data-col="2" data-dir="up"><rect x="0.5" y="0.5" width="15" height="15" transform="matrix(0 1 1 0 95 0)" stroke="#7FB746" fill="transparent"/><path d="M101.629 6.4445V7.06519H102.258V6.4445H101.629ZM102.886 5.82381H102.258V6.4445H102.886V11.2031H103.515V6.4445H104.143V5.82381H103.515V5.20312H102.886V5.82381ZM101.629 7.06519H101V7.68588H101.629V7.06519ZM105.4 7.06519H104.772V7.68588H105.4V7.06519ZM104.143 7.06519H104.772V6.4445H104.143V7.06519Z" fill="white"/></g>
+                        <g class="arrow-btn" data-col="3" data-dir="up"><rect x="0.5" y="0.5" width="15" height="15" transform="matrix(0 1 1 0 126 0)" stroke="#7FB746" fill="transparent"/><path d="M132.627 6.4445V7.06519H133.256V6.4445H132.627ZM133.884 5.82381H133.256V6.4445H133.884V11.2031H134.513V6.4445H135.141V5.82381H134.513V5.20312H133.884V5.82381ZM132.627 7.06519H131.998V7.68588H132.627V7.06519ZM136.398 7.06519H135.77V7.68588H136.398V7.06519ZM135.141 7.06519H135.77V6.4445H135.141V7.06519Z" fill="white"/></g>
+                        <g class="arrow-btn" data-col="4" data-dir="up"><rect x="0.5" y="0.5" width="15" height="15" transform="matrix(0 1 1 0 157 0)" stroke="#7FB746" fill="transparent"/><path d="M163.629 6.4445V7.06519H164.258V6.4445H163.629ZM164.886 5.82381H164.258V6.4445H164.886V11.2031H165.515V6.4445H166.143V5.82381H165.515V5.20312H164.886V5.82381ZM163.629 7.06519H163V7.68588H163.629V7.06519ZM167.4 7.06519H166.772V7.68588H167.4V7.06519ZM166.143 7.06519H166.772V6.4445H166.143V7.06519Z" fill="white"/></g>
+                        
+                        <g class="arrow-btn" data-row="0" data-dir="left"><rect x="0.5" y="-0.5" width="15" height="15" transform="matrix(1 0 0 -1 0 48)" stroke="#7FB746" fill="transparent"/><path d="M6.4445 42.371H7.06519V41.7425H6.4445V42.371ZM5.82381 41.1139V41.7425H6.4445V41.1139H11.2031V40.4853H6.4445V39.8568H5.82381V40.4853H5.20312V41.1139H5.82381ZM7.06519 42.371V42.9996H7.68588V42.371H7.06519ZM7.06519 38.5996V39.2282H7.68588V38.5996H7.06519ZM7.06519 39.8568V39.2282H6.4445V39.8568H7.06519Z" fill="white"/></g>
+                        <g class="arrow-btn" data-row="1" data-dir="left"><rect x="0.5" y="-0.5" width="15" height="15" transform="matrix(1 0 0 -1 0 79)" stroke="#7FB746" fill="transparent"/><path d="M6.4445 73.373H7.06519V72.7444H6.4445V73.373ZM5.82381 72.1158V72.7444H6.4445V72.1158H11.2031V71.4873H6.4445V70.8587H5.82381V71.4873H5.20312V72.1158H5.82381ZM7.06519 73.373V74.0016H7.68588V73.373H7.06519ZM7.06519 69.6016V70.2301H7.68588V69.6016H7.06519ZM7.06519 70.8587V70.2301H6.4445V70.8587H7.06519Z" fill="white"/></g>
+                        <g class="arrow-btn" data-row="2" data-dir="left"><rect x="0.5" y="-0.5" width="15" height="15" transform="matrix(1 0 0 -1 0 110)" stroke="#7FB746" fill="transparent"/><path d="M6.4445 104.371H7.06519V103.742H6.4445V104.371ZM5.82381 103.114V103.742H6.4445V103.114H11.2031V102.485H6.4445V101.857H5.82381V102.485H5.20312V103.114H5.82381ZM7.06519 104.371V105H7.68588V104.371H7.06519ZM7.06519 100.6V101.228H7.68588V100.6H7.06519ZM7.06519 101.857V101.228H6.4445V101.857H7.06519Z" fill="white"/></g>
+                        <g class="arrow-btn" data-row="3" data-dir="left"><rect x="0.5" y="-0.5" width="15" height="15" transform="matrix(1 0 0 -1 0 141)" stroke="#7FB746" fill="transparent"/><path d="M6.4445 135.373H7.06519V134.744H6.4445V135.373ZM5.82381 134.116V134.744H6.4445V134.116H11.2031V133.487H6.4445V132.859H5.82381V133.487H5.20312V134.116H5.82381ZM7.06519 135.373V136.002H7.68588V135.373H7.06519ZM7.06519 131.602V132.23H7.68588V131.602H7.06519ZM7.06519 132.859V132.23H6.4445V132.859H7.06519Z" fill="white"/></g>
+                        <g class="arrow-btn" data-row="4" data-dir="left"><rect x="0.5" y="-0.5" width="15" height="15" transform="matrix(1 0 0 -1 0 172)" stroke="#7FB746" fill="transparent"/><path d="M6.4445 166.373H7.06519V165.744H6.4445V166.373ZM5.82381 165.116V165.744H6.4445V165.116H11.2031V164.487H6.4445V163.859H5.82381V164.487H5.20312V165.116H5.82381ZM7.06519 166.373V167.002H7.68588V166.373H7.06519ZM7.06519 162.602V163.23H7.68588V162.602H7.06519ZM7.06519 163.859V163.23H6.4445V163.859H7.06519Z" fill="white"/></g>
+                        
+                        <g class="arrow-btn" data-row="0" data-dir="right"><rect x="-0.5" y="0.5" width="15" height="15" transform="matrix(-1 0 0 1 205 33)" stroke="#7FB746" fill="transparent"/><path d="M199.555 39.627H198.935V40.2556H199.555V39.627ZM200.176 40.8842V40.2556H199.555V40.8842H194.797V41.5127H199.555V42.1413H200.176V41.5127H200.797V40.8842H200.176ZM198.935 39.627V38.9984H198.314V39.627H198.935ZM198.935 43.3984V42.7699H198.314V43.3984H198.935ZM198.935 42.1413V42.7699H199.555V42.1413H198.935Z" fill="white"/></g>
+                        <g class="arrow-btn" data-row="1" data-dir="right"><rect x="-0.5" y="0.5" width="15" height="15" transform="matrix(-1 0 0 1 205 64)" stroke="#7FB746" fill="transparent"/><path d="M199.555 70.627H198.935V71.2556H199.555V70.627ZM200.176 71.8842V71.2556H199.555V71.8842H194.797V72.5127H199.555V73.1413H200.176V72.5127H200.797V71.8842H200.176ZM198.935 70.627V69.9984H198.314V70.627H198.935ZM198.935 74.3984V73.7699H198.314V74.3984H198.935ZM198.935 73.1413V73.7699H199.555V73.1413H198.935Z" fill="white"/></g>
+                        <g class="arrow-btn" data-row="2" data-dir="right"><rect x="-0.5" y="0.5" width="15" height="15" transform="matrix(-1 0 0 1 205 95)" stroke="#7FB746" fill="transparent"/><path d="M199.555 101.629H198.935V102.258H199.555V101.629ZM200.176 102.886V102.258H199.555V102.886H194.797V103.515H199.555V104.143H200.176V103.515H200.797V102.886H200.176ZM198.935 101.629V101H198.314V101.629H198.935ZM198.935 105.4V104.772H198.314V105.4H198.935ZM198.935 104.143V104.772H199.555V104.143H198.935Z" fill="white"/></g>
+                        <g class="arrow-btn" data-row="3" data-dir="right"><rect x="-0.5" y="0.5" width="15" height="15" transform="matrix(-1 0 0 1 205 126)" stroke="#7FB746" fill="transparent"/><path d="M199.555 132.627H198.935V133.256H199.555V132.627ZM200.176 133.884V133.256H199.555V133.884H194.797V134.513H199.555V135.141H200.176V134.513H200.797V133.884H200.176ZM198.935 132.627V131.998H198.314V132.627H198.935ZM198.935 136.398V135.77H198.314V136.398H198.935ZM198.935 135.141V135.77H199.555V135.141H198.935Z" fill="white"/></g>
+                        <g class="arrow-btn" data-row="4" data-dir="right"><rect x="-0.5" y="0.5" width="15" height="15" transform="matrix(-1 0 0 1 205 157)" stroke="#7FB746" fill="transparent"/><path d="M199.555 163.629H198.935V164.258H199.555V163.629ZM200.176 164.886V164.258H199.555V164.886H194.797V165.515H199.555V166.143H200.176V165.515H200.797V164.886H200.176ZM198.935 163.629V163H198.314V163.629H198.935ZM198.935 167.4V166.772H198.314V167.4H198.935ZM198.935 166.143V166.772H199.555V166.143H198.935Z" fill="white"/></g>
+                        
+                        <g class="arrow-btn" data-col="0" data-dir="down"><rect x="-0.5" y="-0.5" width="15" height="15" transform="matrix(0 -1 -1 0 48 204)" stroke="#7FB746" fill="transparent"/><path d="M42.371 198.555V197.935H41.7425V198.555H42.371ZM41.1139 199.176H41.7425V198.555H41.1139V193.797H40.4853V198.555H39.8568V199.176H40.4853V199.797H41.1139V199.176ZM42.371 197.935H42.9996V197.314H42.371V197.935ZM38.5996 197.935H39.2282V197.314H38.5996V197.935ZM39.8568 197.935H39.2282V198.555H39.8568V197.935Z" fill="white"/></g>
+                        <g class="arrow-btn" data-col="1" data-dir="down"><rect x="-0.5" y="-0.5" width="15" height="15" transform="matrix(0 -1 -1 0 79 204)" stroke="#7FB746" fill="transparent"/><path d="M73.373 198.555V197.935H72.7444V198.555H73.373ZM72.1158 199.176H72.7444V198.555H72.1158V193.797H71.4873V198.555H70.8587V199.176H71.4873V199.797H72.1158V199.176ZM73.373 197.935H74.0016V197.314H73.373V197.935ZM69.6016 197.935H70.2301V197.314H69.6016V197.935ZM70.8587 197.935H70.2301V198.555H70.8587V197.935Z" fill="white"/></g>
+                        <g class="arrow-btn" data-col="2" data-dir="down"><rect x="-0.5" y="-0.5" width="15" height="15" transform="matrix(0 -1 -1 0 110 204)" stroke="#7FB746" fill="transparent"/><path d="M104.371 198.555V197.935H103.742V198.555H104.371ZM103.114 199.176H103.742V198.555H103.114V193.797H102.485V198.555H101.857V199.176H102.485V199.797H103.114V199.176ZM104.371 197.935H105V197.314H104.371V197.935ZM100.6 197.935H101.228V197.314H100.6V197.935ZM101.857 197.935H101.228V198.555H101.857V197.935Z" fill="white"/></g>
+                        <g class="arrow-btn" data-col="3" data-dir="down"><rect x="-0.5" y="-0.5" width="15" height="15" transform="matrix(0 -1 -1 0 141 204)" stroke="#7FB746" fill="transparent"/><path d="M135.373 198.555V197.935H134.744V198.555H135.373ZM134.116 199.176H134.744V198.555H134.116V193.797H133.487V198.555H132.859V199.176H133.487V199.797H134.116V199.176ZM135.373 197.935H136.002V197.314H135.373V197.935ZM131.602 197.935H132.23V197.314H131.602V197.935ZM132.859 197.935H132.23V198.555H132.859V197.935Z" fill="white"/></g>
+                        <g class="arrow-btn" data-col="4" data-dir="down"><rect x="-0.5" y="-0.5" width="15" height="15" transform="matrix(0 -1 -1 0 172 204)" stroke="#7FB746" fill="transparent"/><path d="M166.373 198.555V197.935H165.744V198.555H166.373ZM165.116 199.176H165.744V198.555H165.116V193.797H164.487V198.555H163.859V199.176H164.487V199.797H165.116V199.176ZM166.373 197.935H167.002V197.314H166.373V197.935ZM162.602 197.935H163.23V197.314H162.602V197.935ZM163.859 197.935H163.23V198.555H163.859V197.935Z" fill="white"/></g>
+                        
+                        <path d="M119 26V56" stroke="#A90000" stroke-width="2"/>
+                        <path d="M150 87H180" stroke="#A90000" stroke-width="2"/>
+                        <path d="M150 150H180" stroke="#A90000" stroke-width="2"/>
+                        <path d="M119 118V149.216" stroke="#A90000" stroke-width="2"/>
+                        <path d="M119 87V118.216" stroke="#A90000" stroke-width="2"/>
+                        <path d="M56 56L88 56" stroke="#A90000" stroke-width="2"/>
+                        
+                        <circle class="green-circle" id="green-0" cx="41" cy="41" r="5.5" fill="#7FB746" stroke="#7FB746"/>
+                        <circle class="green-circle" id="green-1" cx="103" cy="103" r="5.5" fill="#7FB746" stroke="#7FB746"/>
+                        <circle class="green-circle" id="green-2" cx="165" cy="166" r="5.5" fill="#7FB746" stroke="#7FB746"/>
+                        <circle class="green-circle" id="green-3" cx="41" cy="166" r="5.5" fill="#7FB746" stroke="#7FB746"/>
+                    </svg>
+                </div>
+            </div>          
         </div>
     </div>
 
@@ -1055,6 +1683,965 @@
                 });
             }
         })();
+
+        // Main.exe interactive flow
+        (function () {
+            const activationCodeForCore1Exe = '45678';
+            
+            // Get elements
+            const mainExeFileIcon = document.querySelector('.file-icon'); // First file-icon is MAIN.EXE
+            const mainExePopup = document.querySelector('.mainexe-popup');
+            const mainExeFrame1 = document.querySelector('.mainexe-frame1');
+            const mainExeFrame2 = document.querySelector('.mainexe-frame2');
+            const beginProcButton = document.querySelector('.begin-proc-button');
+            const activationInputs = document.querySelectorAll('.act-form-input-cont input');
+            const core1ExePopup = document.querySelector('.core1exe-popup');
+
+            // Click on MAIN.EXE file icon
+            if (mainExeFileIcon) {
+                mainExeFileIcon.addEventListener('click', function () {
+                    console.log('MAIN.EXE clicked');
+                    if (mainExePopup) {
+                        mainExePopup.classList.remove('hidden');
+                    }
+                    if (mainExeFrame1) {
+                        mainExeFrame1.classList.remove('hidden');
+                    }
+                    if (mainExeFrame2) {
+                        mainExeFrame2.classList.add('hidden');
+                    }
+                });
+            }
+
+            // Close popup when clicking close button
+            const mainExeCloseButton = document.querySelector('.mainexe-popup-content-close');
+            if (mainExeCloseButton) {
+                mainExeCloseButton.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    console.log('Close button clicked');
+                    if (mainExePopup) {
+                        mainExePopup.classList.add('hidden');
+                    }
+                });
+            }
+
+            // Close popup when clicking on popup background (not content)
+            if (mainExePopup) {
+                mainExePopup.addEventListener('click', function (e) {
+                    // Only close if clicking directly on the popup (not its children)
+                    if (e.target === mainExePopup) {
+                        console.log('Popup background clicked');
+                        mainExePopup.classList.add('hidden');
+                    }
+                });
+            }
+
+            // Click on Begin Proc button
+            if (beginProcButton) {
+                beginProcButton.addEventListener('click', function () {
+                    console.log('Begin Proc button clicked');
+                    if (mainExeFrame1) {
+                        mainExeFrame1.classList.add('hidden');
+                    }
+                    if (mainExeFrame2) {
+                        mainExeFrame2.classList.remove('hidden');
+                    }
+                });
+            }
+
+            // Handle activation code input (5 separate input fields)
+            if (activationInputs && activationInputs.length === 5) {
+                const inputContainer = document.querySelector('.act-form-input-cont');
+                
+                // Set maxlength to 1 for each input
+                activationInputs.forEach((input, index) => {
+                    input.setAttribute('maxlength', '1');
+                    
+                    // Auto-focus next input on digit entry
+                    input.addEventListener('input', function (e) {
+                        const value = e.target.value;
+                        
+                        // Only allow single digit
+                        if (value.length > 1) {
+                            e.target.value = value.charAt(0);
+                        }
+                        
+                        // Auto-tab to next input if digit entered
+                        if (value.length === 1 && index < 4) {
+                            activationInputs[index + 1].focus();
+                        }
+                        
+                        // Check if all fields are filled
+                        if (value.length === 1 && index === 4) {
+                            checkActivationCode();
+                        }
+                    });
+
+                    // Handle backspace to go to previous input
+                    input.addEventListener('keydown', function (e) {
+                        if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+                            activationInputs[index - 1].focus();
+                        }
+                    });
+                });
+
+                // Check activation code
+                function checkActivationCode() {
+                    const enteredCode = Array.from(activationInputs)
+                        .map(input => input.value)
+                        .join('');
+                    
+                    console.log('Current code:', enteredCode);
+                    
+                    if (enteredCode.length === 5) {
+                        if (enteredCode === activationCodeForCore1Exe) {
+                            console.log('Correct activation code!');
+                            
+                            // Change input borders to green
+                            activationInputs.forEach(input => {
+                                input.style.borderColor = '#7FB746';
+                            });
+                            
+                            // Wait 500ms then show next frame
+                            setTimeout(() => {
+                                // Hide mainexe-popup
+                                if (mainExePopup) {
+                                    mainExePopup.classList.add('hidden');
+                                }
+                                // Show core1exe-popup
+                                if (core1ExePopup) {
+                                    core1ExePopup.classList.remove('hidden');
+                                }
+                                
+                                // Reset input borders for next time
+                                activationInputs.forEach(input => {
+                                    input.style.borderColor = '#A90000';
+                                    input.value = '';
+                                });
+                            }, 500);
+                        } else {
+                            console.log('Incorrect activation code');
+                            // Show WRONG popup
+                            var wrongPopup = document.getElementById('wrongPopup');
+                            if (wrongPopup) {
+                                wrongPopup.classList.remove('hidden');
+                                
+                                // Hide after 1 second
+                                setTimeout(() => {
+                                    wrongPopup.classList.add('hidden');
+                                }, 1000);
+                            }
+                            
+                            // Clear all inputs
+                            setTimeout(() => {
+                                activationInputs.forEach(input => {
+                                    input.value = '';
+                                });
+                                // Focus first input
+                                activationInputs[0].focus();
+                            }, 1000);
+                        }
+                    }
+                }
+            }
+        })();
+
+        // Game State Management
+        var gameState = {
+            cores: {
+                core1: { completed: false, name: "CORE 1.EXE" },
+                core2: { completed: false, name: "CORE 2.EXE" },
+                core3: { completed: false, name: "CORE 3.EXE" }
+            },
+            getCurrentProgress: function() {
+                var completed = 0;
+                if (this.cores.core1.completed) completed++;
+                if (this.cores.core2.completed) completed++;
+                if (this.cores.core3.completed) completed++;
+                return completed + " / 3 cores completed";
+            },
+            markCoreComplete: function(coreNumber) {
+                var coreKey = 'core' + coreNumber;
+                if (this.cores[coreKey]) {
+                    this.cores[coreKey].completed = true;
+                    console.log(this.cores[coreKey].name + ' marked as complete!');
+                    console.log('Progress: ' + this.getCurrentProgress());
+                }
+            }
+        };
+        
+        // Core1exe Puzzle Logic
+        var boxes = document.querySelectorAll('.box-group');
+        var grid = [];
+        for (var i = 0; i < 6; i++) {
+            grid[i] = [];
+        }
+        for (var i = 0; i < boxes.length; i++) {
+            var box = boxes[i];
+            var row = parseInt(box.getAttribute('data-row'));
+            var col = parseInt(box.getAttribute('data-col'));
+            var x = 35 + col * 34;
+            var y = 35 + row * 34;
+            var paths = box.querySelectorAll('path');
+            var innerBox = box.querySelector('.inner-box');
+            grid[row][col] = {
+                element: box,
+                paths: paths,
+                innerBox: innerBox,
+                x: x,
+                y: y,
+                rotation: 0,
+                row: row,
+                col: col
+            };
+            
+            // Add click handler to the box group itself
+            box.style.cursor = 'pointer';
+            box.onclick = (function(r, c) {
+                return function() {
+                    rotateBox(r, c);
+                };
+            })(row, col);
+            
+            // Create invisible hitbox for easier clicking (28x28 area)
+            var hitbox = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            hitbox.setAttribute('x', x - 14);
+            hitbox.setAttribute('y', y - 14);
+            hitbox.setAttribute('width', '28');
+            hitbox.setAttribute('height', '28');
+            hitbox.setAttribute('fill', 'transparent');
+            hitbox.style.cursor = 'pointer';
+            hitbox.onclick = (function(r, c) {
+                return function() {
+                    rotateBox(r, c);
+                };
+            })(row, col);
+            
+            // Add hitbox to the SVG (before the box group)
+            box.parentNode.insertBefore(hitbox, box);
+        }
+        
+        function rotateBox(row, col) {
+            var box = grid[row][col];
+            box.rotation = (box.rotation + 90) % 360;
+            box.element.setAttribute('transform', 'rotate(' + box.rotation + ' ' + box.x + ' ' + box.y + ')');
+            updateConnections();
+        }
+        
+        function getPointerDirection(box) {
+            var paths = box.paths;
+            var directions = [];
+            for (var i = 0; i < paths.length; i++) {
+                var d = paths[i].getAttribute('d');
+                var x = box.x;
+                var y = box.y;
+                if (d.includes('V') && d.includes((y - 12) + '')) {
+                    directions.push('top');
+                } else if (d.includes('V') && d.includes((y + 12) + '')) {
+                    directions.push('bottom');
+                } else if (d.includes('H') && d.includes((x - 12) + '')) {
+                    directions.push('left');
+                } else if (d.includes('H') && d.includes((x + 12) + '')) {
+                    directions.push('right');
+                }
+            }
+            var rotSteps = box.rotation / 90;
+            var dirMap = ['top', 'right', 'bottom', 'left'];
+            var rotatedDirs = [];
+            for (var i = 0; i < directions.length; i++) {
+                var idx = dirMap.indexOf(directions[i]);
+                var newIdx = (idx + rotSteps) % 4;
+                rotatedDirs.push(dirMap[newIdx]);
+            }
+            return rotatedDirs;
+        }
+        
+        function updateConnections() {
+            var connectionsGroup = document.getElementById('connections');
+            connectionsGroup.innerHTML = '';
+            
+            // Reset all boxes first
+            for (var row = 0; row < 6; row++) {
+                for (var col = 0; col < 6; col++) {
+                    var box = grid[row][col];
+                    if (box) {
+                        box.isConnected = false;
+                    }
+                }
+            }
+            
+            for (var row = 0; row < 6; row++) {
+                for (var col = 0; col < 6; col++) {
+                    var box = grid[row][col];
+                    if (!box) continue;
+                    var dirs = getPointerDirection(box);
+                    var isConnected = false;
+                    for (var d = 0; d < dirs.length; d++) {
+                        var dir = dirs[d];
+                        if (dir === 'right' && col < 5) {
+                            var neighbor = grid[row][col + 1];
+                            if (neighbor) {
+                                var neighborDirs = getPointerDirection(neighbor);
+                                if (neighborDirs.indexOf('left') !== -1) {
+                                    isConnected = true;
+                                    var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                                    line.setAttribute('x1', box.x + 6);
+                                    line.setAttribute('y1', box.y);
+                                    line.setAttribute('x2', neighbor.x - 6);
+                                    line.setAttribute('y2', neighbor.y);
+                                    line.setAttribute('stroke', '#A90000');
+                                    line.setAttribute('stroke-width', '2');
+                                    connectionsGroup.appendChild(line);
+                                    neighbor.innerBox.setAttribute('fill', '#A90000');
+                                    // Mark neighbor as connected
+                                    if (!neighbor.isConnected) neighbor.isConnected = true;
+                                }
+                            }
+                        }
+                        if (dir === 'bottom' && row < 5) {
+                            var neighbor = grid[row + 1][col];
+                            if (neighbor) {
+                                var neighborDirs = getPointerDirection(neighbor);
+                                if (neighborDirs.indexOf('top') !== -1) {
+                                    isConnected = true;
+                                    var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                                    line.setAttribute('x1', box.x);
+                                    line.setAttribute('y1', box.y + 6);
+                                    line.setAttribute('x2', neighbor.x);
+                                    line.setAttribute('y2', neighbor.y - 6);
+                                    line.setAttribute('stroke', '#A90000');
+                                    line.setAttribute('stroke-width', '2');
+                                    connectionsGroup.appendChild(line);
+                                    neighbor.innerBox.setAttribute('fill', '#A90000');
+                                    // Mark neighbor as connected
+                                    if (!neighbor.isConnected) neighbor.isConnected = true;
+                                }
+                            }
+                        }
+                    }
+                    if (isConnected || box.isConnected) {
+                        box.innerBox.setAttribute('fill', '#A90000');
+                        // Change all rects in the box to red
+                        var rects = box.element.querySelectorAll('rect');
+                        for (var r = 0; r < rects.length; r++) {
+                            rects[r].setAttribute('stroke', '#A90000');
+                        }
+                    } else {
+                        box.innerBox.setAttribute('fill', 'none');
+                        // Reset all rects to green
+                        var rects = box.element.querySelectorAll('rect');
+                        for (var r = 0; r < rects.length; r++) {
+                            rects[r].setAttribute('stroke', '#7FB746');
+                        }
+                    }
+                }
+            }
+            
+            // Check if puzzle is solved (path from Point A to Point X)
+            checkPuzzleSolved();
+        }
+        
+        function checkPuzzleSolved() {
+            // Point A is at bottom-left (row 5, col 0)
+            // Point X is at top-right (row 0, col 5)
+            // Check if there's a connected path from A to X
+            
+            var visited = {};
+            var queue = [{row: 5, col: 0}];
+            visited['5,0'] = true;
+            
+            while (queue.length > 0) {
+                var current = queue.shift();
+                var row = current.row;
+                var col = current.col;
+                
+                // Check if we reached Point X
+                if (row === 0 && col === 5) {
+                    // Puzzle solved!
+                    console.log('Puzzle solved! Path from A to X complete!');
+                    
+                    // Build the winning path by tracing back from X to A
+                    var pathBoxes = {};
+                    pathBoxes['0,5'] = true; // Point X
+                    
+                    // Trace the path
+                    var traceQueue = [{row: 0, col: 5}];
+                    var pathVisited = {};
+                    pathVisited['0,5'] = true;
+                    
+                    while (traceQueue.length > 0) {
+                        var curr = traceQueue.shift();
+                        var r = curr.row;
+                        var c = curr.col;
+                        
+                        if (r === 5 && c === 0) break; // Reached Point A
+                        
+                        var box = grid[r][c];
+                        if (!box) continue;
+                        
+                        var dirs = getPointerDirection(box);
+                        for (var d = 0; d < dirs.length; d++) {
+                            var dir = dirs[d];
+                            var nextR = r, nextC = c;
+                            
+                            if (dir === 'top') nextR--;
+                            else if (dir === 'right') nextC++;
+                            else if (dir === 'bottom') nextR++;
+                            else if (dir === 'left') nextC--;
+                            
+                            if (nextR < 0 || nextR >= 6 || nextC < 0 || nextC >= 6) continue;
+                            
+                            var key = nextR + ',' + nextC;
+                            if (pathVisited[key]) continue;
+                            if (!visited[key]) continue; // Only follow the winning path
+                            
+                            var neighbor = grid[nextR][nextC];
+                            if (!neighbor) continue;
+                            
+                            var neighborDirs = getPointerDirection(neighbor);
+                            var oppositeDir = '';
+                            if (dir === 'top') oppositeDir = 'bottom';
+                            else if (dir === 'right') oppositeDir = 'left';
+                            else if (dir === 'bottom') oppositeDir = 'top';
+                            else if (dir === 'left') oppositeDir = 'right';
+                            
+                            if (neighborDirs.indexOf(oppositeDir) !== -1) {
+                                pathVisited[key] = true;
+                                pathBoxes[key] = true;
+                                traceQueue.push({row: nextR, col: nextC});
+                            }
+                        }
+                    }
+                    
+                    // Turn the winning path green
+                    setTimeout(function() {
+                        // Clear and rebuild connections with green for winning path
+                        var connectionsGroup = document.getElementById('connections');
+                        connectionsGroup.innerHTML = '';
+                        
+                        // Redraw connections, making winning path green
+                        for (var r = 0; r < 6; r++) {
+                            for (var c = 0; c < 6; c++) {
+                                var box = grid[r][c];
+                                if (!box) continue;
+                                
+                                var isOnPath = pathBoxes[r + ',' + c];
+                                var dirs = getPointerDirection(box);
+                                
+                                for (var d = 0; d < dirs.length; d++) {
+                                    var dir = dirs[d];
+                                    
+                                    if (dir === 'right' && c < 5) {
+                                        var neighbor = grid[r][c + 1];
+                                        if (neighbor) {
+                                            var neighborDirs = getPointerDirection(neighbor);
+                                            if (neighborDirs.indexOf('left') !== -1) {
+                                                var neighborOnPath = pathBoxes[r + ',' + (c + 1)];
+                                                var lineColor = (isOnPath && neighborOnPath) ? '#7FB746' : '#A90000';
+                                                
+                                                var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                                                line.setAttribute('x1', box.x + 6);
+                                                line.setAttribute('y1', box.y);
+                                                line.setAttribute('x2', neighbor.x - 6);
+                                                line.setAttribute('y2', neighbor.y);
+                                                line.setAttribute('stroke', lineColor);
+                                                line.setAttribute('stroke-width', '2');
+                                                connectionsGroup.appendChild(line);
+                                            }
+                                        }
+                                    }
+                                    
+                                    if (dir === 'bottom' && r < 5) {
+                                        var neighbor = grid[r + 1][c];
+                                        if (neighbor) {
+                                            var neighborDirs = getPointerDirection(neighbor);
+                                            if (neighborDirs.indexOf('top') !== -1) {
+                                                var neighborOnPath = pathBoxes[(r + 1) + ',' + c];
+                                                var lineColor = (isOnPath && neighborOnPath) ? '#7FB746' : '#A90000';
+                                                
+                                                var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                                                line.setAttribute('x1', box.x);
+                                                line.setAttribute('y1', box.y + 6);
+                                                line.setAttribute('x2', neighbor.x);
+                                                line.setAttribute('y2', neighbor.y - 6);
+                                                line.setAttribute('stroke', lineColor);
+                                                line.setAttribute('stroke-width', '2');
+                                                connectionsGroup.appendChild(line);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Change boxes on the winning path to green
+                        for (var key in pathBoxes) {
+                            var coords = key.split(',');
+                            var r = parseInt(coords[0]);
+                            var c = parseInt(coords[1]);
+                            var box = grid[r][c];
+                            
+                            if (box) {
+                                // Fill with green
+                                box.innerBox.setAttribute('fill', '#7FB746');
+                                
+                                // Change all rects to green
+                                var rects = box.element.querySelectorAll('rect');
+                                for (var i = 0; i < rects.length; i++) {
+                                    rects[i].setAttribute('stroke', '#7FB746');
+                                }
+                                
+                                // Change all paths (red pointers) to green
+                                var paths = box.element.querySelectorAll('path');
+                                for (var i = 0; i < paths.length; i++) {
+                                    paths[i].setAttribute('stroke', '#7FB746');
+                                }
+                            }
+                        }
+                        
+                        // Disable pointer events on SVG
+                        var puzzleSvg = document.querySelector('.core1exe-frame1 svg');
+                        if (puzzleSvg) {
+                            puzzleSvg.style.pointerEvents = 'none';
+                        }
+                        
+                        // Mark Core 1 as complete
+                        gameState.markCoreComplete(1);
+                        
+                        // Show COMPLETE popup after 100ms
+                        setTimeout(function() {
+                            var completePopup = document.getElementById('completePopup');
+                            if (completePopup) {
+                                completePopup.classList.remove('hidden');
+                                
+                                // Hide after 1.5 seconds and show next frame
+                                setTimeout(function() {
+                                    completePopup.classList.add('hidden');
+                                    document.querySelector('.core1exe-popup').style.display = 'none';
+                                    document.querySelector('.mainexe-frame3-container').style.display = 'flex';
+                                }, 1500);
+                            }
+                        }, 100);
+                    }, 100);
+                    
+                    return;
+                }
+                
+                // Check all 4 directions for connected neighbors
+                var box = grid[row][col];
+                if (!box) continue;
+                
+                var dirs = getPointerDirection(box);
+                for (var d = 0; d < dirs.length; d++) {
+                    var dir = dirs[d];
+                    var nextRow = row;
+                    var nextCol = col;
+                    
+                    if (dir === 'top') nextRow--;
+                    else if (dir === 'right') nextCol++;
+                    else if (dir === 'bottom') nextRow++;
+                    else if (dir === 'left') nextCol--;
+                    
+                    // Check bounds
+                    if (nextRow < 0 || nextRow >= 6 || nextCol < 0 || nextCol >= 6) continue;
+                    
+                    var key = nextRow + ',' + nextCol;
+                    if (visited[key]) continue;
+                    
+                    // Check if neighbor points back
+                    var neighbor = grid[nextRow][nextCol];
+                    if (!neighbor) continue;
+                    
+                    var neighborDirs = getPointerDirection(neighbor);
+                    var oppositeDir = '';
+                    if (dir === 'top') oppositeDir = 'bottom';
+                    else if (dir === 'right') oppositeDir = 'left';
+                    else if (dir === 'bottom') oppositeDir = 'top';
+                    else if (dir === 'left') oppositeDir = 'right';
+                    
+                    if (neighborDirs.indexOf(oppositeDir) !== -1) {
+                        visited[key] = true;
+                        queue.push({row: nextRow, col: nextCol});
+                    }
+                }
+            }
+        }
+        
+        updateConnections();
+
+        // Mainexe Frame 3 - Begin Procedure Button
+        var beginProcButton2 = document.querySelector('.begin-proc-button-2');
+        if (beginProcButton2) {
+            beginProcButton2.addEventListener('click', function() {
+                document.querySelector('.mainexe-frame3').style.display = 'none';
+                document.querySelector('.mainexe-frame4').classList.remove('hidden');
+                document.querySelector('.mainexe-frame4').style.display = 'flex';
+                
+                // Focus first input
+                var frame4Inputs = document.querySelectorAll('.mainexe-frame4 input');
+                if (frame4Inputs.length > 0) {
+                    frame4Inputs[0].focus();
+                }
+            });
+        }
+
+        // Mainexe Frame 4 - Activation Code Logic (4321)
+        var frame4Inputs = document.querySelectorAll('.mainexe-frame4 input');
+        var frame4Container = document.querySelector('.act-form-cont-2');
+        var correctCode4 = ['4', '3', '2', '1'];
+        
+        frame4Inputs.forEach(function(input, index) {
+            input.addEventListener('input', function(e) {
+                var value = e.target.value;
+                
+                // Only allow single digit
+                if (value.length > 1) {
+                    e.target.value = value.slice(0, 1);
+                }
+                
+                // Move to next input if value entered
+                if (value.length === 1 && index < frame4Inputs.length - 1) {
+                    frame4Inputs[index + 1].focus();
+                }
+                
+                // Check if all inputs are filled
+                var allFilled = true;
+                for (var i = 0; i < frame4Inputs.length; i++) {
+                    if (frame4Inputs[i].value === '') {
+                        allFilled = false;
+                        break;
+                    }
+                }
+                
+                if (allFilled) {
+                    // Check if code is correct
+                    var isCorrect = true;
+                    for (var i = 0; i < frame4Inputs.length; i++) {
+                        if (frame4Inputs[i].value !== correctCode4[i]) {
+                            isCorrect = false;
+                            break;
+                        }
+                    }
+                    
+                    if (isCorrect) {
+                        console.log('Activation code correct!');
+                        
+                        // Turn input borders green
+                        frame4Inputs.forEach(function(input) {
+                            input.style.borderColor = '#7FB746';
+                        });
+                        
+                        // Show core2exe-popup after delay
+                        setTimeout(function() {
+                            document.querySelector('.mainexe-frame4').style.display = 'none';
+                            var core2Popup = document.querySelector('.core2exe-popup');
+                            core2Popup.classList.remove('hidden');
+                            core2Popup.style.display = 'flex';
+                        }, 500);
+                    } else {
+                        // Wrong code - show WRONG popup
+                        var wrongPopup = document.getElementById('wrongPopup');
+                        if (wrongPopup) {
+                            wrongPopup.classList.remove('hidden');
+                            
+                            // Hide after 1 second
+                            setTimeout(function() {
+                                wrongPopup.classList.add('hidden');
+                            }, 1000);
+                        }
+                        
+                        // Clear inputs
+                        setTimeout(function() {
+                            frame4Inputs.forEach(function(input) {
+                                input.value = '';
+                            });
+                            frame4Inputs[0].focus();
+                        }, 1000);
+                    }
+                }
+            });
+            
+            // Handle backspace
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+                    frame4Inputs[index - 1].focus();
+                }
+            });
+        });
+
+        // Core2exe Shape Puzzle Logic
+        var shapeGrid = [];
+        var shapesGroup = document.getElementById('shapes');
+        
+        // Shape types: 0 = green circle, 1 = green triangle, 2 = green square, 3 = white circle, -1 = empty
+        var initialGrid = [
+            [0, -1, -1, -1, -1, -1, -1],
+            [-1, 2, 3, -1, 0, 2, -1],
+            [3, 1, 0, 2, 3, -1, -1],
+            [-1, -1, 3, -1, -1, 1, -1],
+            [-1, 2, 1, 1, -1, -1, -1],
+            [1, 2, -1, 1, -1, 0, -1],
+            [0, 1, 2, -1, -1, -1, -1]
+        ];
+        
+        for (var i = 0; i < 7; i++) {
+            shapeGrid[i] = [];
+            for (var j = 0; j < 7; j++) {
+                shapeGrid[i][j] = initialGrid[i][j];
+            }
+        }
+        
+        var cells = document.querySelectorAll('.cell');
+        for (var i = 0; i < cells.length; i++) {
+            var cell = cells[i];
+            cell.onclick = (function(c) {
+                return function() {
+                    var row = parseInt(c.getAttribute('data-row'));
+                    var col = parseInt(c.getAttribute('data-col'));
+                    cycleShape(row, col);
+                };
+            })(cell);
+        }
+        
+        function cycleShape(row, col) {
+            var current = shapeGrid[row][col];
+            if (current === -1) {
+                return;
+            }
+            
+            // Only cycle through actual shapes, no empty (-1)
+            var possibleShapes = [0, 1, 2, 3];
+            var availableShapes = possibleShapes.filter(function(s) { return s !== current; });
+            var randomIndex = Math.floor(Math.random() * availableShapes.length);
+            shapeGrid[row][col] = availableShapes[randomIndex];
+            renderShapes();
+            checkShapePuzzleSolved();
+        }
+        
+        function checkShapePuzzleSolved() {
+            var solved = true;
+            for (var row = 0; row < 7; row++) {
+                for (var col = 0; col < 7; col++) {
+                    var initial = initialGrid[row][col];
+                    var current = shapeGrid[row][col];
+                    if (initial === 0 && current !== 1) {
+                        solved = false;
+                    }
+                    if (initial === 2 && current !== 3) {
+                        solved = false;
+                    }
+                }
+            }
+            
+            if (solved) {
+                console.log('Shape puzzle solved!');
+                
+                // Disable clicking on shapes
+                if (shapesGroup) {
+                    shapesGroup.style.pointerEvents = 'none';
+                }
+                
+                // Mark Core 2 as complete
+                gameState.markCoreComplete(2);
+                
+                // Show COMPLETE popup after 100ms
+                setTimeout(function() {
+                    var completePopup = document.getElementById('completePopup');
+                    if (completePopup) {
+                        completePopup.classList.remove('hidden');
+                        
+                        // Hide after 1.5 seconds and proceed to next step
+                        setTimeout(function() {
+                            completePopup.classList.add('hidden');
+                            // TODO: Show next frame/step
+                            console.log('Proceeding to next step after Core 2...');
+                        }, 1500);
+                    }
+                }, 100);
+            }
+        }
+        
+        function renderShapes() {
+            if (!shapesGroup) return;
+            
+            shapesGroup.innerHTML = '';
+            for (var row = 0; row < 7; row++) {
+                for (var col = 0; col < 7; col++) {
+                    var shape = shapeGrid[row][col];
+                    if (shape === -1) continue;
+                    
+                    var x = 0.5 + col * 24 + 12;
+                    var y = 0.5 + row * 24 + 12;
+                    var element;
+                    
+                    if (shape === 0) {
+                        element = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        element.setAttribute('cx', x);
+                        element.setAttribute('cy', y);
+                        element.setAttribute('r', '8');
+                        element.setAttribute('fill', '#7FB746');
+                        element.setAttribute('stroke', '#7FB746');
+                    } else if (shape === 1) {
+                        element = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                        var d = 'M' + x + ' ' + (y - 6.5) + 'L' + (x + 7.5) + ' ' + (y + 6.5) + 'H' + (x - 7.5) + 'Z';
+                        element.setAttribute('d', d);
+                        element.setAttribute('fill', '#7FB746');
+                    } else if (shape === 2) {
+                        element = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                        element.setAttribute('x', x - 7.5);
+                        element.setAttribute('y', y - 7.5);
+                        element.setAttribute('width', '15');
+                        element.setAttribute('height', '15');
+                        element.setAttribute('fill', '#7FB746');
+                    } else if (shape === 3) {
+                        element = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        element.setAttribute('cx', x);
+                        element.setAttribute('cy', y);
+                        element.setAttribute('r', '7.5');
+                        element.setAttribute('fill', 'white');
+                    }
+                    
+                    element.classList.add('shape');
+                    element.setAttribute('data-row', row);
+                    element.setAttribute('data-col', col);
+                    element.onclick = function(e) {
+                        e.stopPropagation();
+                        var r = parseInt(this.getAttribute('data-row'));
+                        var c = parseInt(this.getAttribute('data-col'));
+                        cycleShape(r, c);
+                    };
+                    shapesGroup.appendChild(element);
+                }
+            }
+        }
+        
+        renderShapes();
+
+    </script>
+
+    <script>
+        const cellCenters = [[41, 72, 103, 134, 165], [41, 72, 103, 134, 165], [41, 72, 103, 134, 165], [41, 72, 103, 134, 165], [41, 72, 103, 134, 165]];
+        const cellYs = [41, 72, 103, 134, 166];
+        let circles = [{row: 0, col: 0}, {row: 2, col: 2}, {row: 4, col: 4}, {row: 4, col: 0}];
+        const targets = [{row: 0, col: 2}, {row: 2, col: 1}, {row: 3, col: 2}, {row: 3, col: 4}];
+
+        function hasHorizontalBarrier(row, col) {
+            if (row === 0 && col === 1) return true;
+            if (row === 1 && col === 4) return true;
+            if (row === 3 && col === 4) return true;
+            return false;
+        }
+
+        function hasVerticalBarrier(row, col) {
+            if (col === 2 && (row === 0 || row === 2 || row === 3)) return true;
+            return false;
+        }
+
+        function updateCirclePosition(index) {
+            const circle = circles[index];
+            const element = document.getElementById(`green-${index}`);
+            element.setAttribute('cx', cellCenters[circle.row][circle.col]);
+            element.setAttribute('cy', cellYs[circle.row]);
+        }
+
+        function isCellOccupied(row, col, excludeIndex = -1) {
+            return circles.some((c, i) => i !== excludeIndex && c.row === row && c.col === col);
+        }
+
+        function moveColumn(col, direction) {
+            const circlesToMove = circles.map((c, i) => ({...c, index: i})).filter(c => c.col === col);
+            if (circlesToMove.length === 0) return;
+            
+            circlesToMove.sort((a, b) => direction === 'up' ? a.row - b.row : b.row - a.row);
+            
+            circlesToMove.forEach(circle => {
+                const currentRow = circle.row;
+                let newRow = currentRow;
+                
+                if (direction === 'up') {
+                    for (let targetRow = currentRow - 1; targetRow >= 0; targetRow--) {
+                        if (hasHorizontalBarrier(targetRow, col)) break;
+                        if (isCellOccupied(targetRow, col, circle.index)) break;
+                        newRow = targetRow;
+                    }
+                } else {
+                    for (let targetRow = currentRow + 1; targetRow <= 4; targetRow++) {
+                        if (hasHorizontalBarrier(targetRow - 1, col)) break;
+                        if (isCellOccupied(targetRow, col, circle.index)) break;
+                        newRow = targetRow;
+                    }
+                }
+                
+                circles[circle.index].row = newRow;
+                updateCirclePosition(circle.index);
+            });
+            
+            checkSolved();
+        }
+
+        function moveRow(row, direction) {
+            const circlesToMove = circles.map((c, i) => ({...c, index: i})).filter(c => c.row === row);
+            if (circlesToMove.length === 0) return;
+            
+            circlesToMove.sort((a, b) => direction === 'right' ? b.col - a.col : a.col - b.col);
+            
+            circlesToMove.forEach(circle => {
+                const currentCol = circle.col;
+                let newCol = currentCol;
+                
+                if (direction === 'right') {
+                    for (let targetCol = currentCol + 1; targetCol <= 4; targetCol++) {
+                        if (hasVerticalBarrier(row, targetCol - 1)) break;
+                        if (isCellOccupied(row, targetCol, circle.index)) break;
+                        newCol = targetCol;
+                    }
+                } else {
+                    for (let targetCol = currentCol - 1; targetCol >= 0; targetCol--) {
+                        if (hasVerticalBarrier(row, targetCol)) break;
+                        if (isCellOccupied(row, targetCol, circle.index)) break;
+                        newCol = targetCol;
+                    }
+                }
+                
+                circles[circle.index].col = newCol;
+                updateCirclePosition(circle.index);
+            });
+            
+            checkSolved();
+        }
+
+        function checkSolved() {
+            const solved = targets.every(target => 
+                circles.some(circle => circle.row === target.row && circle.col === target.col)
+            );
+            
+            if (solved) {
+                setTimeout(function() {
+                    const completePopup = document.getElementById('completePopup');
+                    if (completePopup) {
+                        completePopup.classList.remove('hidden');
+                        
+                        setTimeout(function() {
+                            completePopup.classList.add('hidden');
+                        }, 1500);
+                    }
+                }, 100);
+            }
+        }
+
+        document.querySelectorAll('.arrow-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const col = this.dataset.col;
+                const row = this.dataset.row;
+                const dir = this.dataset.dir;
+                
+                if (col !== undefined) {
+                    moveColumn(parseInt(col), dir);
+                } else {
+                    moveRow(parseInt(row), dir);
+                }
+            });
+        });
     </script>
 
 </body>
