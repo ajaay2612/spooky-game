@@ -35,8 +35,11 @@ The application now uses a modular class-based architecture with clear separatio
 │ ObjectPalette│ PropertyPanel│SceneHierarchy│ Serializer │
 │ (Create UI)  │ (Edit UI)    │ (Tree UI)    │ (Save/Load)│
 ├──────────────┼──────────────┼──────────────┼────────────┤
-│InteractionSys│MonitorControl│MachineInterac│            │
-│ (Play Mode)  │ (HTML Frames)│ (Buttons/Dial)│            │
+│InteractionSys│MonitorControl│MachineInterac│DeviceTrackr│
+│ (Play Mode)  │ (HTML Frames)│ (Buttons/Dial)│(Completion)│
+├──────────────┼──────────────┼──────────────┼────────────┤
+│BootSeqRender │MonitorDebug  │HtmlMeshAlign │            │
+│(Canvas Render)│(GUI Align)   │(Mesh Align)  │            │
 ├──────────────┴──────────────┴──────────────┴────────────┤
 │              Babylon.js GizmoManager                     │
 │         (Move Gizmo, Scale Gizmo, Rotation Gizmo)        │
@@ -383,7 +386,131 @@ The application now uses a modular class-based architecture with clear separatio
 - Specific meshes: Computer parts, monitor, buttons, dials
 - Re-scans at 1s and 3s intervals to catch late-loading models
 
-### 11. Application State (`appState`) [Legacy]
+### 11. BootSequenceRenderer
+
+**Purpose**: Direct canvas rendering for boot sequence display
+
+**Properties**:
+- `width`: Canvas width in pixels
+- `height`: Canvas height in pixels
+- `canvas`: HTML canvas element
+- `ctx`: 2D rendering context
+- `fontFamily`: 'Print Char 21, Courier New, monospace'
+- `backgroundColor`: '#0a0a0a' (near black)
+- `textColor`: '#7FB746' (green)
+- `yellowColor`: '#ffff00' (warning)
+- `redColor`: '#ff0000' (error)
+- `baseFontSize`: 16px
+- `logoFontSize`: 13.12px (0.82em of base)
+- `bootTextFontSize`: 39.2px (2.45em of base)
+
+**Methods**:
+- `render()`: Render complete boot sequence to canvas
+- `drawLogo(x, y)`: Draw ASCII art logo
+- `drawBootText(x, y)`: Draw boot status messages
+- `getCanvas()`: Return rendered canvas
+
+**Boot Sequence Content**:
+- ASCII art "CONTAINMENT" logo (7 lines)
+- Copyright notice
+- Kernel version information
+- Secured boot checkin with status indicators
+- System initialization messages
+- Color-coded status: Green (OK), Yellow (FOUND), Red (FAILED)
+
+**Rendering Details**:
+- Waits for fonts to load (document.fonts.ready)
+- Additional 100ms delay for font stability
+- Text baseline: top, alignment: left
+- Line height: 1.2 for logo, 1.6 for boot text
+- Padding: 8em left, 1.25em bottom
+- Starting position: 10% from top (90vh from bottom)
+
+### 12. DeviceTracker
+
+**Purpose**: Tracks completion status of interactive devices for story progression
+
+**Properties**:
+- `devices`: Object tracking device completion status
+  - `equalizer_game`: Boolean (default: false)
+  - `military_radio`: Boolean (default: false)
+  - `power_source`: Boolean (default: false)
+- `isPowerAvailable`: Boolean flag for power availability
+- `onDeviceCompleteCallbacks`: Array of callback functions
+
+**Methods**:
+- `completeDevice(deviceName)`: Mark device as complete
+- `isDeviceComplete(deviceName)`: Check if device is complete
+- `onDeviceComplete(callback)`: Register callback for completion events
+- `areAllDevicesComplete()`: Check if all devices complete
+
+**Global Access**:
+- Available via `window.deviceTracker`
+- Integrates with conversation system
+- Blocks/unblocks player options based on completion
+
+**Special Handling**:
+- Power source completion sets `isPowerAvailable` flag
+- Triggers callbacks on device completion
+- Console logging for debugging
+
+### 13. MonitorDebugPanel
+
+**Purpose**: Visual debug tool for aligning GUI texture to monitor mesh
+
+**Properties**:
+- `monitorController`: Reference to MonitorController
+- `panel`: HTML div element (fixed position)
+- `isVisible`: Boolean visibility state
+- `rotation`: Container rotation in degrees
+- `scaleX`: Container horizontal scale (-2 to 2)
+- `scaleY`: Container vertical scale (-2 to 2)
+- `offsetX`: Container horizontal offset in pixels
+- `offsetY`: Container vertical offset in pixels
+- `uScale`: Texture U scale (-2 to 2)
+- `vScale`: Texture V scale (-2 to 2)
+- `uOffset`: Texture U offset (-1 to 1)
+- `vOffset`: Texture V offset (-1 to 1)
+- `uAng`: Texture U rotation (-π to π)
+- `vAng`: Texture V rotation (-π to π)
+- `wAng`: Texture W rotation (-π to π)
+
+**Methods**:
+- `createPanel()`: Create debug UI panel
+- `handleAction(action)`: Handle button clicks
+- `applyTransform()`: Apply transform to GUI texture
+- `updateDisplay()`: Update value displays
+- `toggle()`: Show/hide panel
+- `show()`: Show panel
+- `hide()`: Hide panel
+
+**UI Controls**:
+- Rotation buttons: +90°, -90°, +15°, -15°
+- Scale sliders: X and Y (flip horizontal/vertical)
+- Offset sliders: X and Y position adjustment
+- UV transform sliders: uScale, vScale, uOffset, vOffset, uAng, vAng, wAng
+- Reset button: Reset all values to defaults
+- Copy button: Copy code to clipboard
+
+**Keyboard Shortcuts**:
+- 1: Rotate +90° clockwise
+- 2: Rotate -90° counter-clockwise
+- Q: Rotate +15°
+- E: Rotate -15°
+- 0: Reset all values
+- C: Copy code to clipboard
+- G: Toggle panel visibility
+
+**Visual Design**:
+- Fixed position: right side, vertically centered
+- Dark background: rgba(0, 0, 0, 0.95)
+- Green border and text: #00ff00
+- Yellow section headers: #ffff00
+- Monospace font: Courier New
+- Scrollable content (max-height: 90vh)
+- High z-index (10000) for visibility
+
+### 14. Application State (`appState`) [Legacy]
 
 Global state object tracking application health and metrics.
 

@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **BootSequenceRenderer**: Direct canvas rendering for boot sequence display
+  - Matches boot-sequence.html exactly but renders to canvas
+  - Font loading with Print Char 21 monospace font
+  - ASCII logo rendering with proper line height
+  - Boot text with color-coded status messages (green, yellow, red)
+  - Configurable font sizes matching HTML (0.82em logo, 2.45em boot text)
+- **DeviceTracker**: Device completion tracking system
+  - Tracks equalizer_game, military_radio, power_source completion status
+  - Power availability flag for story progression
+  - Callback system for device completion events
+  - Global accessibility via window.deviceTracker
+  - Integration with conversation system for blocking/unblocking options
+- **MonitorDebugPanel**: Visual debug tool for GUI texture alignment
+  - Container transform controls (rotation, scale, offset)
+  - Texture UV transform controls (uScale, vScale, uOffset, vOffset, uAng, vAng, wAng)
+  - Real-time preview with sliders
+  - Keyboard shortcuts (1, 2, Q, E, 0, C, G)
+  - Copy code to clipboard functionality
+  - Fixed position panel (right side, vertically centered)
+  - Toggle with G key
+
 ### In Progress
 - Additional machine interactions (buttons, dials, switches)
 - Enhanced monitor frame system with animations

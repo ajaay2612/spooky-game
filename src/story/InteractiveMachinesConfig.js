@@ -150,6 +150,172 @@ export const INTERACTIVE_MACHINES = {
     // Interactive elements on this machine
     interactiveElements: {}
   },
+  
+  // Machine 5: Base Low Material Machine
+  'base_low_material_machine': {
+    displayName: 'Base Low Material Machine',
+    meshName: 'Base_Low_Material_0',
+    
+    // Camera lock-on position
+    cameraPosition: { x: 0.058, y: 2.148, z: 0.226 },
+    cameraRotation: { x: 0.004, y: 3.253, z: 0.000 },
+    
+    // Interactive elements on this machine
+    interactiveElements: {
+      knob1: {
+        type: 'dial',
+        meshName: 'Spin1_Low_Material_0.001',
+        rotationAxis: { x: 1.00, y: 0.00, z: 0.00 },
+        sensitivity: 0.01,
+        action: 'adjustKnob1'
+      },
+      
+      knob2: {
+        type: 'dial',
+        meshName: 'Spin2_Low_Material_0.001',
+        rotationAxis: { x: 1.00, y: 0.00, z: 0.00 },
+        sensitivity: 0.01,
+        action: 'adjustKnob2'
+      },
+      
+      knob3: {
+        type: 'dial',
+        meshName: 'Spin3_Low_Material_0.001',
+        rotationAxis: { x: 1.00, y: 0.00, z: 0.00 },
+        sensitivity: 0.01,
+        action: 'adjustKnob3'
+      },
+      
+      knob4: {
+        type: 'dial',
+        meshName: 'Spin4_Low_Material_0.001',
+        rotationAxis: { x: 1.00, y: 0.00, z: 0.00 },
+        sensitivity: 0.01,
+        action: 'adjustKnob4'
+      },
+      
+      knob5: {
+        type: 'dial',
+        meshName: 'Spin5_Low_Material_0.001',
+        rotationAxis: { x: 1.00, y: 0.00, z: 0.00 },
+        sensitivity: 0.01,
+        action: 'adjustKnob5'
+      }
+    }
+  },
+  
+  // Machine 6: Radio Machine (SM_Radio4.001_primitive0)
+  'radio_machine_1': {
+    displayName: 'Radio Machine',
+    meshName: 'SM_Radio4.001_primitive0',
+    
+    // Camera lock-on position
+    cameraPosition: { x: -0.075, y: 2.106, z: 0.743 },
+    cameraRotation: { x: -0.010, y: 6.152, z: 0.000 },
+    
+    // Interactive elements on this machine
+    interactiveElements: {
+      button0: {
+        type: 'button',
+        meshName: 'SM_Radio4.button0.001',
+        pressOffset: { x: 0.000, y: 0.000, z: -0.002 },
+        action: 'radioButton0'
+      },
+      button1: {
+        type: 'button',
+        meshName: 'SM_Radio4.button1.001',
+        pressOffset: { x: 0.000, y: 0.000, z: -0.002 },
+        action: 'radioButton1'
+      },
+      button2: {
+        type: 'button',
+        meshName: 'SM_Radio4.button2.001',
+        pressOffset: { x: 0.000, y: 0.000, z: -0.002 },
+        action: 'radioButton2'
+      },
+      button3: {
+        type: 'button',
+        meshName: 'SM_Radio4.button3.001',
+        pressOffset: { x: 0.000, y: 0.000, z: -0.002 },
+        action: 'radioButton3'
+      },
+      button4: {
+        type: 'button',
+        meshName: 'SM_Radio4.button4.001',
+        pressOffset: { x: 0.000, y: 0.000, z: -0.002 },
+        action: 'radioButton4'
+      },
+      button5: {
+        type: 'button',
+        meshName: 'SM_Radio4.button5.001',
+        pressOffset: { x: 0.000, y: 0.000, z: -0.002 },
+        action: 'radioButton5'
+      },
+      button6: {
+        type: 'button',
+        meshName: 'SM_Radio4.button6.001',
+        pressOffset: { x: 0.000, y: 0.000, z: -0.002 },
+        action: 'radioButton6'
+      },
+      button7: {
+        type: 'button',
+        meshName: 'SM_Radio4.button7.001',
+        pressOffset: { x: 0.000, y: 0.000, z: -0.002 },
+        action: 'radioButton7'
+      },
+      button8: {
+        type: 'button',
+        meshName: 'SM_Radio4.button8.001',
+        pressOffset: { x: 0.000, y: 0.000, z: -0.002 },
+        action: 'radioButton8'
+      },
+      button9: {
+        type: 'button',
+        meshName: 'SM_Radio4.button9.001',
+        pressOffset: { x: 0.000, y: 0.000, z: -0.002 },
+        action: 'radioButton9'
+      }
+    }
+  },
+  
+  // Machine 7: Radio Machine (SM_Radio4.001_primitive1)
+  'radio_machine_2': {
+    displayName: 'Radio Machine',
+    meshName: 'SM_Radio4.001_primitive1',
+    
+    // Camera lock-on position (same as primitive0)
+    cameraPosition: { x: -0.075, y: 2.106, z: 0.743 },
+    cameraRotation: { x: -0.010, y: 6.152, z: 0.000 },
+    
+    // Interactive elements on this machine
+    interactiveElements: {}
+  },
+  
+  // Machine 8: Radio Machine (SM_Radio4_primitive0)
+  'radio_machine_3': {
+    displayName: 'Radio Machine',
+    meshName: 'SM_Radio4_primitive0',
+    
+    // Camera lock-on position (same as others)
+    cameraPosition: { x: -0.075, y: 2.106, z: 0.743 },
+    cameraRotation: { x: -0.010, y: 6.152, z: 0.000 },
+    
+    // Interactive elements on this machine
+    interactiveElements: {}
+  },
+  
+  // Machine 9: Radio Machine (SM_Radio4_primitive1)
+  'radio_machine_4': {
+    displayName: 'Radio Machine',
+    meshName: 'SM_Radio4_primitive1',
+    
+    // Camera lock-on position (same as others)
+    cameraPosition: { x: -0.075, y: 2.106, z: 0.743 },
+    cameraRotation: { x: -0.010, y: 6.152, z: 0.000 },
+    
+    // Interactive elements on this machine
+    interactiveElements: {}
+  },
 };
 
 /**

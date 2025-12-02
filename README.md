@@ -39,10 +39,13 @@ A 3D first-person spooky game built with Babylon.js. Features a dark atmospheric
 
 ### Interactive CRT Monitor System
 - **HTML Frame Rendering**: Renders HTML content onto 3D monitor mesh
+- **Boot Sequence Renderer**: Direct canvas rendering for authentic boot sequence display
+- **Device Tracking System**: Tracks completion status of interactive devices (equalizer, radio, power source)
 - **Keyboard Navigation**: Arrow keys/WASD to navigate, Enter to select
 - **Frame Transitions**: Navigate between different screens (main menu, game start, credits)
 - **Text Input Support**: Interactive forms with keyboard input
 - **M Key Toggle**: Activate/deactivate monitor interaction
+- **Debug Panel**: Visual alignment tool for GUI texture (G key to toggle)
 - **CRT Aesthetic**: Green-on-black terminal styling with emissive glow
 
 ### Spooky Atmosphere
@@ -94,6 +97,7 @@ npm run preview
 - **Escape**: Exit input mode
 - **Type**: Enter text in input fields
 - **M Key**: Deactivate monitor and return to normal controls
+- **G Key**: Toggle monitor debug panel for alignment (development tool)
 
 ### GUI Panels
 - **Object Palette** (Left): Create primitives (Box, Sphere, Cylinder, Cone, Plane, Torus), lights, and import GLTF models
@@ -192,17 +196,28 @@ spooky-game/
 │   │   ├── ObjectPalette.js        # Object creation UI
 │   │   ├── PropertyPanel.js        # Property editing UI
 │   │   ├── SceneHierarchy.js       # Scene tree view UI
-│   │   └── SettingsPanel.js        # Post-processing settings UI
+│   │   ├── SettingsPanel.js        # Post-processing settings UI
+│   │   └── HtmlMeshAlignPanel.js   # HTML mesh alignment tool
 │   ├── monitor/
 │   │   ├── MonitorController.js    # Interactive CRT monitor system
+│   │   ├── BootSequenceRenderer.js # Direct canvas boot sequence rendering
+│   │   ├── DeviceTracker.js        # Device completion tracking system
+│   │   ├── MonitorDebugPanel.js    # Visual GUI alignment debug tool
+│   │   ├── HtmlMeshMonitor.js      # HTML-to-texture rendering
 │   │   ├── frames/                 # HTML frame files
+│   │   │   ├── boot-sequence.html  # Boot sequence screen
 │   │   │   ├── main-menu.html      # Main menu screen
 │   │   │   ├── game-start.html     # Game start screen
 │   │   │   ├── credits.html        # Credits screen
 │   │   │   └── frames-config.json  # Frame configuration
+│   │   ├── IMPLEMENTATION_SUMMARY.md # Monitor implementation details
 │   │   └── README.md               # Monitor system documentation
-│   └── scene/
-│       └── ObjectFactory.js        # Centralized object creation
+│   ├── scene/
+│   │   └── ObjectFactory.js        # Centralized object creation
+│   └── story/
+│       ├── InteractionSystem.js    # Object interaction in play mode
+│       ├── InteractiveMachinesConfig.js # Machine configuration
+│       └── MachineInteractions.js  # Button/dial/switch interactions
 ├── docs/
 │   ├── PERFORMANCE.md              # Performance metrics and analysis
 │   ├── ARCHITECTURE.md             # System design documentation

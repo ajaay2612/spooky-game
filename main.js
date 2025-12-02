@@ -136,6 +136,20 @@ window.addEventListener('message', (event) => {
       console.warn('No scene or camera available');
     }
   }
+  
+  // Handle device unlock messages
+  if (event.data.type === 'unlockDevice') {
+    const deviceName = event.data.deviceName;
+    console.log('🔓🔓🔓 MAIN WINDOW RECEIVED UNLOCK REQUEST FOR:', deviceName);
+    
+    // Forward to MachineInteractions if available
+    if (machineInteractions) {
+      console.log('✅ Forwarding to machineInteractions.unlockDevice()');
+      machineInteractions.unlockDevice(deviceName);
+    } else {
+      console.error('❌ machineInteractions not available!');
+    }
+  }
 });
 
 let loadStartTime = Date.now();

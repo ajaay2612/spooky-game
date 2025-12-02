@@ -112,6 +112,9 @@
             margin-bottom: 8em;
             white-space: pre;
             letter-spacing: 0;
+            font-size: 0.34em;
+            margin-left: -3em;
+
         }
 
         .boot-text {
@@ -235,7 +238,7 @@
             left: 0;
             right: 0;
             z-index: 1000;
-            margin: 0 7em 6em;
+            margin: 0 6em 6em;
             border-bottom: 5px solid #7FB746;
         }
 
@@ -356,11 +359,19 @@
         .notification-popup-chat {
             font-size: 2.4em;
             padding: 3em 1.6em;
+            flex-grow: 1;
+            max-height: 60vh;
+            overflow: hidden;
+            position: relative;
+            line-height: 1.5em;
+        }
+        
+        .notification-popup-chat-content {
             display: flex;
             flex-direction: column;
             gap: 1.2em;
-            overflow-y: auto;
-            flex-grow: 1;
+            transition: transform 0.1s ease-out;
+            will-change: transform;
         }
 
         .notification-popup-chat .bot {
@@ -395,6 +406,7 @@
             position: absolute;
             left: 0;
             top: 0;
+            z-index:5000000;
             pointer-events: none;
         }
 
@@ -469,7 +481,7 @@
 
         .act-form-cont-2,
         .act-form-cont{
-            margin-bottom: 5em;
+            margin-bottom: 3em;
         }
 
         .act-form-cont-2 h1,
@@ -497,6 +509,36 @@
         .act-form-input-cont input:focus {
             outline: none;
             border-color: #A90000;
+        }
+
+        .input-box {
+            background: transparent;
+            border: 10px solid #A90000;
+            color: #7FB746;
+            font-family: inherit;
+            font-size: 2.5em;
+            height: 2em;
+            width: 1.8em;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .input-box.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0.5em;
+            width: 0.8em;
+            height: 0.15em;
+            background: #7FB746;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
         }
 
         /* Shake animation for wrong code */
@@ -642,6 +684,46 @@
             width: 48em;
         }
 
+        .virtual-keyboard {
+            margin-top: 2em;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8em;
+            font-size: 0.85em;
+        }
+
+        .keyboard-row {
+            display: flex;
+            gap: 0.8em;
+            justify-content: center;
+        }
+
+        .key {
+            background: transparent;
+            border: 5px solid #7FB746;
+            color: #7FB746;
+            font-family: inherit;
+            font-size: 2em;
+            width: 3em;
+            height: 2.5em;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .key:hover {
+            background: #7FB746;
+            color: #000;
+        }
+
+        .key:active {
+            transform: scale(0.95);
+        }
+
+        .initial-frame{
+            background: black;
+            z-index: 9999;
+            display: flex;
+        }
 
     </style>
 </head>
@@ -706,9 +788,6 @@
     <div class="status-bar">
         <div class="status-bar-button">
             <div class="status-text">[ ENCRYPTED COMMS ]</div>
-            <div class="status-indicator">
-                1
-            </div>
         </div>
     </div>
 
@@ -727,12 +806,12 @@
                 </div>
             </div>
 
-            <div class="notification-popup-chat">
-                <p class="bot">User &lt;???&gt;: Hello </p>
-                <p class="user">>> Hello</p>
+            <div class="notification-popup-chat" id="chatMessages">
+                <div class="notification-popup-chat-content" id="chatContent">
+                    <!-- Chat messages will be dynamically added here -->
+                </div>
             </div>
-            <div class="notification-popup-reply ">
-
+            <div class="notification-popup-reply" id="playerOptions">
                 <div class="notification-popup-reply-topline">
                     <svg width="483" height="6" viewBox="0 0 483 6" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <rect x="240" y="2" width="2" height="2" fill="#7FB746" />
@@ -744,17 +823,13 @@
                         <rect x="249" y="2" width="234" height="2" fill="#7FB746" />
                     </svg>
                 </div>
-
-                <p>THANK YOU FOR THE RIDE</p>
-                <p>THANK YOU FOR THE BALLOUT</p>
-                <p>THIS DOESNT CHANGE ANYTHING.</p>
-                <p>[ IGNORE HIM ]</p>
+                <!-- Player options will be dynamically added here -->
             </div>
         </div>
     </div>
 
     <!-- main exe -->
-    <div class="mainexe-popup" id="mainexePopup">
+    <div class="mainexe-popup hidden" id="mainexePopup">
         <div class="mainexe-popup-content">
             <div class="mainexe-popup-content-top-bar">
                 <p class="mainexe-popup-content-head">MAIN.EXE</p>
@@ -775,11 +850,34 @@
                     <h1>ENTER ACTIVATION CODE</h1>
 
                     <div class="act-form-input-cont">
-                        <input type="text" name="" id="">
-                        <input type="text" name="" id="">
-                        <input type="text" name="" id="">
-                        <input type="text" name="" id="">
-                        <input type="text" name="" id="">
+                        <div class="input-box"></div>
+                        <div class="input-box"></div>
+                        <div class="input-box"></div>
+                        <div class="input-box"></div>
+                        <div class="input-box"></div>
+                    </div>
+
+                    <div class="virtual-keyboard">
+                        <div class="keyboard-row">
+                            <button class="key" data-key="1">1</button>
+                            <button class="key" data-key="2">2</button>
+                            <button class="key" data-key="3">3</button>
+                        </div>
+                        <div class="keyboard-row">
+                            <button class="key" data-key="4">4</button>
+                            <button class="key" data-key="5">5</button>
+                            <button class="key" data-key="6">6</button>
+                        </div>
+                        <div class="keyboard-row">
+                            <button class="key" data-key="7">7</button>
+                            <button class="key" data-key="8">8</button>
+                            <button class="key" data-key="9">9</button>
+                        </div>
+                        <div class="keyboard-row">
+                            <button class="key key-clear" data-key="clear">AC</button>
+                            <button class="key" data-key="0">0</button>
+                            <button class="key key-backspace" data-key="backspace">←</button>
+                        </div>
                     </div>
 
                 </div>
@@ -897,10 +995,33 @@
                     <h1>ENTER ACTIVATION CODE</h1>
 
                     <div class="act-form-input-cont-2">
-                        <input type="text" name="" id="">
-                        <input type="text" name="" id="">
-                        <input type="text" name="" id="">
-                        <input type="text" name="" id="">
+                        <div class="input-box"></div>
+                        <div class="input-box"></div>
+                        <div class="input-box"></div>
+                        <div class="input-box"></div>
+                    </div>
+
+                    <div class="virtual-keyboard">
+                        <div class="keyboard-row">
+                            <button class="key" data-key="1">1</button>
+                            <button class="key" data-key="2">2</button>
+                            <button class="key" data-key="3">3</button>
+                        </div>
+                        <div class="keyboard-row">
+                            <button class="key" data-key="4">4</button>
+                            <button class="key" data-key="5">5</button>
+                            <button class="key" data-key="6">6</button>
+                        </div>
+                        <div class="keyboard-row">
+                            <button class="key" data-key="7">7</button>
+                            <button class="key" data-key="8">8</button>
+                            <button class="key" data-key="9">9</button>
+                        </div>
+                        <div class="keyboard-row">
+                            <button class="key key-clear" data-key="clear">AC</button>
+                            <button class="key" data-key="0">0</button>
+                            <button class="key key-backspace" data-key="backspace">←</button>
+                        </div>
                     </div>
 
                 </div>
@@ -925,16 +1046,18 @@
                 </div>
                 <div class="mainGame-svg">
                     <svg viewBox="0 0 330 330" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M164.377 208.604L131.683 151.915L197.071 151.915L164.377 208.604Z" fill="#A90000"/>
-                        <path d="M197.071 151.907L131.683 151.907L83.2952 68.0078L148.684 68.0078L197.071 151.907Z" fill="#7FB746"/>
-                        <path d="M164.377 208.602L197.071 151.913L295 151.913L262.306 208.602L164.377 208.602Z" fill="#A90000"/>
-                        <path d="M164.377 208.604L131.683 151.915M164.377 208.604L197.071 151.915M164.377 208.604L262.306 208.604L295 151.915L197.071 151.915M164.377 208.604L115.694 293.016L83 236.327L131.683 151.915M131.683 151.915L197.071 151.915M131.683 151.915L83.2952 68.0156L148.684 68.0156L197.071 151.915M131.683 151.905L197.071 151.905L148.684 68.0052M131.683 151.907L197.071 151.907L148.684 68.0078L83.2952 68.0078L131.683 151.907ZM197.071 151.913L164.377 208.602L262.306 208.602L295 151.913L197.071 151.913Z" stroke="#A90000" stroke-dasharray="4 4"/>
-                        <path d="M144.148 158.766H184.852L164.5 194.017L144.148 158.766Z" stroke="#FF0000" stroke-width="3"/>
-                        <path d="M150.211 162.266H178.791L164.501 187.016L150.211 162.266Z" fill="#A90000" stroke="#FF0000"/>
-                        <rect x="266" y="209.172" width="66" height="20" transform="rotate(-60 266 209.172)" fill="#A90000"/>
-                        <path d="M208.595 183.489V185.008H204.038V183.489H208.595ZM208.595 174.375V175.894H204.038V174.375H208.595ZM210.114 177.413H208.595V175.894H210.114V177.413ZM210.114 181.97V183.489H208.595V181.97H210.114ZM202.519 183.489V175.894H204.038V183.489H202.519ZM217.284 183.489V185.008H212.727V183.489H217.284ZM218.803 183.489H217.284V175.894H218.803V183.489ZM217.284 174.375V175.894H212.727V174.375H217.284ZM211.208 175.894H212.727V183.489H211.208V175.894ZM225.973 183.489H227.492V185.008H225.973V183.489ZM225.973 174.375V175.894H221.416V178.932H225.973V180.451H224.454V181.97H222.935V180.451H221.416V185.008H219.897V174.375H225.973ZM224.454 183.489V181.97H225.973V183.489H224.454ZM227.492 175.894V178.932H225.973V175.894H227.492ZM234.662 180.451H230.104V183.489H236.181V185.008H228.585V174.375H236.181V175.894H230.104V178.932H234.662V180.451ZM252.039 174.375V175.894H247.482V174.375H252.039ZM245.963 185.008V181.97H247.482V183.489H253.558V185.008H245.963ZM249.001 180.451V181.97H247.482V180.451H249.001ZM253.558 175.894V178.932H252.039V175.894H253.558ZM249.001 178.932H252.039V180.451H249.001V178.932ZM245.963 175.894H247.482V177.413H245.963V175.894Z" fill="white"/>
+                        <path d="M164.385 208.62L131.691 151.931L197.079 151.931L164.385 208.62Z" fill="#A90000"/>
+                        <path d="M197.079 151.923L131.691 151.923L83.303 68.0234L148.692 68.0234L197.079 151.923Z" fill="#7FB746"/>
+                        <path d="M164.385 208.609L197.079 151.92L295.008 151.92L262.313 208.609L164.385 208.609Z" fill="#7FB746"/>
+                        <path d="M131.691 151.931L164.385 208.62L115.702 293.031L83.0078 236.342L131.691 151.931Z" fill="#A90000"/>
+                        <path d="M164.385 208.62L131.691 151.931M164.385 208.62L197.079 151.931M164.385 208.62L262.313 208.62L295.008 151.931L197.079 151.931M164.385 208.62L115.702 293.031L83.0078 236.342L131.691 151.931M131.691 151.931L197.079 151.931M131.691 151.931L83.303 68.0312L148.692 68.0312L197.079 151.931M131.691 151.923L197.079 151.923M131.691 151.923L83.303 68.0234L148.692 68.0234L197.079 151.923M131.691 151.923L197.077 151.923M197.079 151.923H197.077M197.079 151.92L164.385 208.609M197.079 151.92L295.008 151.92L262.313 208.609L164.385 208.609M197.079 151.92L131.691 151.92M197.079 151.92L148.692 68.0208M197.079 151.92L197.077 151.923M164.385 208.609L197.077 151.923" stroke="#A90000" stroke-dasharray="4 4"/>
+                        <path d="M144.156 158.781H184.859L164.508 194.032L144.156 158.781Z" stroke="#FF0000" stroke-width="3"/>
+                        <path d="M150.219 162.281H178.799L164.509 187.031L150.219 162.281Z" fill="#A90000" stroke="#FF0000"/>
+                        <rect x="80.3242" y="238.008" width="66" height="20" transform="rotate(60 80.3242 238.008)" fill="#A90000"/>
+                        <path d="M208.603 183.504V185.023H204.046V183.504H208.603ZM208.603 174.39V175.909H204.046V174.39H208.603ZM210.122 177.428H208.603V175.909H210.122V177.428ZM210.122 181.985V183.504H208.603V181.985H210.122ZM202.527 183.504V175.909H204.046V183.504H202.527ZM217.292 183.504V185.023H212.735V183.504H217.292ZM218.811 183.504H217.292V175.909H218.811V183.504ZM217.292 174.39V175.909H212.735V174.39H217.292ZM211.216 175.909H212.735V183.504H211.216V175.909ZM225.981 183.504H227.5V185.023H225.981V183.504ZM225.981 174.39V175.909H221.423V178.947H225.981V180.466H224.462V181.985H222.942V180.466H221.423V185.023H219.904V174.39H225.981ZM224.462 183.504V181.985H225.981V183.504H224.462ZM227.5 175.909V178.947H225.981V175.909H227.5ZM234.669 180.466H230.112V183.504H236.188V185.023H228.593V174.39H236.188V175.909H230.112V178.947H234.669V180.466ZM252.047 174.39V175.909H247.49V174.39H252.047ZM245.971 185.023V181.985H247.49V183.504H253.566V185.023H245.971ZM249.009 180.466V181.985H247.49V180.466H249.009ZM253.566 175.909V178.947H252.047V175.909H253.566ZM249.009 178.947H252.047V180.466H249.009V178.947ZM245.971 175.909H247.49V177.428H245.971V175.909Z" fill="white"/>
+                        <path d="M106.595 221.489V223.008H102.038V221.489H106.595ZM106.595 212.375V213.894H102.038V212.375H106.595ZM108.114 215.413H106.595V213.894H108.114V215.413ZM108.114 219.97V221.489H106.595V219.97H108.114ZM100.519 221.489V213.894H102.038V221.489H100.519ZM115.284 221.489V223.008H110.727V221.489H115.284ZM116.803 221.489H115.284V213.894H116.803V221.489ZM115.284 212.375V213.894H110.727V212.375H115.284ZM109.208 213.894H110.727V221.489H109.208V213.894ZM123.973 221.489H125.492V223.008H123.973V221.489ZM123.973 212.375V213.894H119.416V216.932H123.973V218.451H122.454V219.97H120.935V218.451H119.416V223.008H117.897V212.375H123.973ZM122.454 221.489V219.97H123.973V221.489H122.454ZM125.492 213.894V216.932H123.973V213.894H125.492ZM132.662 218.451H128.104V221.489H134.181V223.008H126.585V212.375H134.181V213.894H128.104V216.932H132.662V218.451ZM150.039 221.489V218.451H151.558V221.489H150.039ZM151.558 215.413H150.039V213.894H143.963V212.375H151.558V215.413ZM147.001 218.451V216.932H148.52V215.413H150.039V218.451H147.001ZM145.482 223.008V221.489H150.039V223.008H145.482ZM143.963 221.489V219.97H145.482V221.489H143.963Z" fill="white"/>
                         <path d="M122.595 115.481V117H118.038V115.481H122.595ZM122.595 106.367V107.886H118.038V106.367H122.595ZM124.114 109.405H122.595V107.886H124.114V109.405ZM124.114 113.962V115.481H122.595V113.962H124.114ZM116.519 115.481V107.886H118.038V115.481H116.519ZM131.284 115.481V117H126.727V115.481H131.284ZM132.803 115.481H131.284V107.886H132.803V115.481ZM131.284 106.367V107.886H126.727V106.367H131.284ZM125.208 107.886H126.727V115.481H125.208V107.886ZM139.973 115.481H141.492V117H139.973V115.481ZM139.973 106.367V107.886H135.416V110.924H139.973V112.443H138.454V113.962H136.935V112.443H135.416V117H133.897V106.367H139.973ZM138.454 115.481V113.962H139.973V115.481H138.454ZM141.492 107.886V110.924H139.973V107.886H141.492ZM148.662 112.443H144.104V115.481H150.181V117H142.585V106.367H150.181V107.886H144.104V110.924H148.662V112.443ZM166.039 115.481V117H161.482V115.481H163.001V109.405H161.482V107.886H163.001V106.367H164.52V115.481H166.039Z" fill="white"/>
-                        <path d="M285.841 199.17L286.815 199.732L284.002 204.604L277.182 200.666L277.745 199.692L283.591 203.067L285.841 199.17ZM288.496 194.571L289.47 195.134L287.782 198.057L286.808 197.494L288.496 194.571ZM289.058 193.597L288.496 194.571L283.624 191.759L284.187 190.785L289.058 193.597ZM282.65 191.196L283.624 191.759L281.937 194.682L280.962 194.119L282.65 191.196ZM281.374 195.656L281.937 194.682L286.808 197.494L286.246 198.468L281.374 195.656ZM291.713 188.998L292.687 189.561L291 192.484L290.026 191.921L291.713 188.998ZM285.867 185.623L286.842 186.186L285.154 189.109L284.18 188.546L285.867 185.623ZM288.379 185.774L287.816 186.748L286.842 186.186L287.404 185.212L288.379 185.774ZM291.301 187.462L292.276 188.024L291.713 188.998L290.739 188.436L291.301 187.462ZM289.463 192.896L284.592 190.083L285.154 189.109L290.026 191.921L289.463 192.896ZM294.931 183.426L295.493 182.451L296.467 183.014L295.905 183.988L294.931 183.426ZM291.857 184.249L292.42 183.275L293.394 183.837L292.831 184.812L291.857 184.249ZM294.217 186.911L293.655 187.885L286.835 183.948L287.397 182.973L290.32 184.661L290.883 183.687L291.857 184.249L291.295 185.223L294.217 186.911ZM289.909 183.124L290.471 182.15L291.445 182.712L290.883 183.687L289.909 183.124ZM290.622 179.639L290.059 180.613L289.085 180.051L289.647 179.076L290.622 179.639ZM291.034 181.176L290.471 182.15L289.497 181.587L290.059 180.613L291.034 181.176ZM293.394 183.837L293.956 182.863L294.931 183.426L294.368 184.4L293.394 183.837ZM296.2 176.728L294.512 179.651L296.461 180.776L298.711 176.878L299.685 177.441L296.872 182.312L290.052 178.375L292.865 173.503L293.839 174.066L291.589 177.963L293.538 179.088L295.225 176.165L296.2 176.728ZM301.366 172.28L302.34 172.842L300.09 176.739L293.27 172.802L295.52 168.905L296.494 169.467L294.807 172.39L299.678 175.203L301.366 172.28ZM301.928 171.306L301.366 172.28L296.494 169.467L297.057 168.493L301.928 171.306Z" fill="white"/>
+                        <path d="M78.7258 261.338L77.7515 261.9L74.939 257.029L81.7589 253.091L82.3214 254.066L76.4758 257.441L78.7258 261.338ZM81.3808 265.936L80.4065 266.499L78.719 263.576L79.6933 263.014L81.3808 265.936ZM81.9433 266.911L81.3808 265.936L86.2522 263.124L86.8147 264.098L81.9433 266.911ZM87.2264 262.561L86.2522 263.124L84.5647 260.201L85.5389 259.639L87.2264 262.561ZM84.0022 259.227L84.5647 260.201L79.6933 263.014L79.1308 262.039L84.0022 259.227ZM84.5983 271.509L83.624 272.072L81.9365 269.149L82.9108 268.586L84.5983 271.509ZM90.4439 268.134L89.4697 268.697L87.7822 265.774L88.7564 265.211L90.4439 268.134ZM89.0579 270.234L88.4954 269.259L89.4697 268.697L90.0322 269.671L89.0579 270.234ZM86.135 271.921L85.1608 272.484L84.5983 271.509L85.5725 270.947L86.135 271.921ZM82.3483 267.612L87.2197 264.8L87.7822 265.774L82.9108 268.586L82.3483 267.612ZM87.8158 277.082L88.3783 278.056L87.404 278.619L86.8415 277.645L87.8158 277.082ZM88.6393 274.009L89.2018 274.983L88.2275 275.545L87.665 274.571L88.6393 274.009ZM85.154 274.722L84.5915 273.748L91.4114 269.81L91.9739 270.784L89.0511 272.472L89.6136 273.446L88.6393 274.009L88.0768 273.034L85.154 274.722ZM90.5879 272.884L91.1504 273.858L90.1761 274.42L89.6136 273.446L90.5879 272.884ZM93.2497 275.244L92.6872 274.27L93.6614 273.707L94.2239 274.681L93.2497 275.244ZM91.7129 274.832L91.1504 273.858L92.1247 273.295L92.6872 274.27L91.7129 274.832ZM88.2275 275.545L88.79 276.52L87.8158 277.082L87.2533 276.108L88.2275 275.545ZM92.9818 281.53L91.2943 278.607L89.3458 279.732L91.5958 283.629L90.6215 284.192L87.809 279.32L94.6289 275.383L97.4414 280.254L96.4672 280.817L94.2172 276.92L92.2686 278.045L93.9561 280.968L92.9818 281.53ZM94.2508 288.228L93.2765 288.79L91.0265 284.893L97.8464 280.956L100.096 284.853L99.1222 285.415L97.4347 282.493L92.5633 285.305L94.2508 288.228ZM94.8133 289.202L94.2508 288.228L99.1222 285.415L99.6847 286.39L94.8133 289.202Z" fill="white"/>
                     </svg>
                 </div>
                 <div class="asthetic-left-svg">
@@ -946,19 +1069,21 @@
                         <rect x="79" y="62" width="2" height="2" fill="#7FB746"/>
                         <rect y="58" width="73" height="6" fill="#7FB746"/>
                         <rect x="0.25" y="26.0938" width="20.3451" height="20.3451" stroke="#7FB746" stroke-width="0.5"/>
+                        <path d="M8.4445 37.373H9.06519V36.7444H8.4445V37.373ZM7.82381 36.1158V36.7444H8.4445V36.1158H13.2031V35.4873H8.4445V34.8587H7.82381V35.4873H7.20312V36.1158H7.82381ZM9.06519 37.373V38.0016H9.68588V37.373H9.06519ZM9.06519 33.6016V34.2301H9.68588V33.6016H9.06519ZM9.06519 34.8587V34.2301H8.4445V34.8587H9.06519Z" fill="white"/>
+                        <path d="M63.7586 8.63482H63.1379V9.26339H63.7586V8.63482ZM64.3793 9.89196V9.26339H63.7586V9.89196H59V10.5205H63.7586V11.1491H64.3793V10.5205H65V9.89196H64.3793ZM63.1379 8.63482V8.00625H62.5172V8.63482H63.1379ZM63.1379 12.4062V11.7777H62.5172V12.4062H63.1379ZM63.1379 11.1491V11.7777H63.7586V11.1491H63.1379Z" fill="white"/>
                         <rect x="26.0938" y="26.0938" width="20.3451" height="20.3451" stroke="#7FB746" stroke-width="0.5"/>
                         <rect x="51.9375" y="26.0938" width="20.3451" height="20.3451" stroke="#7FB746" stroke-width="0.5"/>
                         <rect x="0.25" y="0.25" width="20.3451" height="20.3451" stroke="#7FB746" stroke-width="0.5"/>
                         <path d="M10 4.5C13.0376 4.5 15.5 6.96243 15.5 10C15.5 13.0376 13.0376 15.5 10 15.5C6.96243 15.5 4.5 13.0376 4.5 10C4.5 6.96243 6.96243 4.5 10 4.5Z" fill="#7FB746" stroke="#7FB746"/>
+                        <path d="M62 30.5C65.0376 30.5 67.5 32.9624 67.5 36C67.5 39.0376 65.0376 41.5 62 41.5C58.9624 41.5 56.5 39.0376 56.5 36C56.5 32.9624 58.9624 30.5 62 30.5Z" fill="#7FB746" stroke="#7FB746"/>
+                        <path d="M36 30.5C39.0376 30.5 41.5 32.9624 41.5 36C41.5 39.0376 39.0376 41.5 36 41.5C32.9624 41.5 30.5 39.0376 30.5 36C30.5 32.9624 32.9624 30.5 36 30.5Z" stroke="white"/>
                         <rect x="26.0938" y="0.25" width="20.3451" height="20.3451" stroke="#7FB746" stroke-width="0.5"/>
                         <rect x="51.9375" y="0.25" width="20.3451" height="20.3451" stroke="#7FB746" stroke-width="0.5"/>
-                        <rect x="31" y="31" width="10" height="10" fill="#7FB746"/>
-                        <path d="M62 4.5C65.0376 4.5 67.5 6.96243 67.5 10C67.5 13.0376 65.0376 15.5 62 15.5C58.9624 15.5 56.5 13.0376 56.5 10C56.5 6.96243 58.9624 4.5 62 4.5Z" fill="white" stroke="white"/>
                     </svg>
                 </div>
             </div>
 
-            <div class="mainexe-frame6 power-source-fix-cont">
+            <div class="mainexe-frame6 power-source-fix-cont hidden">
                 <div class="">
                     
                     <div class="warning-icon">
@@ -1465,17 +1590,17 @@
     </div>
 
 
-    <!-- <div class="container bootSeqSpecific flexInCol frame1" id="frame1">
-      <div class="logo">
- ::::::::   ::::::::  ::::    ::: ::::::::::: :::     ::::::::::: ::::    ::: ::::    ::::  :::::::::: ::::    ::: ::::::::::: 
-:+:    :+: :+:    :+: :+:+:   :+:     :+:   :+: :+:       :+:     :+:+:   :+: +:+:+: :+:+:+ :+:        :+:+:   :+:     :+:     
-+:+        +:+    +:+ :+:+:+  +:+     +:+  +:+   +:+      +:+     :+:+:+  +:+ +:+ +:+:+ +:+ +:+        :+:+:+  +:+     +:+     
-+#+        +#+    +:+ +#+ +:+ +#+     +#+ +#++:++#++:     +#+     +#+ +:+ +#+ +#+  +:+  +#+ +#++:++#   +#+ +:+ +#+     +#+     
-+#+        +#+    +#+ +#+  +#+#+#     +#+ +#+     +#+     +#+     +#+  +#+#+# +#+       +#+ +#+        +#+  +#+#+#     +#+     
-#+#    #+# #+#    #+# #+#   #+#+#     #+# #+#     #+#     #+#     #+#   #+#+# #+#       #+# #+#        #+#   #+#+#     #+#     
- ########   ########  ###    ####     ### ###     ### ########### ###    #### ###       ### ########## ###    ####     ###
-      </div>
-      <div class="boot-text">
+    <div class="initial-frame container bootSeqSpecific flexInCol frame1" id="frame1">
+    <div class="boot-text">
+          <div class="logo">
+     ::::::::   ::::::::  ::::    ::: ::::::::::: :::     ::::::::::: ::::    ::: ::::    ::::  :::::::::: ::::    ::: ::::::::::: 
+    :+:    :+: :+:    :+: :+:+:   :+:     :+:   :+: :+:       :+:     :+:+:   :+: +:+:+: :+:+:+ :+:        :+:+:   :+:     :+:     
+    +:+        +:+    +:+ :+:+:+  +:+     +:+  +:+   +:+      +:+     :+:+:+  +:+ +:+ +:+:+ +:+ +:+        :+:+:+  +:+     +:+     
+    +#+        +#+    +:+ +#+ +:+ +#+     +#+ +#++:++#++:     +#+     +#+ +:+ +#+ +#+  +:+  +#+ +#++:++#   +#+ +:+ +#+     +#+     
+    +#+        +#+    +#+ +#+  +#+#+#     +#+ +#+     +#+     +#+     +#+  +#+#+# +#+       +#+ +#+        +#+  +#+#+#     +#+     
+    #+#    #+# #+#    #+# #+#   #+#+#     #+# #+#     #+#     #+#     #+#   #+#+# #+#       #+# #+#        #+#   #+#+#     #+#     
+     ########   ########  ###    ####     ### ###     ### ########### ###    #### ###       ### ########## ###    ####     ###
+          </div>
         <div class="copyright lowLineHeight">Copyright (c) Black Nova Enterprises</div>
         <div class="kernel lowLineHeight">Kernel Version 0.0.3: ghost:xnu-0000.00~1/RELEASE_X86_64</div>
         <div class="boot-line lowLineHeight">Secured boot checkin...</div>
@@ -1489,7 +1614,7 @@
         <div class="boot-line lowLineHeight" style="margin-top: 1.1em;">Initializing bootloader........... [ OK ]</div>
         <div class="boot-line lowLineHeight">CPU neural layer warmup........... [ OK ]</div>
       </div>
-  </div> -->
+  </div>
 
     <div class="container frame2" id="frame2">
         <div class="homescreen">
@@ -1554,17 +1679,80 @@
     </div>
 
     <script>
-        // Frame switching logic
-        // (function() {
-        //   const frame1 = document.getElementById('frame1');
-        //   const frame2 = document.getElementById('frame2');
-
-        //   // Show frame1 for 2 seconds, then switch to frame2
-        //   setTimeout(function() {
-        //     frame1.classList.add('hidden');
-        //     frame2.classList.remove('hidden');
-        //   }, 2000); // 2000ms = 2 seconds
-        // })();
+        // Boot sequence animation - scrolling from bottom
+        (function() {
+          const frame1 = document.getElementById('frame1');
+          const frame2 = document.getElementById('frame2');
+          const bootTextContainer = frame1.querySelector('.boot-text');
+          
+          // Get all elements in order
+          const logo = frame1.querySelector('.logo');
+          const copyright = frame1.querySelector('.copyright');
+          const kernel = frame1.querySelector('.kernel');
+          const bootLines = frame1.querySelectorAll('.boot-line');
+          
+          // Create array of all elements in display order
+          const allElements = [logo, copyright, kernel, ...Array.from(bootLines)];
+          
+          // Hide all elements initially
+          allElements.forEach(el => el.style.display = 'none');
+          
+          // Set container to scroll from bottom
+          bootTextContainer.style.display = 'flex';
+          bootTextContainer.style.flexDirection = 'column';
+          bootTextContainer.style.justifyContent = 'flex-end';
+          bootTextContainer.style.overflow = 'hidden';
+          bootTextContainer.style.height = '100%';
+          
+          // Animation sequence
+          async function playBootSequence() {
+            // Show elements one by one from bottom
+            for (let i = 0; i < allElements.length; i++) {
+              const element = allElements[i];
+              element.style.display = 'block';
+              element.style.opacity = '0';
+              
+              // Fade in
+              await new Promise(resolve => {
+                requestAnimationFrame(() => {
+                  element.style.transition = 'opacity 10ms ease-in';
+                  element.style.opacity = '1';
+                  setTimeout(resolve, 10);
+                });
+              });
+              
+              // Delay between lines (very fast)
+              if (i === 0) {
+                await delay(50); // After logo
+              } else if (i === 1 || i === 2) {
+                await delay(20); // After copyright/kernel
+              } else {
+                await delay(30); // Between boot lines
+              }
+            }
+            
+            // Wait a bit then switch to frame2
+            await delay(300);
+            frame1.classList.add('hidden');
+            frame2.classList.remove('hidden');
+            
+            // Auto-click status bar button after 1500ms
+            setTimeout(() => {
+              const statusBarButton = document.querySelector('.status-bar-button');
+              if (statusBarButton) {
+                console.log('Auto-clicking status bar button after boot sequence');
+                statusBarButton.click();
+              }
+            }, 1500);
+          }
+          
+          function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+          }
+          
+          // Start boot sequence
+          playBootSequence();
+        })();
 
         // Custom cursor logic with postMessage support
         (function () {
@@ -1586,6 +1774,56 @@
                             cursorMain.style.left = currentX + 'px';
                             cursorMain.style.top = currentY + 'px';
                         }
+                    } else if (event.data.type === 'wheel') {
+                        // Handle wheel/scroll event
+                        const x = event.data.x;
+                        const y = event.data.y;
+                        const deltaY = event.data.deltaY;
+                        
+                        console.log('=== WHEEL EVENT RECEIVED ===');
+                        console.log('Position:', x, y, 'deltaY:', deltaY);
+                        
+                        // Get element at cursor position
+                        if (cursorMain) cursorMain.style.pointerEvents = 'none';
+                        let elementAtCursor = document.elementFromPoint(x, y);
+                        console.log('Element at cursor:', elementAtCursor);
+                        
+                        if (elementAtCursor) {
+                            // Check if we're inside the notification popup chat
+                            const chatElement = elementAtCursor.closest('.notification-popup-chat');
+                            
+                            if (chatElement && window.getChatScrollData && window.setChatScroll) {
+                                console.log('Custom scrolling chat');
+                                
+                                const scrollData = window.getChatScrollData();
+                                const containerHeight = scrollData.container.clientHeight;
+                                const contentHeight = scrollData.content.scrollHeight;
+                                const maxScroll = Math.max(0, contentHeight - containerHeight + 200); // Add 200px extra offset
+                                
+                                console.log('Container height:', containerHeight);
+                                console.log('Content height:', contentHeight);
+                                console.log('Max scroll:', maxScroll);
+                                console.log('Current offset:', scrollData.offset);
+                                
+                                // Apply scroll delta
+                                let newOffset = scrollData.offset + deltaY;
+                                
+                                // Clamp to bounds
+                                newOffset = Math.max(0, Math.min(newOffset, maxScroll));
+                                
+                                console.log('New offset:', newOffset);
+                                
+                                // Apply transform via global function
+                                window.setChatScroll(newOffset);
+                                
+                                // Request immediate texture capture after scroll
+                                window.parent.postMessage({ type: 'requestCapture' }, '*');
+                            } else {
+                                console.log('Not inside chat element, ignoring scroll');
+                            }
+                        } else {
+                            console.log('No element at cursor position');
+                        }
                     } else if (event.data.type === 'click') {
                     // Handle click at the specified coordinates
                     currentX = event.data.x;
@@ -1598,6 +1836,8 @@
                     let elementAtCursor = document.elementFromPoint(currentX, currentY);
                     
                     console.log('Element at cursor:', elementAtCursor);
+                    console.log('Element tagName:', elementAtCursor ? elementAtCursor.tagName : 'null');
+                    console.log('Element classList:', elementAtCursor ? elementAtCursor.classList : 'null');
                     
                     if (elementAtCursor) {
                         // Find the closest clickable element (with click handler or interactive element)
@@ -1605,6 +1845,13 @@
                         
                         // Walk up the DOM tree to find an element with a click listener or interactive class
                         while (clickableElement && clickableElement !== document.body) {
+                            // Check if this is a reply option (p tag inside notification-popup-reply)
+                            if (clickableElement.tagName === 'P' && 
+                                clickableElement.closest('.notification-popup-reply')) {
+                                console.log('Found reply option, dispatching click directly');
+                                break;
+                            }
+                            
                             // Check if this element or its parent has click handlers
                             if (clickableElement.onclick || 
                                 clickableElement.classList.contains('status-bar-button') ||
@@ -1619,9 +1866,44 @@
                         
                         console.log('Clickable element found:', clickableElement);
                         
+                        // Don't dispatch click if clicking on close button or status bar button
+                        if (elementAtCursor.closest('.notification-popup-content-close') ||
+                            clickableElement.classList.contains('notification-popup-content-close') ||
+                            elementAtCursor.closest('.status-bar-button') ||
+                            clickableElement.classList.contains('status-bar-button')) {
+                            console.log('Close/Status button clicked - not dispatching to other elements');
+                            return;
+                        }
+                        
+                        // Don't dispatch click to popup background if clicking on reply options or chat
+                        if (clickableElement.classList.contains('notification-popup') && 
+                            (elementAtCursor.closest('.notification-popup-reply') || 
+                             elementAtCursor.closest('.notification-popup-chat'))) {
+                            console.log('Ignoring popup background click - clicking inside popup content');
+                            return;
+                        }
+                        
+                        // Only dispatch click to reply options if popup is visible
+                        const notificationPopup = document.getElementById('notificationPopup');
+                        if (clickableElement.tagName === 'P' && 
+                            clickableElement.closest('.notification-popup-reply')) {
+                            if (notificationPopup && notificationPopup.classList.contains('hidden')) {
+                                console.log('Popup is hidden, not dispatching click to reply option');
+                                return;
+                            }
+                        }
+                        
+                        // Check if clicking on Core1 puzzle SVG - let native handlers work
+                        const core1Svg = elementAtCursor.closest('.core1exe-frame1 svg');
+                        if (core1Svg) {
+                            console.log('Core1 puzzle SVG clicked - native handler will handle it');
+                            // Don't dispatch, the hitbox addEventListener will handle it
+                            return;
+                        }
+                        
                         // Create and dispatch a proper click event
                         const clickEvent = new MouseEvent('click', {
-                            bubbles: true,
+                            bubbles: false,  // Don't bubble to prevent hitting popup background
                             cancelable: true,
                             view: window,
                             clientX: currentX,
@@ -1662,26 +1944,549 @@
             if (statusBarButton) {
                 statusBarButton.addEventListener('click', function () {
                     notificationPopup.classList.remove('hidden');
+                    // Recapture canvas in monitor
+                    if (window.parent) {
+                        window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                    }
                 });
             }
 
             // Hide popup when close button is clicked
             if (closeButton) {
                 closeButton.addEventListener('click', function (e) {
-                    e.stopPropagation(); // Prevent event from bubbling to parent
+                    e.stopPropagation();
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    console.log('Close button clicked - stopping all propagation');
                     notificationPopup.classList.add('hidden');
-                });
+                    // Recapture canvas in monitor
+                    if (window.parent) {
+                        window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                    }
+                }, true); // Use capture phase
             }
 
             // Hide popup when clicking on the popup background (but not children)
             if (notificationPopup) {
                 notificationPopup.addEventListener('click', function (e) {
+                    // Don't close if clicking on reply options or chat area
+                    if (e.target.closest('.notification-popup-reply') || 
+                        e.target.closest('.notification-popup-chat')) {
+                        return;
+                    }
+                    
                     // Only close if clicking directly on the popup (not its children)
                     if (e.target === notificationPopup) {
                         notificationPopup.classList.add('hidden');
+                        // Recapture canvas in monitor
+                        if (window.parent) {
+                            window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                        }
                     }
                 });
             }
+        })();
+
+    </script>
+
+    <script>
+        // Device Tracking System
+        window.deviceTracker = {
+            devices: {
+                equalizer_game: false,
+                military_radio: false,
+                power_source: false,
+                aftercore1: false,
+                aftercore2: false,
+                aftercore3: false
+            },
+            isPowerAvailable: false,
+            
+            completeDevice(deviceName) {
+                if (this.devices.hasOwnProperty(deviceName)) {
+                    console.log(`Device completed: ${deviceName}`);
+                    this.devices[deviceName] = true;
+                    
+                    if (deviceName === 'power_source') {
+                        this.isPowerAvailable = true;
+                        console.log('Power is now available');
+                    }
+                    
+                    // Wait for complete popup to hide before opening notification
+                    const waitForCompletePopup = () => {
+                        const completePopup = document.getElementById('completePopup');
+                        if (completePopup && !completePopup.classList.contains('hidden')) {
+                            // Complete popup is visible, wait 300ms and check again
+                            setTimeout(waitForCompletePopup, 300);
+                        } else {
+                            // Complete popup is hidden, wait an additional 500ms to ensure it's fully gone
+                            setTimeout(async () => {
+                                // Re-render conversation first to ensure options are ready
+                                if (window.renderConversation) {
+                                    await window.renderConversation();
+                                }
+                                
+                                // Then open notification after a small delay
+                                setTimeout(() => {
+                                    const notificationPopup = document.getElementById('notificationPopup');
+                                    if (notificationPopup && notificationPopup.classList.contains('hidden')) {
+                                        notificationPopup.classList.remove('hidden');
+                                        console.log('Chat auto-opened for device:', deviceName);
+                                        
+                                        // Scroll to bottom when notification opens
+                                        if (window.scrollToBottom) {
+                                            window.scrollToBottom();
+                                        }
+                                        
+                                        // Recapture canvas after scrolling
+                                        setTimeout(() => {
+                                            if (window.parent) {
+                                                window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                                            }
+                                        }, 100);
+                                    }
+                                }, 200);
+                            }, 500);
+                        }
+                    };
+                    
+                    // Start waiting
+                    waitForCompletePopup();
+                }
+            },
+            
+            isDeviceComplete(deviceName) {
+                return this.devices[deviceName] === true;
+            }
+        };
+        
+        // Listen for device completion messages from parent window
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'deviceComplete') {
+                const deviceName = event.data.deviceName;
+                window.deviceTracker.completeDevice(deviceName);
+            }
+        });
+
+        // Conversation System
+        (function() {
+            let currentConvoIndex = 0;
+            const chatMessagesContainer = document.getElementById('chatMessages');
+            const chatContent = document.getElementById('chatContent');
+            const playerOptionsContainer = document.getElementById('playerOptions');
+            let scrollOffset = 0; // Custom scroll position
+            let isRendering = false; // Prevent concurrent renders
+            
+            // Make renderConversation globally accessible for device tracker
+            window.renderConversation = null;
+            
+            // Make scroll functions globally accessible for wheel handler
+            window.chatScrollOffset = 0;
+            window.getChatScrollData = function() {
+                return {
+                    container: chatMessagesContainer,
+                    content: chatContent,
+                    offset: scrollOffset
+                };
+            };
+            window.setChatScroll = function(newOffset) {
+                scrollOffset = newOffset;
+                applyScroll();
+            };
+            
+            async function renderConversation() {
+                if (!window.chatConvo || !window.chatConvo.conversations) return;
+                
+                // Make globally accessible
+                window.renderConversation = renderConversation;
+                
+                // Prevent concurrent renders
+                if (isRendering) {
+                    console.log('Already rendering, skipping');
+                    return;
+                }
+                isRendering = true;
+                
+                // Clear chat content
+                chatContent.innerHTML = '';
+                
+                // Render all previous conversations (completed ones instantly)
+                for (let i = 0; i < currentConvoIndex; i++) {
+                    const convo = window.chatConvo.conversations[i];
+                    if (!convo) break;
+                    
+                    // Add entity messages instantly for previous conversations
+                    convo.entity.forEach(line => {
+                        const botMsg = document.createElement('p');
+                        botMsg.className = 'bot';
+                        botMsg.textContent = 'User <???>: ' + line;
+                        chatContent.appendChild(botMsg);
+                    });
+                    
+                    // Add player response if chosen
+                    if (convo.userResponseIndex !== null) {
+                        const playerMsg = document.createElement('p');
+                        playerMsg.className = 'user';
+                        playerMsg.textContent = '>> ' + convo.playerOptions[convo.userResponseIndex].long;
+                        chatContent.appendChild(playerMsg);
+                    }
+                }
+                
+                // Render current conversation with delays
+                const currentConvo = window.chatConvo.conversations[currentConvoIndex];
+                if (currentConvo) {
+                    // Check if current conversation has an eventTrigger and unlock that device
+                    if (currentConvo.eventTrigger && currentConvo.eventTrigger !== 'none') {
+                        const deviceToUnlock = currentConvo.eventTrigger;
+                        console.log('🔓🔓🔓 UNLOCKING DEVICE:', deviceToUnlock, 'at conversation index:', currentConvoIndex);
+                        
+                        // Send unlock message to parent window
+                        if (window.parent) {
+                            console.log('📤 Sending unlock message to parent window');
+                            window.parent.postMessage({
+                                type: 'unlockDevice',
+                                deviceName: deviceToUnlock
+                            }, '*');
+                        } else {
+                            console.error('❌ No parent window found!');
+                        }
+                    } else {
+                        console.log('ℹ️ Current conversation has no eventTrigger or is "none"');
+                    }
+                    
+                    // Check if this conversation has been seen before (current: true)
+                    const isAlreadySeen = currentConvo.current === true;
+                    
+                    // If already seen, render instantly without delays
+                    if (isAlreadySeen) {
+                        console.log('Conversation already seen, rendering instantly');
+                        
+                        // Add entity messages instantly
+                        currentConvo.entity.forEach(line => {
+                            const botMsg = document.createElement('p');
+                            botMsg.className = 'bot';
+                            botMsg.textContent = 'User <???>: ' + line;
+                            chatContent.appendChild(botMsg);
+                        });
+                        
+                        // Add player response if chosen
+                        if (currentConvo.userResponseIndex !== null) {
+                            const playerMsg = document.createElement('p');
+                            playerMsg.className = 'user';
+                            playerMsg.textContent = '>> ' + currentConvo.playerOptions[currentConvo.userResponseIndex].long;
+                            chatContent.appendChild(playerMsg);
+                        }
+                        
+                        scrollToBottom();
+                        
+                        // Show reply blocks if appropriate
+                        const shouldShowOptions = !currentConvo.eventTrigger || 
+                                                 currentConvo.eventTrigger === 'none' ||
+                                                 (window.deviceTracker && window.deviceTracker.isDeviceComplete(currentConvo.eventTrigger));
+                        
+                        if (shouldShowOptions && currentConvo.userResponseIndex === null) {
+                            playerOptionsContainer.classList.remove('hidden');
+                        }
+                        
+                        // Render options immediately for already-seen conversations
+                        renderPlayerOptions();
+                        
+                        // Reset rendering flag and exit early
+                        isRendering = false;
+                        return;
+                    } else {
+                        // First time seeing this conversation - mark it as current
+                        window.chatConvo.conversations.forEach((c, idx) => {
+                            if (idx < currentConvoIndex) {
+                                c.current = false;
+                            }
+                        });
+                        currentConvo.current = true;
+                    
+                    // Add player response if chosen (show immediately)
+                    if (currentConvo.userResponseIndex !== null) {
+                        const playerMsg = document.createElement('p');
+                        playerMsg.className = 'user';
+                        playerMsg.textContent = '>> ' + currentConvo.playerOptions[currentConvo.userResponseIndex].long;
+                        chatContent.appendChild(playerMsg);
+                        
+                        scrollToBottom();
+                        
+                        // Force capture after player message
+                        await new Promise(resolve => {
+                            if (window.parent) {
+                                window.parent.postMessage({ type: 'requestCapture' }, '*');
+                            }
+                            setTimeout(resolve, 100);
+                        });
+                        
+                        // TODO: Re-enable delay later
+                        // Wait 2s before entity responds
+                        // await new Promise(resolve => setTimeout(resolve, 2000));
+                    }
+                    
+                    // Add entity messages - first one instant, rest with 3s delay
+                    for (let j = 0; j < currentConvo.entity.length; j++) {
+                        // Hide reply blocks before first message (but after it's added to DOM)
+                        if (j === 0) {
+                            playerOptionsContainer.classList.add('hidden');
+                        }
+                        const line = currentConvo.entity[j];
+                        const botMsg = document.createElement('p');
+                        botMsg.className = 'bot';
+                        botMsg.textContent = 'User <???>: ' + line;
+                        chatContent.appendChild(botMsg);
+                        
+                        // Scroll to bottom after each message
+                        scrollToBottom();
+                        
+                        // Force capture after each entity message
+                        await new Promise(resolve => {
+                            if (window.parent) {
+                                window.parent.postMessage({ type: 'requestCapture' }, '*');
+                            }
+                            setTimeout(resolve, 100);
+                        });
+                        
+                        // TODO: Re-enable delay later
+                        // Wait 3s before next message (except for last one)
+                        // First message (j=0) shows instantly, no delay before it
+                        // if (j < currentConvo.entity.length - 1) {
+                        //     await new Promise(resolve => setTimeout(resolve, 3000));
+                        // }
+                    }
+                    
+                    // Check if we should show reply blocks (only if no eventTrigger or device is complete)
+                    const shouldShowOptions = !currentConvo.eventTrigger || 
+                                             currentConvo.eventTrigger === 'none' ||
+                                             (window.deviceTracker && window.deviceTracker.isDeviceComplete(currentConvo.eventTrigger));
+                    
+                    if (shouldShowOptions) {
+                        // Show reply blocks after entity finishes typing
+                        playerOptionsContainer.classList.remove('hidden');
+                        
+                        // Force capture after showing reply blocks
+                        await new Promise(resolve => {
+                            if (window.parent) {
+                                window.parent.postMessage({ type: 'requestCapture' }, '*');
+                            }
+                            setTimeout(resolve, 100);
+                        });
+                    }
+                    } // Close the else block for isAlreadySeen
+                }
+                
+                // Render current options
+                renderPlayerOptions();
+                
+                // Final scroll to bottom
+                setTimeout(() => {
+                    scrollToBottom();
+                    if (window.parent) {
+                        window.parent.postMessage({ type: 'requestCapture' }, '*');
+                    }
+                    
+                    // Reset rendering flag
+                    isRendering = false;
+                }, 100);
+            }
+            
+            function scrollToBottom() {
+                const containerHeight = chatMessagesContainer.clientHeight;
+                const contentHeight = chatContent.scrollHeight;
+                const maxScroll = Math.max(0, contentHeight - containerHeight + 200); // Add 200px extra offset
+                scrollOffset = maxScroll;
+                applyScroll();
+            }
+            
+            // Make scrollToBottom globally accessible
+            window.scrollToBottom = scrollToBottom;
+            
+            function applyScroll() {
+                chatContent.style.transform = `translateY(-${scrollOffset}px)`;
+            }
+            
+            function renderPlayerOptions() {
+                console.log('=== renderPlayerOptions called ===');
+                console.log('window.chatConvo exists:', !!window.chatConvo);
+                console.log('conversations exists:', !!window.chatConvo?.conversations);
+                console.log('currentConvoIndex:', currentConvoIndex);
+                
+                if (!window.chatConvo || !window.chatConvo.conversations) {
+                    console.error('chatConvo not found');
+                    return;
+                }
+                
+                // Clear options (keep the topline SVG)
+                const topline = playerOptionsContainer.querySelector('.notification-popup-reply-topline');
+                const toplineHTML = topline ? topline.outerHTML : '';
+                playerOptionsContainer.innerHTML = toplineHTML;
+                
+                // Check if conversation is complete
+                if (currentConvoIndex >= window.chatConvo.conversations.length) {
+                    console.log('Conversation complete');
+                    const endMsg = document.createElement('p');
+                    endMsg.textContent = '[ END OF TRANSMISSION ]';
+                    endMsg.style.textAlign = 'center';
+                    endMsg.style.border = 'none';
+                    playerOptionsContainer.appendChild(endMsg);
+                    return;
+                }
+                
+                const currentConvo = window.chatConvo.conversations[currentConvoIndex];
+                console.log('currentConvo:', currentConvo);
+                console.log('Has entity:', !!currentConvo?.entity);
+                console.log('Has playerOptions:', !!currentConvo?.playerOptions);
+                console.log('playerOptions length:', currentConvo?.playerOptions?.length);
+                console.log('eventTrigger:', currentConvo?.eventTrigger);
+                
+                if (!currentConvo) {
+                    console.error('Current conversation not found:', currentConvoIndex);
+                    return;
+                }
+                
+                if (!currentConvo.playerOptions || !Array.isArray(currentConvo.playerOptions)) {
+                    console.error('playerOptions is not an array:', currentConvo.playerOptions);
+                    return;
+                }
+                
+                // Check if this conversation requires a device to be complete
+                if (currentConvo.eventTrigger && currentConvo.eventTrigger !== 'none') {
+                    const deviceName = currentConvo.eventTrigger;
+                    
+                    // If device is not complete, don't show anything
+                    if (!window.deviceTracker || !window.deviceTracker.isDeviceComplete(deviceName)) {
+                        console.log(`Waiting for device: ${deviceName}`);
+                        return;
+                    }
+                }
+                
+                // If already chosen, don't show options
+                if (currentConvo.userResponseIndex !== null) {
+                    console.log('Option already chosen, not showing options');
+                    // Make sure container is hidden when no options to show
+                    playerOptionsContainer.classList.add('hidden');
+                    return;
+                }
+                
+                console.log('Rendering', currentConvo.playerOptions.length, 'options');
+                
+                // Make sure container is visible when we have options to show
+                playerOptionsContainer.classList.remove('hidden');
+                
+                // Render options
+                currentConvo.playerOptions.forEach((option, index) => {
+                    console.log('Option', index, ':', option);
+                    const optionElement = document.createElement('p');
+                    optionElement.textContent = option.short.toUpperCase();
+                    optionElement.style.cursor = 'pointer';
+                    
+                    // Add click handler with debouncing
+                    let isProcessing = false;
+                    optionElement.addEventListener('click', function(e) {
+                        console.log('Option clicked:', index, option.short);
+                        e.stopPropagation();
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                        
+                        if (isProcessing) {
+                            console.log('Already processing, ignoring click');
+                            return;
+                        }
+                        isProcessing = true;
+                        setTimeout(() => { isProcessing = false; }, 300);
+                        
+                        console.log('Selecting option:', index);
+                        selectOption(index);
+                    });
+                    
+                    playerOptionsContainer.appendChild(optionElement);
+                    console.log('Option element appended:', optionElement.textContent);
+                });
+                
+                console.log('Options rendered, container children:', playerOptionsContainer.children.length);
+                console.log('Container HTML:', playerOptionsContainer.innerHTML.substring(0, 200));
+            }
+            
+            function selectOption(optionIndex) {
+                if (!window.chatConvo || !window.chatConvo.conversations) return;
+                
+                // Save player choice directly in the conversation object
+                window.chatConvo.conversations[currentConvoIndex].userResponseIndex = optionIndex;
+                
+                // Move to next conversation
+                currentConvoIndex++;
+                
+                // Re-render immediately to show user's reply
+                // renderConversation will handle unlocking devices based on eventTrigger
+                renderConversation();
+            }
+            
+            // Initialize conversation when popup opens
+            const statusBarButton = document.querySelector('.status-bar-button');
+            if (statusBarButton) {
+                let isFirstOpen = true;
+                statusBarButton.addEventListener('click', function() {
+                    console.log('Status bar clicked, rendering conversation');
+                    if (isFirstOpen) {
+                        isFirstOpen = false;
+                        // On first open, continue rendering from second message onwards
+                        setTimeout(() => {
+                            renderConversation();
+                        }, 100);
+                    }
+                });
+            }
+            
+            // Pre-render first message instantly (before popup opens)
+            function preRenderFirstMessage() {
+                if (!window.chatConvo || !window.chatConvo.conversations || window.chatConvo.conversations.length === 0) return;
+                
+                const firstConvo = window.chatConvo.conversations[0];
+                if (!firstConvo || !firstConvo.entity || firstConvo.entity.length === 0) return;
+                
+                // Clear chat content
+                chatContent.innerHTML = '';
+                
+                // Add only the first message of the first conversation
+                const firstLine = firstConvo.entity[0];
+                const botMsg = document.createElement('p');
+                botMsg.className = 'bot';
+                botMsg.textContent = 'User <???>: ' + firstLine;
+                chatContent.appendChild(botMsg);
+                
+                // Scroll to bottom
+                scrollToBottom();
+                
+                console.log('First message pre-rendered');
+            }
+            
+            // Wait for chatConvo to be defined (it's in a later script tag)
+            function waitForChatConvo() {
+                if (window.chatConvo && window.chatConvo.conversations && window.chatConvo.conversations.length > 0) {
+                    console.log('chatConvo loaded, initializing conversation');
+                    
+                    // Add userResponseIndex and current to each conversation if not present
+                    window.chatConvo.conversations.forEach((convo, index) => {
+                        if (convo.userResponseIndex === undefined) {
+                            convo.userResponseIndex = null;
+                        }
+                        if (convo.current === undefined) {
+                            // Mark first conversation as current by default
+                            convo.current = (index === 0);
+                        }
+                    });
+                    
+                    // Pre-render first message instantly
+                    preRenderFirstMessage();
+                } else {
+                    console.log('Waiting for chatConvo...');
+                    setTimeout(waitForChatConvo, 100);
+                }
+            }
+            
+            // Start waiting
+            waitForChatConvo();
         })();
 
         // Main.exe interactive flow
@@ -1707,6 +2512,10 @@
                     if (mainExeFrame1) {
                         mainExeFrame1.classList.remove('hidden');
                     }
+                    // Recapture canvas in monitor
+                    if (window.parent) {
+                        window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                    }
                     if (mainExeFrame2) {
                         mainExeFrame2.classList.add('hidden');
                     }
@@ -1721,6 +2530,10 @@
                     console.log('Close button clicked');
                     if (mainExePopup) {
                         mainExePopup.classList.add('hidden');
+                        // Recapture canvas in monitor
+                        if (window.parent) {
+                            window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                        }
                     }
                 });
             }
@@ -1732,6 +2545,10 @@
                     if (e.target === mainExePopup) {
                         console.log('Popup background clicked');
                         mainExePopup.classList.add('hidden');
+                        // Recapture canvas in monitor
+                        if (window.parent) {
+                            window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                        }
                     }
                 });
             }
@@ -1746,11 +2563,16 @@
                     if (mainExeFrame2) {
                         mainExeFrame2.classList.remove('hidden');
                     }
+                    // Recapture canvas in monitor
+                    if (window.parent) {
+                        window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                    }
                 });
             }
 
             // Handle activation code input (5 separate input fields)
-            if (activationInputs && activationInputs.length === 5) {
+            // DISABLED: Now using divs with virtual keyboard only
+            if (false && activationInputs && activationInputs.length === 5) {
                 const inputContainer = document.querySelector('.act-form-input-cont');
                 
                 // Set maxlength to 1 for each input
@@ -1812,6 +2634,10 @@
                                 if (core1ExePopup) {
                                     core1ExePopup.classList.remove('hidden');
                                 }
+                                // Recapture canvas in monitor
+                                if (window.parent) {
+                                    window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                                }
                                 
                                 // Reset input borders for next time
                                 activationInputs.forEach(input => {
@@ -1829,6 +2655,10 @@
                                 // Hide after 1 second
                                 setTimeout(() => {
                                     wrongPopup.classList.add('hidden');
+                                    // Recapture canvas in monitor
+                                    if (window.parent) {
+                                        window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                                    }
                                 }, 1000);
                             }
                             
@@ -1895,13 +2725,9 @@
                 col: col
             };
             
-            // Add click handler to the box group itself
+            // Disable pointer events on box group so hitbox receives clicks
+            box.style.pointerEvents = 'none';
             box.style.cursor = 'pointer';
-            box.onclick = (function(r, c) {
-                return function() {
-                    rotateBox(r, c);
-                };
-            })(row, col);
             
             // Create invisible hitbox for easier clicking (28x28 area)
             var hitbox = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -1911,21 +2737,47 @@
             hitbox.setAttribute('height', '28');
             hitbox.setAttribute('fill', 'transparent');
             hitbox.style.cursor = 'pointer';
-            hitbox.onclick = (function(r, c) {
-                return function() {
+            hitbox.style.pointerEvents = 'all'; // Ensure hitbox receives clicks
+            
+            // Add click handler with debouncing to prevent double clicks
+            (function(r, c, element) {
+                var isProcessing = false;
+                element.addEventListener('click', function(e) {
+                    // Prevent event propagation to parent (monitor)
+                    e.stopPropagation();
+                    e.preventDefault();
+                    
+                    // Debounce to prevent double clicks
+                    if (isProcessing) return;
+                    isProcessing = true;
+                    setTimeout(function() { isProcessing = false; }, 200);
+                    
                     rotateBox(r, c);
-                };
-            })(row, col);
+                });
+            })(row, col, hitbox);
             
             // Add hitbox to the SVG (before the box group)
             box.parentNode.insertBefore(hitbox, box);
         }
         
+        var isRotating = false;
         function rotateBox(row, col) {
+            // Prevent double rotation
+            if (isRotating) {
+                console.log('Already rotating, ignoring duplicate call');
+                return;
+            }
+            isRotating = true;
+            
             var box = grid[row][col];
             box.rotation = (box.rotation + 90) % 360;
             box.element.setAttribute('transform', 'rotate(' + box.rotation + ' ' + box.x + ' ' + box.y + ')');
             updateConnections();
+            
+            // Reset flag after a short delay
+            setTimeout(function() {
+                isRotating = false;
+            }, 100);
         }
         
         function getPointerDirection(box) {
@@ -2208,17 +3060,52 @@
                         // Mark Core 1 as complete
                         gameState.markCoreComplete(1);
                         
+                        // Trigger aftercore1 device completion
+                        if (window.deviceTracker) {
+                            window.deviceTracker.completeDevice('aftercore1');
+                        }
+                        
                         // Show COMPLETE popup after 100ms
                         setTimeout(function() {
                             var completePopup = document.getElementById('completePopup');
                             if (completePopup) {
                                 completePopup.classList.remove('hidden');
+                                // Recapture canvas in monitor
+                                if (window.parent) {
+                                    window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                                }
                                 
-                                // Hide after 1.5 seconds and show next frame
+                                // Hide after 1.5 seconds and show main.exe with frame3
                                 setTimeout(function() {
                                     completePopup.classList.add('hidden');
+                                    // Recapture canvas in monitor
+                                    if (window.parent) {
+                                        window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                                    }
+                                    // Hide core1exe-popup
                                     document.querySelector('.core1exe-popup').style.display = 'none';
-                                    document.querySelector('.mainexe-frame3-container').style.display = 'flex';
+                                    document.querySelector('.core1exe-popup').classList.add('hidden');
+                                    
+                                    // Hide mainexe-frame1 and frame2
+                                    document.querySelector('.mainexe-frame1').style.display = 'none';
+                                    document.querySelector('.mainexe-frame1').classList.add('hidden');
+                                    document.querySelector('.mainexe-frame2').style.display = 'none';
+                                    document.querySelector('.mainexe-frame2').classList.add('hidden');
+                                    
+                                    // Show main.exe popup with frame3
+                                    var mainExePopup = document.querySelector('.mainexe-popup');
+                                    mainExePopup.classList.remove('hidden');
+                                    mainExePopup.style.display = 'flex';
+                                    
+                                    // Show mainexe-frame3
+                                    var frame3 = document.querySelector('.mainexe-frame3');
+                                    frame3.classList.remove('hidden');
+                                    frame3.style.display = 'flex';
+                                    
+                                    // Recapture canvas in monitor
+                                    if (window.parent) {
+                                        window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                                    }
                                 }, 1500);
                             }
                         }, 100);
@@ -2277,6 +3164,11 @@
                 document.querySelector('.mainexe-frame4').classList.remove('hidden');
                 document.querySelector('.mainexe-frame4').style.display = 'flex';
                 
+                // Recapture canvas in monitor
+                if (window.parent) {
+                    window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                }
+                
                 // Focus first input
                 var frame4Inputs = document.querySelectorAll('.mainexe-frame4 input');
                 if (frame4Inputs.length > 0) {
@@ -2285,12 +3177,54 @@
             });
         }
 
+        // Mainexe Frame 5 - Begin Procedure Button
+        var beginProcButton3 = document.querySelector('.begin-proc-button-3');
+        if (beginProcButton3) {
+            beginProcButton3.addEventListener('click', function() {
+                // Hide mainexe-frame5
+                document.querySelector('.mainexe-frame5').style.display = 'none';
+                
+                // Show mainexe-frame6
+                var frame6 = document.querySelector('.mainexe-frame6');
+                frame6.classList.remove('hidden');
+                frame6.style.display = 'flex';
+                
+                // Recapture canvas in monitor
+                if (window.parent) {
+                    window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                }
+                
+                // Wait for power source to be available before showing core3exe
+                function checkPowerAvailable() {
+                    if (window.deviceTracker && window.deviceTracker.isPowerAvailable) {
+                        // Power is available, show core3exe
+                        frame6.style.display = 'none';
+                        var core3Popup = document.querySelector('.core3exe-popup');
+                        core3Popup.classList.remove('hidden');
+                        core3Popup.style.display = 'flex';
+                        
+                        // Recapture canvas in monitor
+                        if (window.parent) {
+                            window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                        }
+                    } else {
+                        // Check again in 500ms
+                        setTimeout(checkPowerAvailable, 500);
+                    }
+                }
+                
+                // Start checking
+                checkPowerAvailable();
+            });
+        }
+
         // Mainexe Frame 4 - Activation Code Logic (4321)
+        // DISABLED: Now using divs with virtual keyboard only
         var frame4Inputs = document.querySelectorAll('.mainexe-frame4 input');
         var frame4Container = document.querySelector('.act-form-cont-2');
         var correctCode4 = ['4', '3', '2', '1'];
         
-        frame4Inputs.forEach(function(input, index) {
+        if (false) frame4Inputs.forEach(function(input, index) {
             input.addEventListener('input', function(e) {
                 var value = e.target.value;
                 
@@ -2337,6 +3271,11 @@
                             var core2Popup = document.querySelector('.core2exe-popup');
                             core2Popup.classList.remove('hidden');
                             core2Popup.style.display = 'flex';
+                            
+                            // Recapture canvas in monitor
+                            if (window.parent) {
+                                window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                            }
                         }, 500);
                     } else {
                         // Wrong code - show WRONG popup
@@ -2347,6 +3286,10 @@
                             // Hide after 1 second
                             setTimeout(function() {
                                 wrongPopup.classList.add('hidden');
+                                // Recapture canvas in monitor
+                                if (window.parent) {
+                                    window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                                }
                             }, 1000);
                         }
                         
@@ -2444,17 +3387,47 @@
                 // Mark Core 2 as complete
                 gameState.markCoreComplete(2);
                 
+                // Trigger aftercore2 device completion
+                if (window.deviceTracker) {
+                    window.deviceTracker.completeDevice('aftercore2');
+                }
+                
                 // Show COMPLETE popup after 100ms
                 setTimeout(function() {
                     var completePopup = document.getElementById('completePopup');
                     if (completePopup) {
                         completePopup.classList.remove('hidden');
                         
-                        // Hide after 1.5 seconds and proceed to next step
+                        // Recapture canvas in monitor
+                        if (window.parent) {
+                            window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                        }
+                        
+                        // Hide after 1.5 seconds and show main.exe with frame5
                         setTimeout(function() {
                             completePopup.classList.add('hidden');
-                            // TODO: Show next frame/step
-                            console.log('Proceeding to next step after Core 2...');
+                            // Recapture canvas in monitor
+                            if (window.parent) {
+                                window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                            }
+                            // Hide core2exe-popup
+                            document.querySelector('.core2exe-popup').style.display = 'none';
+                            document.querySelector('.core2exe-popup').classList.add('hidden');
+                            
+                            // Show main.exe popup with frame5
+                            var mainExePopup = document.querySelector('.mainexe-popup');
+                            mainExePopup.classList.remove('hidden');
+                            mainExePopup.style.display = 'flex';
+                            
+                            // Show mainexe-frame5
+                            var frame5 = document.querySelector('.mainexe-frame5');
+                            frame5.classList.remove('hidden');
+                            frame5.style.display = 'flex';
+                            
+                            // Recapture canvas in monitor
+                            if (window.parent) {
+                                window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                            }
                         }, 1500);
                     }
                 }, 100);
@@ -2504,12 +3477,25 @@
                     element.classList.add('shape');
                     element.setAttribute('data-row', row);
                     element.setAttribute('data-col', col);
-                    element.onclick = function(e) {
-                        e.stopPropagation();
-                        var r = parseInt(this.getAttribute('data-row'));
-                        var c = parseInt(this.getAttribute('data-col'));
-                        cycleShape(r, c);
-                    };
+                    
+                    // Add click handler with debouncing
+                    (function(elem) {
+                        var isProcessing = false;
+                        elem.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            
+                            // Debounce to prevent double clicks
+                            if (isProcessing) return;
+                            isProcessing = true;
+                            setTimeout(function() { isProcessing = false; }, 200);
+                            
+                            var r = parseInt(this.getAttribute('data-row'));
+                            var c = parseInt(this.getAttribute('data-col'));
+                            cycleShape(r, c);
+                        });
+                    })(element);
+                    
                     shapesGroup.appendChild(element);
                 }
             }
@@ -2616,13 +3602,27 @@
             );
             
             if (solved) {
+                // Trigger aftercore3 device completion
+                if (window.deviceTracker) {
+                    window.deviceTracker.completeDevice('aftercore3');
+                }
+                
                 setTimeout(function() {
                     const completePopup = document.getElementById('completePopup');
                     if (completePopup) {
                         completePopup.classList.remove('hidden');
                         
+                        // Recapture canvas in monitor
+                        if (window.parent) {
+                            window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                        }
+                        
                         setTimeout(function() {
                             completePopup.classList.add('hidden');
+                            // Recapture canvas in monitor
+                            if (window.parent) {
+                                window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                            }
                         }, 1500);
                     }
                 }, 100);
@@ -2642,6 +3642,677 @@
                 }
             });
         });
+
+        // Listen for click events from parent (MonitorController)
+        window.addEventListener('message', function(event) {
+            if (event.data.type === 'click') {
+                const x = event.data.x;
+                const y = event.data.y;
+                
+                console.log('Received click from monitor at:', x, y);
+                
+                // Find element at coordinates
+                let element = document.elementFromPoint(x, y);
+                if (element) {
+                    console.log('Element at point:', element);
+                    
+                    // Create real mouse events (mousedown, mouseup, click)
+                    const mouseEventOptions = {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window,
+                        clientX: x,
+                        clientY: y,
+                        screenX: x,
+                        screenY: y,
+                        button: 0
+                    };
+                    
+                    // Dispatch real mouse events in sequence
+                    const mousedownEvent = new MouseEvent('mousedown', mouseEventOptions);
+                    const mouseupEvent = new MouseEvent('mouseup', mouseEventOptions);
+                    const clickEvent = new MouseEvent('click', mouseEventOptions);
+                    
+                    element.dispatchEvent(mousedownEvent);
+                    element.dispatchEvent(mouseupEvent);
+                    element.dispatchEvent(clickEvent);
+                    
+                    console.log('Dispatched real mouse events to:', element);
+                    
+                    // Request texture update after click
+                    setTimeout(() => {
+                        window.parent.postMessage({ type: 'requestCapture' }, '*');
+                    }, 100);
+                }
+            }
+        });
+    </script>
+
+    <script>
+        // Virtual keyboard functionality for both activation input frames (using divs)
+        (function() {
+            const activationCodeForCore1Exe = '43829';
+            const correctCode4 = ['1', '8', '4', '3'];
+            
+            // Frame 2 (5 boxes)
+            const frame2Boxes = document.querySelectorAll('.mainexe-frame2 .act-form-input-cont .input-box');
+            const frame2Keyboard = document.querySelector('.mainexe-frame2 .virtual-keyboard');
+            
+            // Frame 4 (4 boxes)
+            const frame4Boxes = document.querySelectorAll('.mainexe-frame4 .act-form-input-cont-2 .input-box');
+            const frame4Keyboard = document.querySelector('.mainexe-frame4 .virtual-keyboard');
+            
+            // Setup keyboard for frame 2
+            if (frame2Keyboard && frame2Boxes.length > 0) {
+                setupKeyboard(frame2Keyboard, frame2Boxes, activationCodeForCore1Exe, 'frame2');
+            }
+            
+            // Setup keyboard for frame 4
+            if (frame4Keyboard && frame4Boxes.length > 0) {
+                setupKeyboard(frame4Keyboard, frame4Boxes, correctCode4, 'frame4');
+            }
+            
+            function setupKeyboard(keyboard, boxes, correctCode, frameType) {
+                let currentIndex = 0;
+                let values = new Array(boxes.length).fill('');
+                
+                // Set first box as active
+                boxes[0].classList.add('active');
+                
+                // Handle keyboard button clicks
+                const keys = keyboard.querySelectorAll('.key');
+                let isProcessing = false;
+                
+                keys.forEach(key => {
+                    key.addEventListener('click', function(e) {
+                        // Prevent event propagation to parent (monitor)
+                        e.stopPropagation();
+                        e.preventDefault();
+                        
+                        // Debounce to prevent double clicks
+                        if (isProcessing) return;
+                        isProcessing = true;
+                        setTimeout(() => { isProcessing = false; }, 200);
+                        
+                        const keyValue = this.getAttribute('data-key');
+                        
+                        if (keyValue === 'clear') {
+                            // Clear all boxes
+                            values = new Array(boxes.length).fill('');
+                            boxes.forEach((box, i) => {
+                                box.textContent = '';
+                                box.classList.remove('active');
+                                box.style.borderColor = '#A90000';
+                            });
+                            currentIndex = 0;
+                            boxes[0].classList.add('active');
+                        } else if (keyValue === 'backspace') {
+                            // Clear current box and move to previous
+                            if (values[currentIndex]) {
+                                values[currentIndex] = '';
+                                boxes[currentIndex].textContent = '';
+                            } else if (currentIndex > 0) {
+                                boxes[currentIndex].classList.remove('active');
+                                currentIndex--;
+                                values[currentIndex] = '';
+                                boxes[currentIndex].textContent = '';
+                                boxes[currentIndex].classList.add('active');
+                            }
+                        } else {
+                            // Add number to current box
+                            values[currentIndex] = keyValue;
+                            boxes[currentIndex].textContent = keyValue;
+                            
+                            // Move to next box if available
+                            if (currentIndex < boxes.length - 1) {
+                                boxes[currentIndex].classList.remove('active');
+                                currentIndex++;
+                                boxes[currentIndex].classList.add('active');
+                            } else {
+                                // Last box filled, check code
+                                boxes[currentIndex].classList.remove('active');
+                                checkCode();
+                            }
+                        }
+                    });
+                });
+                
+                function checkCode() {
+                    // Validate code
+                    let isCorrect = false;
+                    
+                    if (frameType === 'frame2') {
+                        const enteredCode = values.join('');
+                        isCorrect = enteredCode === correctCode;
+                    } else if (frameType === 'frame4') {
+                        isCorrect = true;
+                        for (let i = 0; i < values.length; i++) {
+                            if (values[i] !== correctCode[i]) {
+                                isCorrect = false;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (isCorrect) {
+                        console.log('Correct activation code!');
+                        
+                        // Turn borders green
+                        boxes.forEach(box => {
+                            box.style.borderColor = '#7FB746';
+                        });
+                        
+                        // Move to next step after delay
+                        setTimeout(() => {
+                            if (frameType === 'frame2') {
+                                const mainExePopup = document.querySelector('.mainexe-popup');
+                                const core1ExePopup = document.querySelector('.core1exe-popup');
+                                if (mainExePopup) mainExePopup.classList.add('hidden');
+                                if (core1ExePopup) core1ExePopup.classList.remove('hidden');
+                            } else if (frameType === 'frame4') {
+                                document.querySelector('.mainexe-frame4').style.display = 'none';
+                                const core2Popup = document.querySelector('.core2exe-popup');
+                                if (core2Popup) {
+                                    core2Popup.classList.remove('hidden');
+                                    core2Popup.style.display = 'flex';
+                                }
+                            }
+                            
+                            // Reset boxes
+                            values = new Array(boxes.length).fill('');
+                            boxes.forEach((box, i) => {
+                                box.textContent = '';
+                                box.style.borderColor = '#A90000';
+                                box.classList.remove('active');
+                            });
+                            currentIndex = 0;
+                            boxes[0].classList.add('active');
+                        }, 500);
+                    } else {
+                        console.log('Incorrect activation code');
+                        
+                        // Show WRONG popup
+                        const wrongPopup = document.getElementById('wrongPopup');
+                        if (wrongPopup) {
+                            wrongPopup.classList.remove('hidden');
+                            setTimeout(() => {
+                                wrongPopup.classList.add('hidden');
+                                // Recapture canvas in monitor
+                                if (window.parent) {
+                                    window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                                }
+                            }, 1000);
+                        }
+                        
+                        // Clear boxes after delay
+                        setTimeout(() => {
+                            values = new Array(boxes.length).fill('');
+                            boxes.forEach((box, i) => {
+                                box.textContent = '';
+                                box.classList.remove('active');
+                            });
+                            currentIndex = 0;
+                            boxes[0].classList.add('active');
+                        }, 1000);
+                    }
+                }
+            }
+        })();
+    </script>
+    <script>
+        // Conversation data - must be defined before conversation system
+        window.chatConvo = {
+            "conversations": [
+                {
+                "entity": [
+                    "Finally. Someone's here.",
+                    "I thought the tape would never reach anyone.",
+                    "I can't see where you are… but if you're using the terminal, then you're close. Closer than anyone else has been in a long time.",
+                    "Listen to me. I need to know you're real. Just type something again. Anything. I want to make sure I am not hallucinating"
+                ],
+                "playerOptions": [
+                    {
+                    "short": "hi",
+                    "long": "hi"
+                    },
+                    {
+                    "short": "I'm here.",
+                    "long": "I'm here."
+                    },
+                    {
+                    "short": "Who is this?",
+                    "long": "Who is this?"
+                    },
+                    {
+                    "short": "Is this real?",
+                    "long": "Is this real?"
+                    }
+                ],
+                "eventTrigger": "none"
+                },
+                {
+                "entity": [
+                    "Good. Good. That's enough. I don't need details. Just knowing someone is out there… that helps.",
+                    "You said you're trapped too?"
+                ],
+                "playerOptions": [
+                    {
+                    "short": "Yes.",
+                    "long": "Yes."
+                    },
+                    {
+                    "short": "Feels like it.",
+                    "long": "Feels like it."
+                    },
+                    {
+                    "short": "I can't move.",
+                    "long": "I can't move. Only the chair."
+                    },
+                    {
+                    "short": "I don't know where I am.",
+                    "long": "I don't know where I am."
+                    }
+                ],
+                "eventTrigger": "none"
+                },
+                {
+                "entity": [
+                    "Alright. Then we move. No waiting. No slowing down.",
+                    "There are… let's call them obstacles. Three devices that matter if we want to get out.",
+                    "I'm not dumping everything on you at once. You'd think I'm crazy. Just follow me.",
+                    "The first one you need is the sound system.",
+                    "That equalizer? It isn't for music. Not originally.",
+                    "They built it to read encoded frequency locks. Military-grade stuff. If we run my tape through it, we can extract my access key.",
+                    "You'll need to tune the frequencies manually.",
+                    "Watch how the spikes behave. When they align… the hidden pattern will show you the code.",
+                    "That's your first key.",
+                    "Do it. And… tell me the second you get it."
+                ],
+                "playerOptions": [
+                    {
+                    "short": "I got it",
+                    "long": "I got it"
+                    },
+                    {
+                    "short": "What now?",
+                    "long": "What now?"
+                    },
+                    {
+                    "short": "Done.",
+                    "long": "Done."
+                    },
+                    {
+                    "short": "Code extracted.",
+                    "long": "Code extracted."
+                    }
+                ],
+                "eventTrigger": "equalizer_game"
+                },
+                {
+                "entity": [
+                    "Good. That's one step. Remember that code and listen carefully.",
+                    "Open the folder labeled nova.exe.",
+                    "You'll see a grid called Node Access Map. That's where the key goes. Enter the code in the first node.",
+                    "When you insert it, the system will trigger a reroute cycle.",
+                    "You'll think it's a puzzle, but it's not. It's a broken data-conduit map.",
+                    "This place locked itself down, and when it did, the conduits scrambled. Nothing moves through unless the paths are clean.",
+                    "What you need to do is rotate the conduit pieces until you form a straight, unbroken path from the source node to the core relay.",
+                    "When the map connects, the network recognizes the route as stable and reactivates the subsystem.",
+                    "It won't be easy. These old machines misalign if you're even a fraction off.",
+                    "But if you fix the path, the system will light green. That means you've earned its trust again.",
+                    "Do it. And tell me the second that relay lights up."
+                ],
+                "playerOptions": [
+                    {
+                    "short": "It's green.",
+                    "long": "It's green."
+                    },
+                    {
+                    "short": "That was rough.",
+                    "long": "That was rough."
+                    },
+                    {
+                    "short": "Done.",
+                    "long": "Done."
+                    },
+                    {
+                    "short": "Relay is active.",
+                    "long": "Relay is active."
+                    }
+                ],
+                "eventTrigger": "aftercore1"
+                },
+                {
+                "entity": [
+                    "Good work with that. Two seals left. Then we can leave this place"
+                ],
+                "playerOptions": [
+                    {
+                    "short": "Seals?",
+                    "long": "Seals? What does that even mean?"
+                    },
+                    {
+                    "short": "Locked?",
+                    "long": "Locked? Did someone shut this place on purpose?"
+                    },
+                    {
+                    "short": "On purpose?",
+                    "long": "You're dodging something. Was this intentional?"
+                    },
+                    {
+                    "short": "Why?",
+                    "long": "Why? What aren't you telling me?"
+                    }
+                ],
+                "eventTrigger": "none"
+                },
+                {
+                "entity": [
+                    "Layers over layers of nonsense. Don't start peeling at the history now, we don't have the luxury."
+                ],
+                "playerOptions": [
+                    {
+                    "short": "Was it?",
+                    "long": "Just answer me was this place locked on purpose?"
+                    },
+                    {
+                    "short": "Deliberate?",
+                    "long": "Deliberate, yes or no? Don't sidestep it."
+                    },
+                    {
+                    "short": "Tell the truth.",
+                    "long": "Tell me the truth. Someone sealed this place intentionally, didn't they?"
+                    },
+                    {
+                    "short": "Stop dodging.",
+                    "long": "Stop dodging the question. Was this lockdown intentional?"
+                    }
+                ],
+                "eventTrigger": "none"
+                },
+                {
+                "entity": [
+                    "The government ran experiments here. Not research… experiments. They didn't care who survived. What's left is all that remains of their failures… and us, stuck inside. That's all you need to know right now.",
+                    "Focus on getting out first. The second key is in the military equipment over your desk."
+                ],
+                "playerOptions": [
+                    {
+                    "short": "What now?",
+                    "long": "What now? What am I even supposed to do with these devices?"
+                    },
+                    {
+                    "short": "Explain.",
+                    "long": "Explain what I'm supposed to do with all this equipment."
+                    },
+                    {
+                    "short": "Guide me.",
+                    "long": "Just guide me through it what do I do with these modules?"
+                    },
+                    {
+                    "short": "What's the point?",
+                    "long": "What's the point of these units? What am I meant to do with them?"
+                    }
+                ],
+                "eventTrigger": "none"
+                },
+                {
+                "entity": [
+                    "The top module is the original system. The bottom one is a field replacement they never fully calibrated. They've been out of sync for years… maybe longer.",
+                    "If you want that cipher, you need to force them back into alignment."
+                ],
+                "playerOptions": [
+                    {
+                    "short": "How exactly?",
+                    "long": "How exactly am I supposed to do that?"
+                    },
+                    {
+                    "short": "Show me.",
+                    "long": "Show me what you mean how do I align them?"
+                    },
+                    {
+                    "short": "Clarify.",
+                    "long": "Clarify this for me. How do I sync them manually?"
+                    },
+                    {
+                    "short": "Walk me through it.",
+                    "long": "Walk me through this. How do I force the alignment?"
+                    }
+                ],
+                "eventTrigger": "none"
+                },
+                {
+                "entity": [
+                    "You'll see a sequence on the top unit. That's the authentic signal the one they tried to bury. The bottom unit is listening, but it won't match until you input the pattern manually.",
+                    "This isn't about speed. It's about precision. Most people panic the moment the numbers start shifting.",
+                    "Let's see if you're better than that."
+                ],
+                "playerOptions": [
+                    {
+                    "short": "Just sync them?",
+                    "long": "So all I need to do is sync the devices? That's it?"
+                    },
+                    {
+                    "short": "Confirming.",
+                    "long": "Just confirming I sync the devices and the cipher appears?"
+                    },
+                    {
+                    "short": "That's the task?",
+                    "long": "That's the whole task? Synchronize them until they match?"
+                    },
+                    {
+                    "short": "Understood.",
+                    "long": "Understood. I sync the modules and pull the cipher when they align."
+                    }
+                ],
+                "eventTrigger": "none"
+                },
+                {
+                "entity": [
+                    "And you retrieve the cipher the moment they lock together. The system will output it only once both devices are in sync",
+                    "Then you move. Straight to the CRT. Insert the cipher into the node access port. If the key authenticates, the machine will reveal the decryption layer beneath all the surface. That will lift the second seal."
+                ],
+                "playerOptions": [
+                    {
+                    "short": "It better.",
+                    "long": "This better work. I don't want to waste time if this place is falling apart."
+                    },
+                    {
+                    "short": "I'm trusting you.",
+                    "long": "I'm trusting you on this. That cipher better open something."
+                    },
+                    {
+                    "short": "No failure.",
+                    "long": "No failure this time. This has to work."
+                    },
+                    {
+                    "short": "Don't mess me up.",
+                    "long": "Don't mess me up here that alignment better actually do something."
+                    }
+                ],
+                "eventTrigger": "none"
+                },
+                {
+                "entity": [
+                    "It will. As long as you don't hesitate. Get the devices synchronized. Pull the cipher. Then go straight to the CRT and crack the system open."
+                ],
+                "playerOptions": [
+                    {
+                    "short": "Starting now.",
+                    "long": "Starting now."
+                    },
+                    {
+                    "short": "On it.",
+                    "long": "On it."
+                    },
+                    {
+                    "short": "Let's do this.",
+                    "long": "Let's do this."
+                    },
+                    {
+                    "short": "Ready.",
+                    "long": "Ready."
+                    }
+                ],
+                "eventTrigger": "military_radio"
+                },
+                {
+                "entity": [
+                    "…Not bad. Looks like you're not as dull as you sounded a few minutes ago.",
+                    "Don't relax. We're not done. There's one last threshold, and it's the one they expected no one to reach."
+                ],
+                "playerOptions": [
+                    {
+                    "short": "Next?",
+                    "long": "Next step what do I do now?"
+                    },
+                    {
+                    "short": "Tell me.",
+                    "long": "Tell me what comes next. What's the next part of this escape?"
+                    },
+                    {
+                    "short": "What's left?",
+                    "long": "What's left for me to do? What's this last threshold?"
+                    },
+                    {
+                    "short": "Go on.",
+                    "long": "Go on. What's the next part I have to handle?"
+                    }
+                ],
+                "eventTrigger": "aftercore2"
+                },
+                {
+                "entity": [
+                    "Power routing. Manual. Old-school.",
+                    "They stripped this place on their way out, choked the systems just enough to keep them barely alive. If we want the final seal to drop, you need to bring the whole room back online."
+                ],
+                "playerOptions": [
+                    {
+                    "short": "How?",
+                    "long": "How am I supposed to bring the room back online manually?"
+                    },
+                    {
+                    "short": "Explain it.",
+                    "long": "Explain it clearly how do I reroute power old-school?"
+                    },
+                    {
+                    "short": "What's the method?",
+                    "long": "What's the method here? How do I actually do the routing?"
+                    },
+                    {
+                    "short": "Walk me through.",
+                    "long": "Walk me through this. How do I restore power to the core?"
+                    }
+                ],
+                "eventTrigger": "none"
+                },
+                {
+                "entity": [
+                    "Look at the 3rd device on your desk. When you open it you see a panel in front of you. Four levers… and the main control bar underneath.",
+                    "They were designed to regulate power flow individually. But right now they're all dead out of position."
+                ],
+                "playerOptions": [
+                    {
+                    "short": "So… broken?",
+                    "long": "So they're basically misaligned and useless right now?"
+                    },
+                    {
+                    "short": "In English?",
+                    "long": "In plain English what does that actually mean for me?"
+                    },
+                    {
+                    "short": "What's wrong?",
+                    "long": "What's wrong with the levers? What am I fixing exactly?"
+                    },
+                    {
+                    "short": "Clarify.",
+                    "long": "Clarify it what does 'dead out of position' mean for the puzzle?"
+                    }
+                ],
+                "eventTrigger": "none"
+                },
+                {
+                "entity": [
+                    "Rotate each lever until the indicators hit their proper alignment. You'll see it—the lights will shift from red to green when a line stabilizes.",
+                    "Get all four green, then pull the main control. That's what wakes the core."
+                ],
+                "playerOptions": [
+                    {
+                    "short": "Then what?",
+                    "long": "Then what happens after I set all the levers and pull the control?"
+                    },
+                    {
+                    "short": "After that?",
+                    "long": "What happens after I get everything aligned? What's the next step?"
+                    },
+                    {
+                    "short": "Is that it?",
+                    "long": "Is that the final action? Set the power and wait?"
+                    },
+                    {
+                    "short": "So the moment I set it…?",
+                    "long": "So the moment I set it, you take over what exactly does that mean?"
+                    }
+                ],
+                "eventTrigger": "none"
+                },
+                {
+                "entity": [
+                    "Then you step back.",
+                    "And I take over.",
+                    "The moment that voltmeter stabilizes, the core will pull from every active line in the room. The lights will flicker. The air will feel heavier. Don't panic—that's the system is rebooting",
+                    "If it goes well… the last seal cracks.",
+                    "And then I handle the rest.",
+                    "Set the power, hold your nerve… and let me drag us out of this grave they built.",
+                    "…If the CRT glitches out when the power hits, don't panic. Just steady it. Realign the display manually and keep going."
+                ],
+                "playerOptions": [
+                    {
+                    "short": "Alright.",
+                    "long": "Alright."
+                    },
+                    {
+                    "short": "I'm ready.",
+                    "long": "I'm ready."
+                    },
+                    {
+                    "short": "Let's finish this.",
+                    "long": "Let's finish this."
+                    },
+                    {
+                    "short": "Starting now.",
+                    "long": "Starting now."
+                    }
+                ],
+                "eventTrigger": "power_source"
+                },
+                {
+                "entity": [
+                    "hello"
+                ],
+                "playerOptions": [
+                    {
+                    "short": "hello.",
+                    "long": "hello."
+                    },
+                    {
+                    "short": "hello.",
+                    "long": "hello."
+                    },
+                    {
+                    "short": "hello.",
+                    "long": "hello."
+                    },
+                    {
+                    "short": "hello.",
+                    "long": "hello."
+                    },
+                ],
+                "eventTrigger": "aftercore3"
+                }
+            ]
+            }
+
+
     </script>
 
 </body>

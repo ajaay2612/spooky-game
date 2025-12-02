@@ -14,6 +14,16 @@ export class MachineInteractions {
     this.interactiveButtons = new Map();
     this.buttonStates = new Map();
     
+    // Device unlock progression state
+    // Keys must match eventTrigger names from boot-sequence.html
+    this.deviceUnlockState = {
+      cassette: true,          // Always unlocked at start
+      monitor: false,          // Unlocked after cassette plays audio
+      equalizer_game: false,   // Unlocked when chat reaches equalizer_game
+      military_radio: false,   // Unlocked when chat reaches military_radio
+      power_source: false      // Unlocked when chat reaches power_source
+    };
+    
     // Equalizer puzzle state - 5 columns, 2 levers per column
     this.rightSequence = this.generateRandomSequence();
     this.currentSequence = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]; // Current lever positions (1-10 for 10 levers)
@@ -23,13 +33,64 @@ export class MachineInteractions {
     this.currentDraggingLever = null;
     this.leverObserversSetup = false;
     
+    // Power source puzzle state - 4 knobs need to be at specific angles
+    this.powerSourcePuzzle = {
+      knobs: {
+        knob5: { targetAngle: Math.PI / 2, tolerance: 0.5, lightMesh: 'powersourselight1', solved: false },  // Spin5 -> light1 (wider tolerance)
+        knob4: { targetAngle: -Math.PI / 4, tolerance: 0.5, lightMesh: 'powersourselight2', solved: false }, // Spin4 -> light2 (wider tolerance)
+        knob1: { targetAngle: Math.PI / 3, tolerance: 0.5, lightMesh: 'powersourselight3', solved: false },  // Spin1 -> light3 (wider tolerance)
+        knob3: { targetAngle: -Math.PI / 2, tolerance: 0.5, lightMesh: 'powersourselight4', solved: false }  // Spin3 -> light4 (wider tolerance)
+      },
+      allSolved: false
+    };
+    
+    // Listen for device unlock messages from monitor
+    window.addEventListener('message', (event) => {
+      if (event.data.type === 'unlockDevice') {
+        this.unlockDevice(event.data.deviceName);
+      }
+    });
+    
     this.initialize();
+  }
+  
+  unlockDevice(deviceName) {
+    console.log('🔓🔓🔓 unlockDevice() called with:', deviceName);
+    console.log('Current unlock state:', this.deviceUnlockState);
+    
+    if (this.deviceUnlockState.hasOwnProperty(deviceName)) {
+      this.deviceUnlockState[deviceName] = true;
+      console.log(`✅✅✅ Device unlocked: ${deviceName}`);
+      console.log('New unlock state:', this.deviceUnlockState);
+    } else {
+      console.error('❌ Device name not found in deviceUnlockState:', deviceName);
+    }
+  }
+  
+  isDeviceUnlocked(deviceName) {
+    return this.deviceUnlockState[deviceName] === true;
+  }
+  
+  getDeviceNameFromButtonId(buttonId) {
+    // Map button/dial/lever IDs to device names (must match eventTrigger names)
+    if (buttonId.includes('computer_audio') || buttonId.includes('cassette')) {
+      return 'cassette';
+    } else if (buttonId.includes('monitor') || buttonId.includes('cube16')) {
+      return 'monitor';
+    } else if (buttonId.includes('cube18')) {
+      return 'equalizer_game';
+    } else if (buttonId.includes('radio_machine')) {
+      return 'military_radio';
+    } else if (buttonId.includes('base_low_material')) {
+      return 'power_source';
+    }
+    return null;
   }
   
   generateRandomSequence() {
     // Fixed target sequence for 5 columns (each column controlled by 2 levers)
-    const sequence = [4, 3, 8, 2, 6]; // 5 target heights for 5 columns
-    console.log('🎯 Target sequence (5 columns):', sequence);
+    const sequence = [4, 3, 8, 2, 9]; // 5 target heights for 5 columns
+    // console.log('🎯 Target sequence (5 columns):', sequence);
     return sequence;
   }
   
@@ -39,6 +100,15 @@ export class MachineInteractions {
     
     // Register all interactive elements from config
     this.registerAllInteractiveElements();
+    
+    // Initialize power source lights
+    this.initializePowerSourceLights();
+    
+    // Initialize radio screen 1
+    this.initializeRadioScreen();
+    
+    // Initialize radio screen 2
+    this.initializeRadioScreen2();
     
     console.log('MachineInteractions initialized');
   }
@@ -109,7 +179,15 @@ export class MachineInteractions {
     button.actionManager.registerAction(
       new BABYLON.ExecuteCodeAction(
         BABYLON.ActionManager.OnPickTrigger,
-        () => { this.pressButton(buttonId); }
+        () => { 
+          // Check device unlock state before allowing interaction
+          const deviceName = this.getDeviceNameFromButtonId(buttonId);
+          if (deviceName && !this.isDeviceUnlocked(deviceName)) {
+            console.log(`🔒 Device locked: ${deviceName}`);
+            return;
+          }
+          this.pressButton(buttonId); 
+        }
       )
     );
     
@@ -175,6 +253,13 @@ export class MachineInteractions {
   
   onButtonPressed(buttonId, action) {
     console.log(`⚡ Button action: ${action}`);
+    
+    // Handle radio button inputs (radioButton0 through radioButton9)
+    if (action && action.startsWith('radioButton')) {
+      const digit = action.replace('radioButton', '');
+      this.handleRadioInput(digit);
+      return;
+    }
     
     // Handle different button actions
     if (action === 'togglePower') {
@@ -387,6 +472,14 @@ export class MachineInteractions {
       control = new BABYLON.GUI.Ellipse(data.name);
       if (data.background) control.background = data.background;
       if (data.thickness !== undefined) control.thickness = data.thickness;
+    } else if (className === 'Line') {
+      control = new BABYLON.GUI.Line(data.name);
+      if (data.x1) control.x1 = data.x1;
+      if (data.y1) control.y1 = data.y1;
+      if (data.x2) control.x2 = data.x2;
+      if (data.y2) control.y2 = data.y2;
+      if (data.lineWidth !== undefined) control.lineWidth = data.lineWidth;
+      if (data.dash && data.dash.length > 0) control.dash = data.dash;
     }
     
     if (!control) {
@@ -446,6 +539,22 @@ export class MachineInteractions {
         .then(() => {
           console.log('🎵 Audio playing successfully!');
           this.startTimeUpdate();
+          
+          // Unlock monitor device when cassette starts playing
+          console.log('🔓 Unlocking monitor device');
+          const monitorIframe = document.querySelector('iframe');
+          if (monitorIframe && monitorIframe.contentWindow) {
+            monitorIframe.contentWindow.postMessage({
+              type: 'unlockDevice',
+              deviceName: 'monitor'
+            }, '*');
+          }
+          
+          // Also send to main window for MachineInteractions
+          window.postMessage({
+            type: 'unlockDevice',
+            deviceName: 'monitor'
+          }, '*');
         })
         .catch(error => {
           console.error('🎵 Failed to play audio:', error);
@@ -579,6 +688,12 @@ export class MachineInteractions {
       new BABYLON.ExecuteCodeAction(
         BABYLON.ActionManager.OnPickDownTrigger,
         (evt) => {
+          // Check device unlock state before allowing interaction
+          const deviceName = this.getDeviceNameFromButtonId(dialId);
+          if (deviceName && !this.isDeviceUnlocked(deviceName)) {
+            console.log(`🔒 Device locked: ${deviceName}`);
+            return;
+          }
           dialData.isDragging = true;
           dialData.lastMouseX = this.scene.pointerX;
           document.body.style.cursor = 'grabbing';
@@ -593,8 +708,8 @@ export class MachineInteractions {
         const deltaX = this.scene.pointerX - dialData.lastMouseX;
         dialData.lastMouseX = this.scene.pointerX;
         
-        // Update angle based on horizontal mouse movement (negated for correct direction)
-        dialData.currentAngle -= deltaX * dialData.sensitivity;
+        // Update angle based on horizontal mouse movement
+        dialData.currentAngle += deltaX * dialData.sensitivity;
         
         // Clamp angle for volume control (-π/2 to +π/2 range: left 90° = 0%, center = 50%, right 90° = 100%)
         if (dialData.action === 'adjustVolume') {
@@ -608,6 +723,9 @@ export class MachineInteractions {
         // Real-time action update (e.g., volume adjustment)
         if (dialData.action === 'adjustVolume') {
           this.adjustCassetteVolume(dialData.currentAngle);
+        } else if (dialData.action && dialData.action.startsWith('adjustKnob')) {
+          // Check power source puzzle in real-time while rotating
+          this.checkPowerSourcePuzzle(dialId, dialData.currentAngle);
         }
       }
     });
@@ -629,6 +747,480 @@ export class MachineInteractions {
     // Handle different dial actions
     if (action === 'adjustVolume') {
       this.adjustCassetteVolume(currentAngle);
+    } else if (action.startsWith('adjustKnob')) {
+      // Check power source puzzle
+      this.checkPowerSourcePuzzle(dialId, currentAngle);
+    }
+  }
+  
+  checkPowerSourcePuzzle(dialId, currentAngle) {
+    // Extract knob number from dialId (e.g., "base_low_material_machine_knob5" -> "knob5")
+    const knobKey = dialId.split('_').pop();
+    
+    if (!this.powerSourcePuzzle.knobs[knobKey]) {
+      return;
+    }
+    
+    const knobData = this.powerSourcePuzzle.knobs[knobKey];
+    const angleDiff = Math.abs(currentAngle - knobData.targetAngle);
+    
+    // Check if knob is at target angle (within tolerance)
+    if (angleDiff <= knobData.tolerance && !knobData.solved) {
+      knobData.solved = true;
+      this.turnOnLight(knobData.lightMesh);
+      console.log(`✓ ${knobKey} solved! Light ${knobData.lightMesh} turned on`);
+      
+      // Check if all knobs are solved
+      const allSolved = Object.values(this.powerSourcePuzzle.knobs).every(k => k.solved);
+      if (allSolved && !this.powerSourcePuzzle.allSolved) {
+        this.powerSourcePuzzle.allSolved = true;
+        console.log('🎉 POWER SOURCE PUZZLE SOLVED! All lights are on!');
+        this.onPowerSourcePuzzleSolved();
+      }
+    } else if (angleDiff > knobData.tolerance && knobData.solved) {
+      // Knob moved away from target - turn off light
+      knobData.solved = false;
+      this.turnOffLight(knobData.lightMesh);
+      this.powerSourcePuzzle.allSolved = false;
+      console.log(`✗ ${knobKey} moved away from target. Light ${knobData.lightMesh} turned off`);
+    }
+  }
+  
+  initializePowerSourceLights() {
+    // Initialize all 4 lights with proper materials on load
+    const lightMeshes = ['powersourselight1', 'powersourselight2', 'powersourselight3', 'powersourselight4'];
+    
+    lightMeshes.forEach(lightMeshName => {
+      const lightMesh = this.scene.getMeshByName(lightMeshName);
+      
+      if (!lightMesh) {
+        console.warn(`Light mesh not found: ${lightMeshName}`);
+        setTimeout(() => this.initializePowerSourceLights(), 500);
+        return;
+      }
+      
+      // Create material for light
+      const newMaterial = new BABYLON.StandardMaterial(`${lightMeshName}_mat`, this.scene);
+      
+      // Reduce glossiness
+      newMaterial.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1); // Low specular = less glossy
+      newMaterial.specularPower = 8; // Lower power = less shiny
+      
+      // Start with light off
+      newMaterial.emissiveColor = new BABYLON.Color3(0, 0, 0);
+      newMaterial.diffuseColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+      
+      lightMesh.material = newMaterial;
+    });
+    
+    console.log('✓ Power source lights initialized');
+  }
+  
+  turnOnLight(lightMeshName) {
+    const lightMesh = this.scene.getMeshByName(lightMeshName);
+    
+    if (!lightMesh || !lightMesh.material) {
+      console.warn(`Light mesh not found: ${lightMeshName}`);
+      return;
+    }
+    
+    // Turn on light with green emission (increased brightness)
+    lightMesh.material.emissiveColor = new BABYLON.Color3(0, 0.6, 0);
+    lightMesh.material.diffuseColor = new BABYLON.Color3(0, 0.5, 0);
+    
+    console.log(`💡 Light ${lightMeshName} turned ON`);
+  }
+  
+  turnOffLight(lightMeshName) {
+    const lightMesh = this.scene.getMeshByName(lightMeshName);
+    
+    if (!lightMesh || !lightMesh.material) {
+      return;
+    }
+    
+    // Turn off light
+    lightMesh.material.emissiveColor = new BABYLON.Color3(0, 0, 0);
+    lightMesh.material.diffuseColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+    
+    console.log(`💡 Light ${lightMeshName} turned OFF`);
+  }
+  
+  onPowerSourcePuzzleSolved() {
+    // This will be called when all 4 lights are on
+    console.log('🎉 All power source lights are on! Puzzle complete!');
+    
+    // Notify monitor iframe that power source is solved
+    const monitorIframe = document.querySelector('iframe');
+    if (monitorIframe && monitorIframe.contentWindow) {
+      monitorIframe.contentWindow.postMessage({
+        type: 'deviceComplete',
+        deviceName: 'power_source'
+      }, '*');
+      console.log('✓ Sent power source completion to monitor');
+    } else {
+      console.warn('Monitor iframe not found');
+    }
+  }
+  
+  async initializeRadioScreen() {
+    // Find the radio screen mesh
+    const screenMesh = this.scene.getMeshByName('SM_Radio4.002.screen');
+    
+    if (!screenMesh) {
+      console.warn('Radio screen mesh not found: SM_Radio4.002.screen');
+      setTimeout(() => this.initializeRadioScreen(), 500);
+      return;
+    }
+    
+    console.log('✓ Found radio screen mesh:', screenMesh.name);
+    
+    // Create GUI texture for the screen
+    this.radioScreenGUITexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMeshTexture(
+      screenMesh,
+      1024,
+      1024
+    );
+    
+    // Apply calibrated alignment values (same as cassette player)
+    // Monitor GUI Alignment: rotation: 270°, uAng: π (180° flip)
+    this.radioScreenGUITexture.rootContainer.rotation = 4.7124; // 270° in radians
+    this.radioScreenGUITexture.rootContainer.scaleX = 1.00;
+    this.radioScreenGUITexture.rootContainer.scaleY = 1.00;
+    this.radioScreenGUITexture.rootContainer.left = 0;
+    this.radioScreenGUITexture.rootContainer.top = 0;
+    
+    // Texture UV transform - flip horizontally with 180° U rotation
+    this.radioScreenGUITexture.uScale = 1.00;
+    this.radioScreenGUITexture.vScale = 1.00;
+    this.radioScreenGUITexture.uOffset = 0.00;
+    this.radioScreenGUITexture.vOffset = 0.00;
+    this.radioScreenGUITexture.uAng = Math.PI; // 3.14159... (180°)
+    this.radioScreenGUITexture.vAng = 0.00;
+    this.radioScreenGUITexture.wAng = 0.00;
+    
+    // Store original material
+    this.radioScreenOriginalMaterial = screenMesh.material;
+    
+    // Apply GUI texture to material
+    if (this.radioScreenOriginalMaterial) {
+      // PBR Material
+      if (this.radioScreenOriginalMaterial.albedoTexture !== undefined) {
+        this.radioScreenOriginalMaterial.albedoTexture = this.radioScreenGUITexture;
+        this.radioScreenOriginalMaterial.emissiveTexture = this.radioScreenGUITexture;
+        this.radioScreenOriginalMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
+        this.radioScreenOriginalMaterial.emissiveIntensity = 1;
+        this.radioScreenOriginalMaterial.unlit = true;
+      } 
+      // Standard Material
+      else {
+        this.radioScreenOriginalMaterial.diffuseTexture = this.radioScreenGUITexture;
+        this.radioScreenOriginalMaterial.emissiveTexture = this.radioScreenGUITexture;
+        this.radioScreenOriginalMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
+        this.radioScreenOriginalMaterial.disableLighting = true;
+      }
+    }
+    
+    console.log('✓ Radio screen GUI texture created');
+    
+    // Load militaryframe1.json
+    try {
+      const response = await fetch('textures/military/militaryframe1.json');
+      const guiData = await response.json();
+      
+      // Clear existing controls
+      this.radioScreenGUITexture.rootContainer.clearControls();
+      
+      // Store references to number texts and lines
+      this.radioNumberTexts = [];
+      this.radioLines = [];
+      
+      // Load controls from JSON
+      if (guiData.root && guiData.root.children) {
+        for (let i = 0; i < guiData.root.children.length; i++) {
+          const childData = guiData.root.children[i];
+          const control = await this.createControlFromJSON(childData);
+          if (control) {
+            this.radioScreenGUITexture.addControl(control);
+            
+            // Store references to TextBlock controls (numbers)
+            if (childData.className === 'TextBlock' && childData.fontSize === '158px') {
+              this.radioNumberTexts.push(control);
+            }
+            
+            // Store references to Line controls (underlines)
+            if (childData.className === 'Line') {
+              this.radioLines.push(control);
+            }
+          }
+        }
+      }
+      
+      console.log('✓ Radio screen GUI loaded from militaryframe1.json');
+      console.log(`  Found ${this.radioNumberTexts.length} number texts and ${this.radioLines.length} lines`);
+      
+      // Hide all numbers and lines initially
+      this.radioNumberTexts.forEach(text => text.isVisible = false);
+      this.radioLines.forEach(line => line.isVisible = false);
+      
+      // Animation will start when locked on to radio
+    } catch (error) {
+      console.error('Failed to load radio screen GUI:', error);
+    }
+  }
+  
+  async startRadioAnimation() {
+    this.radioAnimationRunning = true;
+    
+    // Stage 1: Show "5384" and wait for user input
+    this.radioInputCode = [];
+    this.radioTargetCode = ['5', '3', '8', '4'];
+    this.radioCodeCorrect = false;
+    this.showNumbersInstantly(['5', '3', '8', '4']);
+    
+    while (this.radioAnimationRunning && !this.radioCodeCorrect) {
+      await this.delay(100);
+    }
+    
+    if (!this.radioAnimationRunning) return;
+    
+    // Reset input for next stage
+    this.radioInputCode = [];
+    this.radioCodeCorrect = false;
+    this.updateRadioInputDisplay();
+    await this.delay(500);
+    
+    // Stage 2: Loop "6325" animation until user inputs correctly
+    this.radioTargetCode = ['6', '3', '2', '5'];
+    while (this.radioAnimationRunning && !this.radioCodeCorrect) {
+      await this.showNumberSequence(['6', '3', '2', '5'], 'left');
+      // Wait a bit before looping if not correct yet
+      if (!this.radioCodeCorrect) {
+        await this.delay(1000);
+      }
+    }
+    
+    if (!this.radioAnimationRunning) return;
+    
+    // Reset input for next stage
+    this.radioInputCode = [];
+    this.radioCodeCorrect = false;
+    this.updateRadioInputDisplay();
+    await this.delay(500);
+    
+    // Stage 3: Loop "1843" animation until user inputs correctly
+    this.radioTargetCode = ['1', '8', '4', '3'];
+    while (this.radioAnimationRunning && !this.radioCodeCorrect) {
+      await this.showNumberSequence(['1', '8', '4', '3'], 'right');
+      // Wait a bit before looping if not correct yet
+      if (!this.radioCodeCorrect) {
+        await this.delay(1000);
+      }
+    }
+    
+    if (!this.radioAnimationRunning) return;
+    
+    // All codes entered correctly!
+    console.log('🎉 All radio codes entered correctly! Puzzle complete!');
+    this.onRadioPuzzleComplete();
+  }
+  
+  onRadioPuzzleComplete() {
+    // This will be called when all 3 codes are entered correctly
+    console.log('🎉 Radio puzzle solved!');
+    
+    // Notify monitor iframe that military radio is solved
+    const monitorIframe = document.querySelector('iframe');
+    if (monitorIframe && monitorIframe.contentWindow) {
+      monitorIframe.contentWindow.postMessage({
+        type: 'deviceComplete',
+        deviceName: 'military_radio'
+      }, '*');
+      console.log('✓ Sent military radio completion to monitor');
+    } else {
+      console.warn('Monitor iframe not found');
+    }
+  }
+  
+  stopRadioAnimation() {
+    this.radioAnimationRunning = false;
+  }
+  
+  showNumbersInstantly(numbers) {
+    // Show all numbers and lines at once
+    for (let i = 0; i < 4; i++) {
+      this.radioNumberTexts[i].text = numbers[i];
+      this.radioNumberTexts[i].isVisible = true;
+      this.radioLines[i].isVisible = true;
+    }
+  }
+  
+  async showNumberSequence(numbers, direction) {
+    // Determine order based on direction
+    const indices = direction === 'left' ? [0, 1, 2, 3] : [3, 2, 1, 0];
+    
+    // Show numbers one by one (only current number visible)
+    for (let i = 0; i < indices.length; i++) {
+      const index = indices[i];
+      
+      // Hide all numbers and lines first
+      this.radioNumberTexts.forEach(text => text.isVisible = false);
+      this.radioLines.forEach(line => line.isVisible = false);
+      
+      // Update text
+      this.radioNumberTexts[index].text = numbers[index];
+      
+      // Show only this number and its underline
+      this.radioNumberTexts[index].isVisible = true;
+      this.radioLines[index].isVisible = true;
+      
+      // Wait 500ms before showing next number
+      await this.delay(500);
+    }
+  }
+  
+  delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+  
+  handleRadioInput(digit) {
+    // Only accept input if animation is running and code not yet correct
+    if (!this.radioAnimationRunning || this.radioCodeCorrect) {
+      return;
+    }
+    
+    // Add digit to input code (max 4 digits)
+    if (this.radioInputCode.length < 4) {
+      this.radioInputCode.push(digit);
+      console.log(`📟 Radio input: ${this.radioInputCode.join('')}`);
+      
+      // Update the input display on screen 2
+      this.updateRadioInputDisplay();
+      
+      // Check if code is complete and correct
+      if (this.radioInputCode.length === 4) {
+        const inputCodeStr = this.radioInputCode.join('');
+        const targetCodeStr = this.radioTargetCode.join('');
+        
+        if (inputCodeStr === targetCodeStr) {
+          console.log('✓ Radio code correct! Starting animation...');
+          this.radioCodeCorrect = true;
+        } else {
+          console.log('✗ Radio code incorrect! Resetting...');
+          // Reset after 1 second
+          setTimeout(() => {
+            this.radioInputCode = [];
+            this.updateRadioInputDisplay();
+          }, 1000);
+        }
+      }
+    }
+  }
+  
+  updateRadioInputDisplay() {
+    // Update the 4 input text fields on screen 2
+    if (!this.radioScreen2NumberTexts || this.radioScreen2NumberTexts.length < 4) {
+      return;
+    }
+    
+    for (let i = 0; i < 4; i++) {
+      if (i < this.radioInputCode.length) {
+        this.radioScreen2NumberTexts[i].text = this.radioInputCode[i];
+      } else {
+        this.radioScreen2NumberTexts[i].text = '0';
+      }
+    }
+  }
+  
+  async initializeRadioScreen2() {
+    // Find the second radio screen mesh
+    const screenMesh = this.scene.getMeshByName('SM_Radio4.003.screen');
+    
+    if (!screenMesh) {
+      console.warn('Radio screen 2 mesh not found: SM_Radio4.003.screen');
+      setTimeout(() => this.initializeRadioScreen2(), 500);
+      return;
+    }
+    
+    console.log('✓ Found radio screen 2 mesh:', screenMesh.name);
+    
+    // Create GUI texture for the screen
+    this.radioScreen2GUITexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMeshTexture(
+      screenMesh,
+      1024,
+      1024
+    );
+    
+    // Apply calibrated alignment values (same as cassette player)
+    this.radioScreen2GUITexture.rootContainer.rotation = 4.7124; // 270° in radians
+    this.radioScreen2GUITexture.rootContainer.scaleX = 1.00;
+    this.radioScreen2GUITexture.rootContainer.scaleY = 1.00;
+    this.radioScreen2GUITexture.rootContainer.left = 0;
+    this.radioScreen2GUITexture.rootContainer.top = 0;
+    
+    // Texture UV transform - flip horizontally with 180° U rotation
+    this.radioScreen2GUITexture.uScale = 1.00;
+    this.radioScreen2GUITexture.vScale = 1.00;
+    this.radioScreen2GUITexture.uOffset = 0.00;
+    this.radioScreen2GUITexture.vOffset = 0.00;
+    this.radioScreen2GUITexture.uAng = Math.PI; // 3.14159... (180°)
+    this.radioScreen2GUITexture.vAng = 0.00;
+    this.radioScreen2GUITexture.wAng = 0.00;
+    
+    // Store original material
+    this.radioScreen2OriginalMaterial = screenMesh.material;
+    
+    // Apply GUI texture to material
+    if (this.radioScreen2OriginalMaterial) {
+      // PBR Material
+      if (this.radioScreen2OriginalMaterial.albedoTexture !== undefined) {
+        this.radioScreen2OriginalMaterial.albedoTexture = this.radioScreen2GUITexture;
+        this.radioScreen2OriginalMaterial.emissiveTexture = this.radioScreen2GUITexture;
+        this.radioScreen2OriginalMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
+        this.radioScreen2OriginalMaterial.emissiveIntensity = 1;
+        this.radioScreen2OriginalMaterial.unlit = true;
+      } 
+      // Standard Material
+      else {
+        this.radioScreen2OriginalMaterial.diffuseTexture = this.radioScreen2GUITexture;
+        this.radioScreen2OriginalMaterial.emissiveTexture = this.radioScreen2GUITexture;
+        this.radioScreen2OriginalMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
+        this.radioScreen2OriginalMaterial.disableLighting = true;
+      }
+    }
+    
+    console.log('✓ Radio screen 2 GUI texture created');
+    
+    // Load militaryframe2.json
+    try {
+      const response = await fetch('textures/military/militaryframe2.json');
+      const guiData = await response.json();
+      
+      // Clear existing controls
+      this.radioScreen2GUITexture.rootContainer.clearControls();
+      
+      // Store references to input number texts
+      this.radioScreen2NumberTexts = [];
+      
+      // Load controls from JSON
+      if (guiData.root && guiData.root.children) {
+        for (let i = 0; i < guiData.root.children.length; i++) {
+          const childData = guiData.root.children[i];
+          const control = await this.createControlFromJSON(childData);
+          if (control) {
+            this.radioScreen2GUITexture.addControl(control);
+            
+            // Store references to TextBlock controls (input numbers - 158px font size)
+            if (childData.className === 'TextBlock' && childData.fontSize === '158px') {
+              this.radioScreen2NumberTexts.push(control);
+            }
+          }
+        }
+      }
+      
+      console.log('✓ Radio screen 2 GUI loaded from militaryframe2.json');
+      console.log(`  Found ${this.radioScreen2NumberTexts.length} input number texts`);
+    } catch (error) {
+      console.error('Failed to load radio screen 2 GUI:', error);
     }
   }
   
@@ -892,6 +1484,12 @@ export class MachineInteractions {
       new BABYLON.ExecuteCodeAction(
         BABYLON.ActionManager.OnPickDownTrigger,
         (evt) => {
+          // Check device unlock state before allowing interaction
+          const deviceName = this.getDeviceNameFromButtonId(leverId);
+          if (deviceName && !this.isDeviceUnlocked(deviceName)) {
+            console.log(`🔒 Device locked: ${deviceName}`);
+            return;
+          }
           leverData.isDragging = true;
           leverData.lastMouseY = this.scene.pointerY;
           this.currentDraggingLever = leverId; // Track which lever is being dragged
@@ -945,12 +1543,11 @@ export class MachineInteractions {
           const lever2Height = this.currentSequence[lever2Index];
           const combinedHeight = Math.round((lever1Height + lever2Height) / 2); // Average of both levers
           
-          this.updateEqualizerDisplay(columnIndex, combinedHeight);
+          // Check if this matches the target in real-time while dragging
+          this.checkLeverMatch(columnIndex, combinedHeight);
           
-          // Hide number while dragging (will show again on mouse up if correct)
-          if (this.columnNumbers && this.columnNumbers[columnIndex]) {
-            this.columnNumbers[columnIndex].isVisible = false;
-          }
+          // Update display after checking (so colors are correct)
+          this.updateEqualizerDisplay(columnIndex, combinedHeight);
         }
       }
     });
@@ -1128,7 +1725,18 @@ export class MachineInteractions {
   onPuzzleSolved() {
     // Puzzle complete! Trigger whatever should happen
     console.log('🎊 EQUALIZER PUZZLE COMPLETE!');
-    // You can trigger a door unlock, play a sound, etc.
+    
+    // Notify monitor iframe that equalizer is solved
+    const monitorIframe = document.querySelector('iframe');
+    if (monitorIframe && monitorIframe.contentWindow) {
+      monitorIframe.contentWindow.postMessage({
+        type: 'deviceComplete',
+        deviceName: 'equalizer_game'
+      }, '*');
+      console.log('✓ Sent equalizer completion to monitor');
+    } else {
+      console.warn('Monitor iframe not found');
+    }
   }
   
   dispose() {

@@ -122,17 +122,36 @@ export class InteractionSystem {
       'SM_ComputerParts_C05_N1_54_StaticMeshComponent0',
       'Cube18_StaticMeshComponent0',
       'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.001',
-      'monitorFrame'
+      'monitorFrame',
+      'Base_Low_Material_0',
+      'SM_Radio4.001_primitive0',
+      'SM_Radio4.001_primitive1',
+      'SM_Radio4_primitive0',
+      'SM_Radio4_primitive1'
     ];
     
     console.log('=== Scanning scene for interactable objects ===');
     console.log('Total meshes in scene:', this.scene.meshes.length);
     
+    // Search for radio meshes specifically
+    console.log('🔍 Searching for radio meshes...');
+    const radioMeshes = this.scene.meshes.filter(m => m.name.toLowerCase().includes('radio'));
+    if (radioMeshes.length > 0) {
+      console.log('Found radio-related meshes:');
+      radioMeshes.forEach(m => {
+        console.log(`  - ${m.name} | Pickable: ${m.isPickable} | Visible: ${m.isVisible} | Enabled: ${m.isEnabled()}`);
+      });
+    } else {
+      console.log('❌ No radio meshes found in scene!');
+    }
+    
     // Only register the specific allowed meshes
     this.scene.meshes.forEach(mesh => {
-      if (allowedMeshNames.includes(mesh.name) && mesh.isPickable !== false) {
+      if (allowedMeshNames.includes(mesh.name)) {
+        // Force mesh to be pickable
+        mesh.isPickable = true;
         this.interactableObjects.push(mesh);
-        console.log('✓ Registered interactable:', mesh.name);
+        console.log('✓ Registered interactable:', mesh.name, '| Pickable:', mesh.isPickable);
       }
     });
     
@@ -191,13 +210,17 @@ export class InteractionSystem {
     
     const ray = new BABYLON.Ray(origin, forward, length);
     
-    // Debug: Check what we're hitting (every 60 frames)
-    if (this.scene.getFrameId() % 60 === 0) {
-      const anyHit = this.scene.pickWithRay(ray);
-      if (anyHit && anyHit.pickedMesh) {
-        console.log('🎯 Looking at mesh:', anyHit.pickedMesh.name, '| Distance:', anyHit.distance.toFixed(2));
-      } else {
-        console.log('❌ Not looking at any mesh');
+    // Debug: Check what we're hitting (every 30 frames for more frequent updates)
+    if (this.scene.getFrameId() % 30 === 0) {
+      // Use multiPickWithRay to see ALL meshes in the ray path
+      const allHits = this.scene.multiPickWithRay(ray);
+      if (allHits && allHits.length > 0) {
+        console.log('🎯 HOVERING OVER (all meshes in ray):');
+        allHits.forEach((hit, index) => {
+          if (hit.pickedMesh) {
+            console.log(`  ${index + 1}. ${hit.pickedMesh.name} | Distance: ${hit.distance.toFixed(2)}`);
+          }
+        });
       }
     }
     
@@ -223,6 +246,13 @@ export class InteractionSystem {
     // Clear previous focus
     this.clearFocusedObject();
     
+    // Check if device is unlocked before showing prompt
+    const deviceName = this.getDeviceNameFromMesh(mesh);
+    if (deviceName && !this.isDeviceUnlocked(deviceName)) {
+      // Device is locked, don't show prompt or highlight
+      return;
+    }
+    
     // Set new focused object
     this.focusedObject = mesh;
     
@@ -236,6 +266,32 @@ export class InteractionSystem {
     
     // Show interaction prompt
     this.promptElement.style.display = 'block';
+  }
+  
+  getDeviceNameFromMesh(mesh) {
+    // Map mesh names to device names (must match eventTrigger names)
+    const meshName = mesh.name.toLowerCase();
+    if (meshName.includes('c05') || meshName.includes('computerparts')) {
+      return 'cassette';
+    } else if (meshName.includes('monitor') || meshName.includes('monitorframe')) {
+      return 'monitor';
+    } else if (meshName.includes('cube18')) {
+      return 'equalizer_game';
+    } else if (meshName.includes('radio')) {
+      return 'military_radio';
+    } else if (meshName.includes('base_low')) {
+      return 'power_source';
+    }
+    return null;
+  }
+  
+  isDeviceUnlocked(deviceName) {
+    // Check global machineInteractions instance for unlock state
+    if (window.machineInteractions) {
+      return window.machineInteractions.isDeviceUnlocked(deviceName);
+    }
+    // Default to unlocked if machineInteractions not available
+    return true;
   }
   
   clearFocusedObject() {
@@ -375,6 +431,34 @@ export class InteractionSystem {
     easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
     positionAnimation.setEasingFunction(easingFunction);
     
+    // Normalize rotation to find shortest path
+    const currentRotation = this.camera.rotation.clone();
+    const normalizedTarget = targetRotation.clone();
+    
+    // Normalize Y rotation to find shortest path (most common rotation axis)
+    const currentY = currentRotation.y;
+    const targetY = normalizedTarget.y;
+    
+    // Calculate difference and normalize to [-π, π]
+    let deltaY = targetY - currentY;
+    while (deltaY > Math.PI) deltaY -= 2 * Math.PI;
+    while (deltaY < -Math.PI) deltaY += 2 * Math.PI;
+    
+    // Adjust target to take shortest path
+    normalizedTarget.y = currentY + deltaY;
+    
+    // Do the same for X rotation
+    let deltaX = normalizedTarget.x - currentRotation.x;
+    while (deltaX > Math.PI) deltaX -= 2 * Math.PI;
+    while (deltaX < -Math.PI) deltaX += 2 * Math.PI;
+    normalizedTarget.x = currentRotation.x + deltaX;
+    
+    // And Z rotation
+    let deltaZ = normalizedTarget.z - currentRotation.z;
+    while (deltaZ > Math.PI) deltaZ -= 2 * Math.PI;
+    while (deltaZ < -Math.PI) deltaZ += 2 * Math.PI;
+    normalizedTarget.z = currentRotation.z + deltaZ;
+    
     // Rotation animation
     const rotationAnimation = new BABYLON.Animation(
       'cameraRotationAnimation',
@@ -385,8 +469,8 @@ export class InteractionSystem {
     );
     
     rotationAnimation.setKeys([
-      { frame: 0, value: this.camera.rotation.clone() },
-      { frame: animationDuration, value: targetRotation }
+      { frame: 0, value: currentRotation },
+      { frame: animationDuration, value: normalizedTarget }
     ]);
     
     rotationAnimation.setEasingFunction(easingFunction);
@@ -409,6 +493,13 @@ export class InteractionSystem {
       this.camera.rotationQuaternion = null;
       
       console.log('Camera animation complete - locked on to:', this.focusedObject.name);
+      
+      // Start radio animation if locked on to radio
+      const isRadio = this.focusedObject.name.includes('SM_Radio4');
+      if (isRadio && window.machineInteractions) {
+        window.machineInteractions.startRadioAnimation();
+        console.log('✓ Radio animation started');
+      }
     });
     
     console.log('Locking on to:', this.focusedObject.name);
@@ -420,6 +511,13 @@ export class InteractionSystem {
   exitLockOn() {
     if (!this.isLockedOn) {
       return;
+    }
+    
+    // Stop radio animation if exiting from radio
+    const isRadio = this.focusedObject && this.focusedObject.name.includes('SM_Radio4');
+    if (isRadio && window.machineInteractions) {
+      window.machineInteractions.stopRadioAnimation();
+      console.log('✓ Radio animation stopped');
     }
     
     this.isLockedOn = false;
@@ -476,6 +574,31 @@ export class InteractionSystem {
       easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
       positionAnimation.setEasingFunction(easingFunction);
       
+      // Normalize rotation to find shortest path back to original
+      const currentRotation = this.camera.rotation.clone();
+      const normalizedTarget = this.originalCameraRotation.clone();
+      
+      // Normalize Y rotation to find shortest path
+      const currentY = currentRotation.y;
+      const targetY = normalizedTarget.y;
+      
+      let deltaY = targetY - currentY;
+      while (deltaY > Math.PI) deltaY -= 2 * Math.PI;
+      while (deltaY < -Math.PI) deltaY += 2 * Math.PI;
+      normalizedTarget.y = currentY + deltaY;
+      
+      // Normalize X rotation
+      let deltaX = normalizedTarget.x - currentRotation.x;
+      while (deltaX > Math.PI) deltaX -= 2 * Math.PI;
+      while (deltaX < -Math.PI) deltaX += 2 * Math.PI;
+      normalizedTarget.x = currentRotation.x + deltaX;
+      
+      // Normalize Z rotation
+      let deltaZ = normalizedTarget.z - currentRotation.z;
+      while (deltaZ > Math.PI) deltaZ -= 2 * Math.PI;
+      while (deltaZ < -Math.PI) deltaZ += 2 * Math.PI;
+      normalizedTarget.z = currentRotation.z + deltaZ;
+      
       // Rotation animation
       const rotationAnimation = new BABYLON.Animation(
         'cameraReturnRotationAnimation',
@@ -486,8 +609,8 @@ export class InteractionSystem {
       );
       
       rotationAnimation.setKeys([
-        { frame: 0, value: this.camera.rotation.clone() },
-        { frame: animationDuration, value: this.originalCameraRotation.clone() }
+        { frame: 0, value: currentRotation },
+        { frame: animationDuration, value: normalizedTarget }
       ]);
       
       rotationAnimation.setEasingFunction(easingFunction);

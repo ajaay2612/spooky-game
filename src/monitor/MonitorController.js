@@ -34,6 +34,10 @@ export class MonitorController {
     this.lastMouseY = 0;
     this.isMouseOverMonitor = false;
     
+    // Auto-capture interval
+    this.captureInterval = null;
+    this.captureIntervalMs = 1000; // Capture every 1 second
+    
     console.log('MonitorController initialized (iframe + base64 fonts mode)');
   }
 
@@ -184,9 +188,38 @@ export class MonitorController {
         throw new Error('Cannot access iframe document');
       }
 
+      // Force a layout/paint by reading a layout property
+      // This ensures any pending scroll positions are applied
+      const forceLayout = iframeDoc.body.offsetHeight;
+      
+      // Small delay to ensure browser has painted
+      await new Promise(resolve => setTimeout(resolve, 16)); // ~1 frame at 60fps
+
+      // Capture scroll positions and apply as inline styles
+      // This is necessary because XMLSerializer doesn't capture runtime scroll state
+      const scrollableElements = iframeDoc.querySelectorAll('*');
+      const scrollStates = [];
+      
+      scrollableElements.forEach(el => {
+        if (el.scrollTop > 0 || el.scrollLeft > 0) {
+          // Save original transform
+          const originalTransform = el.style.transform || '';
+          scrollStates.push({ el, originalTransform });
+          
+          // Apply scroll as transform (this gets serialized)
+          const currentTransform = originalTransform ? originalTransform + ' ' : '';
+          el.style.transform = `${currentTransform}translateY(-${el.scrollTop}px) translateX(-${el.scrollLeft}px)`;
+        }
+      });
+
       // Serialize the HTML document (fonts are embedded as base64)
       const serializer = new XMLSerializer();
       const htmlString = serializer.serializeToString(iframeDoc.documentElement);
+      
+      // Restore original transforms
+      scrollStates.forEach(({ el, originalTransform }) => {
+        el.style.transform = originalTransform;
+      });
 
       // Create SVG with foreignObject
       const svgString = `
@@ -452,12 +485,50 @@ export class MonitorController {
       this.powerOn();
     }
     this.isActive = true;
-    console.log('✓ Monitor activated');
+    this.isLockedOn = true;
+    
+    // Start auto-capture interval
+    this.startAutoCaptureInterval();
+    
+    console.log('✓ Monitor activated with auto-capture every', this.captureIntervalMs, 'ms');
   }
 
   deactivate() {
     this.isActive = false;
+    this.isLockedOn = false;
+    
+    // Stop auto-capture interval
+    this.stopAutoCaptureInterval();
+    
     console.log('✓ Monitor deactivated');
+  }
+  
+  /**
+   * Start automatic capture interval
+   */
+  startAutoCaptureInterval() {
+    // Clear any existing interval
+    this.stopAutoCaptureInterval();
+    
+    // Start new interval
+    this.captureInterval = setInterval(() => {
+      if (this.isLockedOn && this.isPoweredOn && this.iframe) {
+        this.captureIframeToTexture();
+      }
+    }, this.captureIntervalMs);
+    
+    console.log('✓ Auto-capture interval started');
+  }
+  
+  /**
+   * Stop automatic capture interval
+   */
+  stopAutoCaptureInterval() {
+    if (this.captureInterval) {
+      clearInterval(this.captureInterval);
+      this.captureInterval = null;
+      console.log('✓ Auto-capture interval stopped');
+    }
   }
 
   /**
@@ -545,6 +616,47 @@ export class MonitorController {
       }
     });
     
+    // Mouse wheel event for scrolling
+    let scrollTimeout = null;
+    canvas.addEventListener('wheel', (evt) => {
+      // Only process wheel events when locked on to monitor
+      if (!this.isLockedOn || !this.isMouseOverMonitor || !this.iframe) return;
+      
+      evt.preventDefault();
+      
+      console.log('Sending wheel event to iframe:', evt.deltaY);
+      
+      // Temporarily stop auto-capture during scrolling
+      this.stopAutoCaptureInterval();
+      
+      // Send wheel event to iframe via postMessage
+      this.iframe.contentWindow.postMessage({
+        type: 'wheel',
+        x: this.lastMouseX,
+        y: this.lastMouseY,
+        deltaX: evt.deltaX,
+        deltaY: evt.deltaY,
+        deltaZ: evt.deltaZ,
+        deltaMode: evt.deltaMode
+      }, '*');
+      
+      // Capture texture immediately after scroll
+      if (!updatePending) {
+        updatePending = true;
+        requestAnimationFrame(() => {
+          this.captureIframeToTexture().finally(() => {
+            updatePending = false;
+          });
+        });
+      }
+      
+      // Restart auto-capture after scrolling stops (500ms delay)
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        this.startAutoCaptureInterval();
+      }, 500);
+    }, { passive: false });
+    
     // Listen for capture requests from iframe
     window.addEventListener('message', (event) => {
       if (event.data.type === 'requestCapture' && !updatePending) {
@@ -554,6 +666,18 @@ export class MonitorController {
             updatePending = false;
           });
         });
+      }
+      
+      // Handle recapture canvas request (from popup closes)
+      if (event.data.type === 'recaptureCanvas') {
+        if (!updatePending) {
+          updatePending = true;
+          requestAnimationFrame(() => {
+            this.captureIframeToTexture().finally(() => {
+              updatePending = false;
+            });
+          });
+        }
       }
     });
     
