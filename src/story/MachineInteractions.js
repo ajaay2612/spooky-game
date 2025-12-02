@@ -929,8 +929,16 @@ export class MachineInteractions {
     console.log('✓ Radio screen GUI texture created');
     
     // Wait for fonts to be ready before loading GUI
+    console.log('⏳ Waiting for fonts to load for radio screen 1...');
     await document.fonts.ready;
-    console.log('✓ Fonts ready for radio screen 1');
+    
+    // Additional check: ensure specific fonts are loaded
+    const robotoMono = await document.fonts.load('400 16px "Roboto Mono"');
+    const printChar = await document.fonts.load('400 16px "Print Char"');
+    console.log('✓ Fonts loaded:', robotoMono.length + printChar.length, 'font faces');
+    
+    // Additional delay to ensure fonts are fully rendered
+    await new Promise(resolve => setTimeout(resolve, 100));
     
     // Load militaryframe1.json
     try {
@@ -964,6 +972,9 @@ export class MachineInteractions {
           }
         }
       }
+      
+      // Force texture update after fonts are loaded
+      this.radioScreenGUITexture.markAsDirty();
       
       console.log('✓ Radio screen GUI loaded from militaryframe1.json');
       console.log(`  Found ${this.radioNumberTexts.length} number texts and ${this.radioLines.length} lines`);
@@ -1201,8 +1212,16 @@ export class MachineInteractions {
     console.log('✓ Radio screen 2 GUI texture created');
     
     // Wait for fonts to be ready before loading GUI
+    console.log('⏳ Waiting for fonts to load for radio screen 2...');
     await document.fonts.ready;
-    console.log('✓ Fonts ready for radio screen 2');
+    
+    // Additional check: ensure specific fonts are loaded
+    await document.fonts.load('400 16px "Roboto Mono"');
+    await document.fonts.load('400 16px "Print Char"');
+    console.log('✓ Fonts loaded for radio screen 2');
+    
+    // Additional delay to ensure fonts are fully rendered
+    await new Promise(resolve => setTimeout(resolve, 100));
     
     // Load militaryframe2.json
     try {
@@ -1230,6 +1249,9 @@ export class MachineInteractions {
           }
         }
       }
+      
+      // Force texture update after fonts are loaded
+      this.radioScreen2GUITexture.markAsDirty();
       
       console.log('✓ Radio screen 2 GUI loaded from militaryframe2.json');
       console.log(`  Found ${this.radioScreen2NumberTexts.length} input number texts`);
