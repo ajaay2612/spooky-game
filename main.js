@@ -567,6 +567,11 @@ async function initializeGame() {
     
     console.log('Basic scene initialized without room geometry');
 
+    // Wait for fonts to load before creating GUI
+    console.log('⏳ Waiting for fonts to load...');
+    await document.fonts.ready;
+    console.log('✓ Fonts loaded, creating GUI');
+
     // Create GUI texture for editor UI
     const guiTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
