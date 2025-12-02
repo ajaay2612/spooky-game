@@ -63,5 +63,9 @@ export default defineConfig({
   plugins: [statusServerPlugin()],
   server: {
     port: 5173
+  },
+  publicDir: 'public',
+  build: {
+    copyPublicDir: true
   }
 });

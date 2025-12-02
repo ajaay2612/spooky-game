@@ -593,17 +593,6 @@ async function initializeGame() {
     monitorController = new MonitorController(scene);
     window.monitorController = monitorController; // Make globally accessible for debugging
     
-    // Initialize in background without blocking
-    monitorController.initialize().then(() => {
-      console.log('Monitor system ready');
-    }).catch(error => {
-      console.error('Monitor initialization failed:', error);
-    });
-    
-    // Initialize Machine Interactions (buttons, switches, etc.)
-    machineInteractions = new MachineInteractions(scene);
-    window.machineInteractions = machineInteractions; // Make globally accessible for debugging
-
     // Setup keyboard shortcuts
     window.addEventListener('keydown', (event) => {
       // Pass input to monitor if active
@@ -623,9 +612,27 @@ async function initializeGame() {
     // Start in play mode (sitting in chair)
     editorManager.enterPlayMode();
     
-    // Auto-load saved scene if it exists (after a small delay to ensure UI is ready)
-    setTimeout(() => {
-      editorManager.autoLoadScene();
+    // Auto-load saved scene, then initialize interactive systems
+    setTimeout(async () => {
+      try {
+        await editorManager.autoLoadScene();
+        
+        // Wait for scene to be fully ready (all meshes loaded)
+        await scene.whenReadyAsync();
+        
+        // Additional delay to ensure all GLTF meshes are fully processed
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Initialize Machine Interactions after scene is loaded
+        machineInteractions = new MachineInteractions(scene);
+        window.machineInteractions = machineInteractions;
+        
+        // Initialize monitor controller after scene is loaded
+        await monitorController.initialize();
+        console.log('All interactive systems ready');
+      } catch (error) {
+        console.error('Initialization error:', error);
+      }
     }, 100);
 
     // Implement window resize handler for responsive canvas

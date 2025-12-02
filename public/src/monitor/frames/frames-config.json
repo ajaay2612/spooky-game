@@ -1,0 +1,11 @@
+{
+  "activeFrame": "boot-sequence",
+  "frames": {
+    "boot-sequence": {
+      "id": "boot-sequence",
+      "file": "boot-sequence.html",
+      "name": "Boot Sequence",
+      "transitions": []
+    }
+  }
+}

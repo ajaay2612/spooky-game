@@ -790,12 +790,12 @@ export class MachineInteractions {
     // Initialize all 4 lights with proper materials on load
     const lightMeshes = ['powersourselight1', 'powersourselight2', 'powersourselight3', 'powersourselight4'];
     
+    let allFound = true;
     lightMeshes.forEach(lightMeshName => {
       const lightMesh = this.scene.getMeshByName(lightMeshName);
       
       if (!lightMesh) {
-        console.warn(`Light mesh not found: ${lightMeshName}`);
-        setTimeout(() => this.initializePowerSourceLights(), 500);
+        allFound = false;
         return;
       }
       
@@ -812,6 +812,12 @@ export class MachineInteractions {
       
       lightMesh.material = newMaterial;
     });
+    
+    if (!allFound) {
+      console.warn('Some light meshes not found yet, retrying...');
+      setTimeout(() => this.initializePowerSourceLights(), 500);
+      return;
+    }
     
     console.log('✓ Power source lights initialized');
   }
