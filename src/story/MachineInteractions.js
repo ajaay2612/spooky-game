@@ -928,6 +928,10 @@ export class MachineInteractions {
     
     console.log('✓ Radio screen GUI texture created');
     
+    // Wait for fonts to be ready before loading GUI
+    await document.fonts.ready;
+    console.log('✓ Fonts ready for radio screen 1');
+    
     // Load militaryframe1.json
     try {
       const response = await fetch('textures/military/militaryframe1.json');
@@ -1195,6 +1199,10 @@ export class MachineInteractions {
     }
     
     console.log('✓ Radio screen 2 GUI texture created');
+    
+    // Wait for fonts to be ready before loading GUI
+    await document.fonts.ready;
+    console.log('✓ Fonts ready for radio screen 2');
     
     // Load militaryframe2.json
     try {
