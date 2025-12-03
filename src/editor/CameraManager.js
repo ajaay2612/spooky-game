@@ -26,7 +26,7 @@ export class CameraManager {
 
     // Configure mouse sensitivity for rotation only
     // Lower angularSensibility = higher sensitivity (inverse relationship)
-    camera.angularSensibility = 2000;
+    camera.angularSensibility = 3000; // Increased from 2000 for lower sensitivity
 
     // Disable WASD key movement - player cannot move from chair
     camera.keysUp = [];

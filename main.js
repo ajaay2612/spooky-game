@@ -584,6 +584,9 @@ async function initializeGame() {
     editorManager.propertyPanel = new PropertyPanel(editorManager, guiTexture);
     editorManager.sceneHierarchy = new SceneHierarchy(editorManager, guiTexture);
     editorManager.htmlMeshAlignPanel = new HtmlMeshAlignPanel(scene, guiTexture);
+    
+    // Make interaction system globally accessible for machine interactions
+    window.interactionSystem = editorManager.interactionSystem;
 
     // Setup post-processing effects for realistic rendering (attach to both cameras)
     const cameras = [editorManager.cameraManager.editorCamera, editorManager.cameraManager.playerCamera];

@@ -72,24 +72,44 @@ export class InteractionSystem {
     this.promptElement.id = 'interaction-prompt';
     this.promptElement.style.cssText = `
       position: fixed;
-      bottom: 80px;
+      bottom: 30px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.8);
-      color: #00ff00;
-      padding: 15px 30px;
-      border-radius: 8px;
-      font-family: 'Courier New', monospace;
-      font-size: 18px;
-      font-weight: bold;
-      border: 2px solid #00ff00;
-      box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+      background: transparent;
+      color: #9A9A9A;
+      padding: 10px 0;
+      border: none;
+      font-family: Arial, sans-serif;
+      font-size: 24px;
+      font-weight: normal;
       display: none;
       z-index: 1000;
       text-align: center;
     `;
-    this.promptElement.innerHTML = 'Press <span style="color: #ffff00;">[F]</span> to Interact';
+    this.promptElement.innerHTML = 'Press <span style="color: #fff;">[ F ]</span> to Interact';
     document.body.appendChild(this.promptElement);
+    
+    // Create exit prompt for locked-on mode
+    this.exitPromptElement = document.createElement('div');
+    this.exitPromptElement.id = 'exit-prompt';
+    this.exitPromptElement.style.cssText = `
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: transparent;
+      color: #9A9A9A;
+      padding: 10px 0;
+      border: none;
+      font-family: Arial, sans-serif;
+      font-size: 24px;
+      font-weight: normal;
+      display: none;
+      z-index: 1000;
+      text-align: center;
+    `;
+    this.exitPromptElement.innerHTML = 'Press <span style="color: #fff;">[ Esc ]</span> to Exit';
+    document.body.appendChild(this.exitPromptElement);
   }
   
   createCrosshair() {
@@ -318,6 +338,11 @@ export class InteractionSystem {
     
     this.isLockedOn = true;
     
+    // Show exit prompt
+    if (this.exitPromptElement) {
+      this.exitPromptElement.style.display = 'block';
+    }
+    
     // Disable FXAA post-processing only when locking on to monitor
     const isMonitor = this.focusedObject.name === 'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.001' || 
                       this.focusedObject.name === 'monitorFrame';
@@ -390,17 +415,36 @@ export class InteractionSystem {
         );
         console.log('Using OVERRIDE camera config for machine:', machineConfig.displayName);
       } else {
-        targetPosition = new BABYLON.Vector3(
-          machineConfig.cameraPosition.x,
-          machineConfig.cameraPosition.y,
-          machineConfig.cameraPosition.z
-        );
-        targetRotation = new BABYLON.Vector3(
-          machineConfig.cameraRotation.x,
-          machineConfig.cameraRotation.y,
-          machineConfig.cameraRotation.z
-        );
-        console.log('Using camera config for machine:', machineConfig.displayName);
+        // Check if this is the monitor and if it's powered on
+        const isMonitor = machineConfig.id === 'computer_monitor' || machineConfig.id === 'monitor_frame';
+        const monitorPoweredOn = window.monitorController && window.monitorController.isActive;
+        
+        // Use powered-on position if monitor is on and has that config
+        if (isMonitor && monitorPoweredOn && machineConfig.cameraPositionPoweredOn) {
+          targetPosition = new BABYLON.Vector3(
+            machineConfig.cameraPositionPoweredOn.x,
+            machineConfig.cameraPositionPoweredOn.y,
+            machineConfig.cameraPositionPoweredOn.z
+          );
+          targetRotation = new BABYLON.Vector3(
+            machineConfig.cameraRotationPoweredOn.x,
+            machineConfig.cameraRotationPoweredOn.y,
+            machineConfig.cameraRotationPoweredOn.z
+          );
+          console.log('Using POWERED-ON camera config for machine:', machineConfig.displayName);
+        } else {
+          targetPosition = new BABYLON.Vector3(
+            machineConfig.cameraPosition.x,
+            machineConfig.cameraPosition.y,
+            machineConfig.cameraPosition.z
+          );
+          targetRotation = new BABYLON.Vector3(
+            machineConfig.cameraRotation.x,
+            machineConfig.cameraRotation.y,
+            machineConfig.cameraRotation.z
+          );
+          console.log('Using camera config for machine:', machineConfig.displayName);
+        }
       }
     } else {
       // Fallback to default position
@@ -521,6 +565,11 @@ export class InteractionSystem {
     }
     
     this.isLockedOn = false;
+    
+    // Hide exit prompt
+    if (this.exitPromptElement) {
+      this.exitPromptElement.style.display = 'none';
+    }
     
     // Re-enable FXAA post-processing only if it was disabled (monitor lock-on)
     const isMonitor = this.focusedObject && (
@@ -708,6 +757,10 @@ export class InteractionSystem {
     
     if (this.promptElement) {
       this.promptElement.remove();
+    }
+    
+    if (this.exitPromptElement) {
+      this.exitPromptElement.remove();
     }
     
     if (this.crosshairElement) {

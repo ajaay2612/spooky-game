@@ -123,9 +123,13 @@ export const INTERACTIVE_MACHINES = {
     displayName: 'Computer Monitor',
     meshName: 'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.001',
     
-    // Camera lock-on position
+    // Camera lock-on position (power off - can see power button)
     cameraPosition: { x: 0.208, y: 2.202, z: 0.414 },
     cameraRotation: { x: -0.028, y: 1.580, z: 0.000 },
+    
+    // Camera lock-on position when powered on (zoomed in on screen)
+    cameraPositionPoweredOn: { x: 0.422, y: 2.270, z: 0.408 },
+    cameraRotationPoweredOn: { x: 0.030, y: 1.572, z: 0.000 },
     
     // Interactive elements on this machine
     interactiveElements: {
@@ -143,9 +147,13 @@ export const INTERACTIVE_MACHINES = {
     displayName: 'Monitor Frame',
     meshName: 'monitorFrame',
     
-    // Camera lock-on position (same as monitor)
+    // Camera lock-on position (power off - can see power button)
     cameraPosition: { x: 0.208, y: 2.202, z: 0.414 },
     cameraRotation: { x: -0.028, y: 1.580, z: 0.000 },
+    
+    // Camera lock-on position when powered on (zoomed in on screen)
+    cameraPositionPoweredOn: { x: 0.422, y: 2.270, z: 0.408 },
+    cameraRotationPoweredOn: { x: 0.030, y: 1.572, z: 0.000 },
     
     // Interactive elements on this machine
     interactiveElements: {}

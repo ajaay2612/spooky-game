@@ -292,7 +292,162 @@ export class MachineInteractions {
       window.monitorController.activate();
       this.setMonitorLED(true);
       console.log('✓ Monitor powered on');
+      
+      // Pan camera directly to powered-on position
+      console.log('🎥 Panning camera to powered-on position...');
+      
+      if (window.interactionSystem) {
+        const wasLockedOn = window.interactionSystem.isLockedOn;
+        console.log('  - Was locked on:', wasLockedOn);
+        
+        if (wasLockedOn) {
+          // Already locked on, just animate directly to new position
+          console.log('✓ Animating directly to zoomed position');
+          setTimeout(() => {
+            this.zoomMonitorCameraIn();
+          }, 100);
+        } else {
+          // Not locked on, lock on directly (will use powered-on position)
+          const monitorMesh = this.scene.getMeshByName('SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.001') ||
+                             this.scene.getMeshByName('monitorFrame');
+          
+          if (monitorMesh) {
+            console.log('📥 Locking on with powered-on position...');
+            window.interactionSystem.focusedObject = monitorMesh;
+            setTimeout(() => {
+              window.interactionSystem.lockOnToObject();
+            }, 100);
+          } else {
+            console.warn('❌ Monitor mesh not found');
+          }
+        }
+      }
     }
+  }
+  
+  zoomMonitorCameraIn() {
+    console.log('🎥 zoomMonitorCameraIn() START');
+    console.log('  - this.scene:', !!this.scene);
+    
+    // Get the camera
+    const camera = this.scene.activeCamera;
+    console.log('  - camera:', !!camera);
+    
+    if (!camera) {
+      console.warn('❌ Cannot zoom: camera not found');
+      return;
+    }
+    
+    console.log('  - INTERACTIVE_MACHINES:', !!INTERACTIVE_MACHINES);
+    
+    // Get monitor config with powered-on camera position
+    const monitorConfig = INTERACTIVE_MACHINES['computer_monitor'];
+    console.log('  - monitorConfig:', !!monitorConfig);
+    
+    if (!monitorConfig) {
+      console.warn('❌ No monitor config found');
+      return;
+    }
+    
+    console.log('  - cameraPositionPoweredOn:', monitorConfig.cameraPositionPoweredOn);
+    
+    if (!monitorConfig.cameraPositionPoweredOn) {
+      console.warn('❌ No powered-on camera position configured');
+      return;
+    }
+    
+    const targetPosition = new BABYLON.Vector3(
+      monitorConfig.cameraPositionPoweredOn.x,
+      monitorConfig.cameraPositionPoweredOn.y,
+      monitorConfig.cameraPositionPoweredOn.z
+    );
+    const targetRotation = new BABYLON.Vector3(
+      monitorConfig.cameraRotationPoweredOn.x,
+      monitorConfig.cameraRotationPoweredOn.y,
+      monitorConfig.cameraRotationPoweredOn.z
+    );
+    
+    console.log('🎥 Zooming camera to powered-on position:', targetPosition.toString());
+    console.log('  - Current position:', camera.position.toString());
+    console.log('  - Current rotation:', camera.rotation.toString());
+    
+    // Stop any running animations
+    this.scene.stopAnimation(camera);
+    
+    // Ensure camera rotation quaternion is null so we use Euler angles
+    camera.rotationQuaternion = null;
+    
+    const animationDuration = 45; // frames (0.75 seconds at 60fps)
+    
+    // Position animation
+    const positionAnimation = new BABYLON.Animation(
+      'monitorZoomPositionAnimation',
+      'position',
+      60,
+      BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+      BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+    );
+    
+    positionAnimation.setKeys([
+      { frame: 0, value: camera.position.clone() },
+      { frame: animationDuration, value: targetPosition }
+    ]);
+    
+    // Smooth easing
+    const easingFunction = new BABYLON.CubicEase();
+    easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
+    positionAnimation.setEasingFunction(easingFunction);
+    
+    // Normalize rotation for shortest path
+    const currentRotation = camera.rotation.clone();
+    const normalizedTarget = targetRotation.clone();
+    
+    // Normalize Y rotation
+    let deltaY = normalizedTarget.y - currentRotation.y;
+    while (deltaY > Math.PI) deltaY -= 2 * Math.PI;
+    while (deltaY < -Math.PI) deltaY += 2 * Math.PI;
+    normalizedTarget.y = currentRotation.y + deltaY;
+    
+    // Normalize X rotation
+    let deltaX = normalizedTarget.x - currentRotation.x;
+    while (deltaX > Math.PI) deltaX -= 2 * Math.PI;
+    while (deltaX < -Math.PI) deltaX += 2 * Math.PI;
+    normalizedTarget.x = currentRotation.x + deltaX;
+    
+    // Normalize Z rotation
+    let deltaZ = normalizedTarget.z - currentRotation.z;
+    while (deltaZ > Math.PI) deltaZ -= 2 * Math.PI;
+    while (deltaZ < -Math.PI) deltaZ += 2 * Math.PI;
+    normalizedTarget.z = currentRotation.z + deltaZ;
+    
+    // Rotation animation
+    const rotationAnimation = new BABYLON.Animation(
+      'monitorZoomRotationAnimation',
+      'rotation',
+      60,
+      BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+      BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+    );
+    
+    rotationAnimation.setKeys([
+      { frame: 0, value: currentRotation },
+      { frame: animationDuration, value: normalizedTarget }
+    ]);
+    
+    rotationAnimation.setEasingFunction(easingFunction);
+    
+    // Clear and apply animations
+    camera.animations = [];
+    camera.animations = [positionAnimation, rotationAnimation];
+    
+    this.scene.beginAnimation(camera, 0, animationDuration, false, 1, () => {
+      // Ensure final values are exact
+      camera.position.copyFrom(targetPosition);
+      camera.rotation.copyFrom(targetRotation);
+      camera.rotationQuaternion = null;
+      
+      console.log('✓ Camera zoomed to powered-on position');
+    });
   }
   
   setMonitorLED(isOn) {
@@ -933,12 +1088,16 @@ export class MachineInteractions {
     await document.fonts.ready;
     
     // Additional check: ensure specific fonts are loaded
-    const robotoMono = await document.fonts.load('400 16px "Roboto Mono"');
-    const printChar = await document.fonts.load('400 16px "Print Char"');
-    console.log('✓ Fonts loaded:', robotoMono.length + printChar.length, 'font faces');
+    try {
+      const robotoMono = await document.fonts.load('400 16px "Roboto Mono"');
+      const printChar = await document.fonts.load('400 16px "Print Char"');
+      console.log('✓ Fonts loaded:', robotoMono.length + printChar.length, 'font faces');
+    } catch (error) {
+      console.warn('Font loading warning:', error);
+    }
     
     // Additional delay to ensure fonts are fully rendered
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 500));
     
     // Load militaryframe1.json
     try {
@@ -1048,6 +1207,21 @@ export class MachineInteractions {
   onRadioPuzzleComplete() {
     // This will be called when all 3 codes are entered correctly
     console.log('🎉 Radio puzzle solved!');
+    
+    // Stop animation to prevent it from overwriting the display
+    this.radioAnimationRunning = false;
+    
+    // Show "1843" on top screen (screen 1) to match bottom screen
+    // Make sure all 4 numbers are visible at once
+    if (this.radioNumberTexts && this.radioNumberTexts.length >= 4 && 
+        this.radioLines && this.radioLines.length >= 4) {
+      for (let i = 0; i < 4; i++) {
+        this.radioNumberTexts[i].text = ['1', '8', '4', '3'][i];
+        this.radioNumberTexts[i].isVisible = true;
+        this.radioLines[i].isVisible = true;
+      }
+      console.log('✓ Displayed complete code "1843" on top screen');
+    }
     
     // Notify monitor iframe that military radio is solved
     const monitorIframe = document.querySelector('iframe');
