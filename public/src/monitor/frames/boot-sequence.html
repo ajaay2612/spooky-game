@@ -2164,6 +2164,34 @@
                     if (deviceName === 'power_source') {
                         this.isPowerAvailable = true;
                         console.log('Power is now available');
+                        
+                        // Close notification popup if it's open
+                        const notificationPopup = document.getElementById('notificationPopup');
+                        if (notificationPopup && !notificationPopup.classList.contains('hidden')) {
+                            notificationPopup.classList.add('hidden');
+                            console.log('✓ Notification popup closed');
+                        }
+                        
+                        // Open core3.exe directly
+                        const frame6 = document.querySelector('.mainexe-frame6');
+                        if (frame6) {
+                            frame6.style.display = 'none';
+                        }
+                        
+                        const core3Popup = document.querySelector('.core3exe-popup');
+                        if (core3Popup) {
+                            core3Popup.classList.remove('hidden');
+                            core3Popup.style.display = 'flex';
+                            console.log('✓ core3.exe opened directly');
+                            
+                            // Recapture canvas
+                            if (window.parent) {
+                                window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                            }
+                        }
+                        
+                        // Skip notification popup for power_source
+                        return;
                     }
                     
                     // Wait for complete popup to hide before opening notification
@@ -3836,6 +3864,12 @@
                                         }, index * 150); // 150ms delay between each element
                                     });
                                     
+                                    // Trigger blackout when warning appears
+                                    if (window.parent && window.parent.applyBlackout) {
+                                        window.parent.applyBlackout();
+                                        console.log('✓ Blackout triggered on warning');
+                                    }
+                                    
                                     if (window.parent) {
                                         window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
                                     }
@@ -3857,6 +3891,20 @@
                                                 const releasingScene = document.querySelector('.releasing-scene');
                                                 if (releasingScene) {
                                                     releasingScene.classList.remove('hidden');
+                                                    
+                                                    // Trigger camera effects in parent window
+                                                    if (window.parent && window.parent.applyCameraEffects) {
+                                                        window.parent.applyCameraEffects();
+                                                        console.log('✓ Camera effects triggered');
+                                                        
+                                                        // Stop effects after 20 seconds
+                                                        setTimeout(function() {
+                                                            if (window.parent && window.parent.stopCameraEffects) {
+                                                                window.parent.stopCameraEffects();
+                                                                console.log('✓ Camera effects stopped after 20s');
+                                                            }
+                                                        }, 20000);
+                                                    }
                                                     
                                                     // Play audio when releasing scene starts
                                                     const releasingAudio = new Audio('v2.mp3');

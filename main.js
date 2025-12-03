@@ -18,6 +18,470 @@ let fpsDisplay = null;
 // Expose scene globally for debugging tools
 window.scene = null;
 
+// Camera effects state
+let cameraEffectsActive = false;
+let tremorAnimation = null;
+let hazyVisionAnimation = null;
+let hazyVisionPipeline = null;
+window.tremorFadeMultiplier = 1.0;
+
+/**
+ * Apply camera tremor and hazy vision effects with smooth transitions
+ * Call from console: applyCameraEffects()
+ * Stop effects: stopCameraEffects()
+ */
+window.applyCameraEffects = function() {
+  if (!scene || !scene.activeCamera) {
+    console.error('Scene or camera not available');
+    return;
+  }
+
+  if (cameraEffectsActive) {
+    console.log('Camera effects already active');
+    return;
+  }
+
+  const camera = scene.activeCamera;
+  cameraEffectsActive = true;
+
+  // Store original camera position for tremor effect
+  const originalPosition = camera.position.clone();
+  const originalRotation = camera.rotation ? camera.rotation.clone() : new BABYLON.Vector3(0, 0, 0);
+
+  // Transition parameters
+  const transitionDuration = 2.0; // 2 seconds fade in
+  let transitionTime = 0;
+
+  // TREMOR EFFECT - Very subtle camera shake with smooth fade-in
+  let tremorTime = 0;
+  tremorAnimation = scene.onBeforeRenderObservable.add(() => {
+    if (!cameraEffectsActive) return;
+
+    const deltaTime = engine.getDeltaTime() / 1000;
+    tremorTime += deltaTime;
+    transitionTime += deltaTime;
+
+    // Smooth fade-in using easing function (ease-in-out)
+    const progress = Math.min(transitionTime / transitionDuration, 1.0);
+    const easedProgress = progress < 0.5 
+      ? 2 * progress * progress 
+      : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+    // Very subtle tremor - reduced intensity for better performance
+    const maxIntensity = 0.003; // Reduced from 0.015 (5x less shaky)
+    const intensity = maxIntensity * easedProgress * window.tremorFadeMultiplier;
+    const speed = 3; // Reduced from 8 (slower, smoother)
+
+    const offsetX = Math.sin(tremorTime * speed) * intensity;
+    const offsetY = Math.cos(tremorTime * speed * 1.3) * intensity;
+    const offsetZ = Math.sin(tremorTime * speed * 0.7) * intensity;
+
+    camera.position.x = originalPosition.x + offsetX;
+    camera.position.y = originalPosition.y + offsetY;
+    camera.position.z = originalPosition.z + offsetZ;
+
+    // Very subtle rotation tremor
+    const maxRotIntensity = 0.001; // Reduced from 0.005 (5x less)
+    const rotIntensity = maxRotIntensity * easedProgress * window.tremorFadeMultiplier;
+    if (camera.rotation) {
+      camera.rotation.x = originalRotation.x + Math.sin(tremorTime * speed * 1.1) * rotIntensity;
+      camera.rotation.z = originalRotation.z + Math.cos(tremorTime * speed * 0.9) * rotIntensity;
+    }
+
+    // Update original position slowly (so tremor follows camera movement)
+    originalPosition.x += (camera.position.x - originalPosition.x - offsetX) * 0.1;
+    originalPosition.y += (camera.position.y - originalPosition.y - offsetY) * 0.1;
+    originalPosition.z += (camera.position.z - originalPosition.z - offsetZ) * 0.1;
+  });
+
+  // HAZY VISION EFFECT - Blur and desaturation with smooth transition
+  if (postProcessingPipeline) {
+    hazyVisionPipeline = postProcessingPipeline;
+
+    // Store original values
+    const originalGrainIntensity = postProcessingPipeline.grainEnabled ? postProcessingPipeline.grain.intensity : 10;
+    const originalContrast = postProcessingPipeline.imageProcessing ? postProcessingPipeline.imageProcessing.contrast : 1.1;
+    const originalExposure = postProcessingPipeline.imageProcessing ? postProcessingPipeline.imageProcessing.exposure : 1.0;
+    const originalVignetteWeight = postProcessingPipeline.imageProcessing?.vignetteEnabled ? postProcessingPipeline.imageProcessing.vignetteWeight : 1.5;
+
+    // Target values
+    const targetGrainIntensity = 30;
+    const targetContrast = 0.8;
+    const targetExposure = 0.7;
+    const targetVignetteWeight = 3.0;
+    const targetSaturation = -15; // Reduced from -30 (less greyscale)
+    const targetFStop = 5.0; // Increased from 1.5 (even less blur)
+
+    // Enable effects immediately but at zero intensity
+    postProcessingPipeline.depthOfFieldEnabled = true;
+    postProcessingPipeline.depthOfField.focalLength = 50;
+    postProcessingPipeline.depthOfField.fStop = 20; // Start sharp
+    postProcessingPipeline.depthOfField.focusDistance = 2000;
+
+    if (postProcessingPipeline.imageProcessing) {
+      postProcessingPipeline.imageProcessing.colorCurvesEnabled = true;
+      const curves = new BABYLON.ColorCurves();
+      curves.globalSaturation = 0; // Start normal
+      postProcessingPipeline.imageProcessing.colorCurves = curves;
+    }
+
+    // Animate transition
+    let hazyTransitionTime = 0;
+    hazyVisionAnimation = scene.onBeforeRenderObservable.add(() => {
+      if (!cameraEffectsActive) return;
+
+      hazyTransitionTime += engine.getDeltaTime() / 1000;
+      const progress = Math.min(hazyTransitionTime / transitionDuration, 1.0);
+      
+      // Smooth easing (ease-in-out)
+      const easedProgress = progress < 0.5 
+        ? 2 * progress * progress 
+        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+      // Interpolate all values
+      if (postProcessingPipeline.grainEnabled) {
+        postProcessingPipeline.grain.intensity = originalGrainIntensity + (targetGrainIntensity - originalGrainIntensity) * easedProgress;
+      }
+
+      if (postProcessingPipeline.imageProcessing) {
+        postProcessingPipeline.imageProcessing.contrast = originalContrast + (targetContrast - originalContrast) * easedProgress;
+        postProcessingPipeline.imageProcessing.exposure = originalExposure + (targetExposure - originalExposure) * easedProgress;
+        
+        if (postProcessingPipeline.imageProcessing.vignetteEnabled) {
+          postProcessingPipeline.imageProcessing.vignetteWeight = originalVignetteWeight + (targetVignetteWeight - originalVignetteWeight) * easedProgress;
+        }
+
+        // Interpolate saturation
+        if (postProcessingPipeline.imageProcessing.colorCurvesEnabled) {
+          const curves = new BABYLON.ColorCurves();
+          curves.globalSaturation = targetSaturation * easedProgress;
+          postProcessingPipeline.imageProcessing.colorCurves = curves;
+        }
+      }
+
+      // Interpolate depth of field blur
+      postProcessingPipeline.depthOfField.fStop = 20 + (targetFStop - 20) * easedProgress;
+    });
+  }
+
+  console.log('✓ Camera effects applied (tremor + hazy vision)');
+  console.log('  Effects will fade in over 2 seconds');
+  console.log('  Call stopCameraEffects() to remove effects');
+};
+
+/**
+ * Skip to core3.exe puzzle for testing
+ * Call from console: skipToCore3()
+ */
+window.skipToCore3 = function() {
+  console.log('⏩ Skipping to core3.exe puzzle...');
+  
+  // Wait a bit for iframe to be ready
+  setTimeout(() => {
+    const monitorIframe = document.querySelector('iframe');
+    console.log('Iframe found:', !!monitorIframe);
+    
+    if (monitorIframe && monitorIframe.contentWindow) {
+      const iframeDoc = monitorIframe.contentWindow.document;
+      console.log('Iframe document:', !!iframeDoc);
+      
+      // Set power available flag
+      if (monitorIframe.contentWindow.deviceTracker) {
+        monitorIframe.contentWindow.deviceTracker.isPowerAvailable = true;
+        monitorIframe.contentWindow.deviceTracker.devices.power_source = true;
+        console.log('✓ Power source marked as complete');
+      } else {
+        console.warn('deviceTracker not found');
+      }
+      
+      // Close any open popups
+      const notificationPopup = iframeDoc.getElementById('notificationPopup');
+      if (notificationPopup) {
+        notificationPopup.classList.add('hidden');
+        console.log('✓ Notification closed');
+      }
+      
+      // Hide frame6
+      const frame6 = iframeDoc.querySelector('.mainexe-frame6');
+      if (frame6) {
+        frame6.style.display = 'none';
+        console.log('✓ Frame6 hidden');
+      }
+      
+      // Open core3.exe popup
+      const core3Popup = iframeDoc.querySelector('.core3exe-popup');
+      console.log('core3exe-popup found:', !!core3Popup);
+      
+      if (core3Popup) {
+        core3Popup.classList.remove('hidden');
+        core3Popup.style.display = 'flex';
+        console.log('✓ core3.exe opened - solve the puzzle to see ending sequence!');
+        
+        // Recapture canvas
+        if (window.monitorController) {
+          window.monitorController.captureCanvasToTexture();
+        }
+      } else {
+        console.error('core3exe-popup not found in iframe');
+      }
+    } else {
+      console.error('Monitor iframe not accessible');
+    }
+  }, 500);
+  
+  return 'Skipping to core3.exe...';
+};
+
+/**
+ * Blackout - instantly turn off point light
+ * Call from console: applyBlackout()
+ * Restore with: restoreBlackout()
+ */
+window.applyBlackout = function() {
+  if (!scene) {
+    console.error('Scene not available');
+    return;
+  }
+
+  console.log('Available lights:', scene.lights.map(l => `${l.name} (${l.getClassName()})`));
+
+  // Find point light by type
+  const pointLight = scene.lights.find(light => light.getClassName() === 'PointLight');
+  
+  if (pointLight) {
+    // Store original intensity if not already stored
+    if (window.blackoutOriginalIntensity === undefined) {
+      window.blackoutOriginalIntensity = pointLight.intensity;
+    }
+    pointLight.intensity = 1.15;
+    console.log(`✓ Blackout applied - ${pointLight.name} turned off (was ${window.blackoutOriginalIntensity})`);
+  } else {
+    console.warn('Point light not found in scene');
+  }
+};
+
+/**
+ * Restore point light after blackout
+ * Call from console: restoreBlackout()
+ */
+window.restoreBlackout = function() {
+  if (!scene) {
+    console.error('Scene not available');
+    return;
+  }
+
+  const pointLight = scene.lights.find(light => light.getClassName() === 'PointLight');
+  
+  if (pointLight && window.blackoutOriginalIntensity !== undefined) {
+    pointLight.intensity = window.blackoutOriginalIntensity;
+    console.log(`✓ Blackout restored - ${pointLight.name} turned on (intensity: ${window.blackoutOriginalIntensity})`);
+    window.blackoutOriginalIntensity = undefined;
+  } else {
+    console.warn('Point light not found or no blackout to restore');
+  }
+};
+
+/**
+ * Apply light flickering effect for 2 seconds
+ * Call from console: applyLightFlicker()
+ */
+window.applyLightFlicker = function() {
+  if (!scene) {
+    console.error('Scene not available');
+    return;
+  }
+
+  console.log('✓ Light flickering effect started');
+
+  const duration = 2.0; // 2 seconds
+  let flickerTime = 0;
+  let isFlickering = true;
+
+  // Store original light properties
+  const originalLightData = [];
+  scene.lights.forEach(light => {
+    originalLightData.push({
+      light: light,
+      intensity: light.intensity,
+      diffuse: light.diffuse ? light.diffuse.clone() : null,
+      specular: light.specular ? light.specular.clone() : null
+    });
+  });
+
+  // Create flickering animation
+  const flickerAnimation = scene.onBeforeRenderObservable.add(() => {
+    if (!isFlickering) return;
+
+    flickerTime += engine.getDeltaTime() / 1000;
+
+    // Random flicker pattern
+    const flickerSpeed = 20; // Fast flickering
+    const flickerIntensity = 0.7; // How much lights dim (0 = full dim, 1 = no dim)
+
+    // Random flicker using noise-like pattern
+    const flicker1 = Math.sin(flickerTime * flickerSpeed * 3.7) * 0.5 + 0.5;
+    const flicker2 = Math.sin(flickerTime * flickerSpeed * 5.3) * 0.5 + 0.5;
+    const flicker3 = Math.random() * 0.3; // Add randomness
+    
+    const flickerValue = (flicker1 * 0.4 + flicker2 * 0.4 + flicker3 * 0.2);
+    const dimAmount = flickerIntensity + (1 - flickerIntensity) * flickerValue;
+
+    // Color shift to warm orange
+    const orangeShift = Math.sin(flickerTime * flickerSpeed * 2.1) * 0.3 + 0.7; // 0.4 to 1.0
+    const warmOrange = new BABYLON.Color3(1.0, 0.5 * orangeShift, 0.1 * orangeShift); // Warm orange color
+
+    // Apply to all lights
+    originalLightData.forEach(data => {
+      data.light.intensity = data.intensity * dimAmount;
+      
+      // Shift color to warm orange
+      if (data.diffuse) {
+        data.light.diffuse = BABYLON.Color3.Lerp(data.diffuse, warmOrange, 0.6); // 60% orange tint
+      }
+      if (data.specular) {
+        data.light.specular = BABYLON.Color3.Lerp(data.specular, warmOrange, 0.4); // 40% orange tint
+      }
+    });
+
+    // Occasionally go completely dark for dramatic effect
+    if (Math.random() < 0.05) { // 5% chance per frame
+      originalLightData.forEach(data => {
+        data.light.intensity = 0;
+      });
+    }
+
+    // Stop after duration
+    if (flickerTime >= duration) {
+      isFlickering = false;
+
+      // Restore original light properties
+      originalLightData.forEach(data => {
+        data.light.intensity = data.intensity;
+        if (data.diffuse) {
+          data.light.diffuse = data.diffuse;
+        }
+        if (data.specular) {
+          data.light.specular = data.specular;
+        }
+      });
+
+      // Remove animation
+      scene.onBeforeRenderObservable.remove(flickerAnimation);
+
+      console.log('✓ Light flickering effect completed');
+    }
+  });
+};
+
+/**
+ * Stop camera tremor and hazy vision effects with smooth fade-out
+ * Call from console: stopCameraEffects()
+ */
+window.stopCameraEffects = function() {
+  if (!cameraEffectsActive) {
+    console.log('Camera effects not active');
+    return;
+  }
+
+  console.log('✓ Fading out camera effects...');
+
+  // Transition parameters
+  const fadeOutDuration = 2.0; // 2 seconds fade out
+  let fadeOutTime = 0;
+
+  // Get current values to fade from
+  const currentGrainIntensity = hazyVisionPipeline?.grainEnabled ? hazyVisionPipeline.grain.intensity : 10;
+  const currentContrast = hazyVisionPipeline?.imageProcessing ? hazyVisionPipeline.imageProcessing.contrast : 1.1;
+  const currentExposure = hazyVisionPipeline?.imageProcessing ? hazyVisionPipeline.imageProcessing.exposure : 1.0;
+  const currentVignetteWeight = hazyVisionPipeline?.imageProcessing?.vignetteEnabled ? hazyVisionPipeline.imageProcessing.vignetteWeight : 1.5;
+  const currentSaturation = hazyVisionPipeline?.imageProcessing?.colorCurvesEnabled ? hazyVisionPipeline.imageProcessing.colorCurves.globalSaturation : 0;
+  const currentFStop = hazyVisionPipeline?.depthOfFieldEnabled ? hazyVisionPipeline.depthOfField.fStop : 5.0;
+
+  // Target values (original/normal)
+  const targetGrainIntensity = 10;
+  const targetContrast = 1.1;
+  const targetExposure = 1.0;
+  const targetVignetteWeight = 1.5;
+  const targetSaturation = 0;
+  const targetFStop = 20;
+
+  // Mark as stopping (but keep active for fade-out animation)
+  const stoppingEffects = true;
+
+  // Create fade-out animation
+  const fadeOutAnimation = scene.onBeforeRenderObservable.add(() => {
+    fadeOutTime += engine.getDeltaTime() / 1000;
+    const progress = Math.min(fadeOutTime / fadeOutDuration, 1.0);
+    
+    // Smooth easing (ease-in-out)
+    const easedProgress = progress < 0.5 
+      ? 2 * progress * progress 
+      : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+    // Fade out tremor intensity
+    if (tremorAnimation) {
+      // Tremor will naturally fade as we interpolate back to normal
+      // The tremor animation will use a decreasing multiplier
+      window.tremorFadeMultiplier = 1.0 - easedProgress;
+    }
+
+    // Interpolate post-processing back to normal
+    if (hazyVisionPipeline) {
+      if (hazyVisionPipeline.grainEnabled) {
+        hazyVisionPipeline.grain.intensity = currentGrainIntensity + (targetGrainIntensity - currentGrainIntensity) * easedProgress;
+      }
+
+      if (hazyVisionPipeline.imageProcessing) {
+        hazyVisionPipeline.imageProcessing.contrast = currentContrast + (targetContrast - currentContrast) * easedProgress;
+        hazyVisionPipeline.imageProcessing.exposure = currentExposure + (targetExposure - currentExposure) * easedProgress;
+        
+        if (hazyVisionPipeline.imageProcessing.vignetteEnabled) {
+          hazyVisionPipeline.imageProcessing.vignetteWeight = currentVignetteWeight + (targetVignetteWeight - currentVignetteWeight) * easedProgress;
+        }
+
+        if (hazyVisionPipeline.imageProcessing.colorCurvesEnabled) {
+          const curves = new BABYLON.ColorCurves();
+          curves.globalSaturation = currentSaturation + (targetSaturation - currentSaturation) * easedProgress;
+          hazyVisionPipeline.imageProcessing.colorCurves = curves;
+        }
+      }
+
+      if (hazyVisionPipeline.depthOfFieldEnabled) {
+        hazyVisionPipeline.depthOfField.fStop = currentFStop + (targetFStop - currentFStop) * easedProgress;
+      }
+    }
+
+    // When fade-out complete, clean up
+    if (progress >= 1.0) {
+      cameraEffectsActive = false;
+      window.tremorFadeMultiplier = 1.0;
+
+      // Remove all animations
+      if (tremorAnimation && scene) {
+        scene.onBeforeRenderObservable.remove(tremorAnimation);
+        tremorAnimation = null;
+      }
+
+      if (hazyVisionAnimation && scene) {
+        scene.onBeforeRenderObservable.remove(hazyVisionAnimation);
+        hazyVisionAnimation = null;
+      }
+
+      if (fadeOutAnimation && scene) {
+        scene.onBeforeRenderObservable.remove(fadeOutAnimation);
+      }
+
+      // Disable depth of field
+      if (hazyVisionPipeline) {
+        hazyVisionPipeline.depthOfFieldEnabled = false;
+        hazyVisionPipeline = null;
+      }
+
+      console.log('✓ Camera effects fully stopped');
+    }
+  });
+};
+
 // Helper function to open alignment tool
 window.openAlignmentTool = function() {
   const url = window.location.origin + '/htmlmesh-align.html';

@@ -1010,6 +1010,18 @@ export class MachineInteractions {
     // This will be called when all 4 lights are on
     console.log('🎉 All power source lights are on! Puzzle complete!');
     
+    // Auto unlock from focus mode
+    if (window.interactionSystem && window.interactionSystem.isLockedOn) {
+      window.interactionSystem.exitLockOn();
+      console.log('✓ Auto-unlocked from focus mode');
+    }
+    
+    // Run light flickering effect
+    if (window.applyLightFlicker) {
+      window.applyLightFlicker();
+      console.log('✓ Light flickering effect triggered');
+    }
+    
     // Notify monitor iframe that power source is solved
     const monitorIframe = document.querySelector('iframe');
     if (monitorIframe && monitorIframe.contentWindow) {
