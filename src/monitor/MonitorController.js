@@ -36,7 +36,7 @@ export class MonitorController {
     
     // Auto-capture interval
     this.captureInterval = null;
-    this.captureIntervalMs = 1000; // Capture every 1 second
+    this.captureIntervalMs = 100; // Capture every 100ms for faster updates
     
     console.log('MonitorController initialized (iframe + base64 fonts mode)');
   }
