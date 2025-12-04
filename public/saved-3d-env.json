@@ -28,14 +28,14 @@
       "name": "hemisphericLight",
       "intensity": 0,
       "diffuse": [
-        0.5,
-        0.5,
-        0.6
+        0.54253158950696,
+        0.537466568410192,
+        0.6289602505088
       ],
       "specular": [
-        0.1,
-        0.1,
-        0.15
+        0.13827843055626401,
+        0.13574592000788005,
+        0.18361934053253204
       ],
       "groundColor": [
         0.1,
@@ -55,19 +55,41 @@
       "name": "PointLight_0",
       "intensity": 10,
       "diffuse": [
-        0.82474547641003,
-        0.5145268443500736,
-        0.2978963155229972
+        0.839653183323163,
+        0.550757713198808,
+        0.3525544658252294
       ],
       "specular": [
         1,
-        1,
-        1
+        0.997467489451616,
+        0.997467489451616
       ],
       "position": [
         -0.026943806558847427,
         3.6319327354431152,
         0.08659382164478302
+      ],
+      "range": 1.7976931348623157e+308
+    },
+    {
+      "type": "light",
+      "lightType": "point",
+      "name": "PointLight_2",
+      "intensity": 0,
+      "diffuse": [
+        0.5049104637582403,
+        1,
+        0.9779481807471744
+      ],
+      "specular": [
+        1,
+        0.997467489451616,
+        0.997467489451616
+      ],
+      "position": [
+        -2.589538335800171,
+        2.7243447303771973,
+        0
       ],
       "range": 1.7976931348623157e+308
     }
@@ -78,14 +100,14 @@
     "bloomThreshold": 0,
     "bloomWeight": 0.2839285714285714,
     "bloomScale": 0.4928571428571429,
-    "contrast": 1.0030358450753347,
-    "exposure": 1.094642857142857,
+    "contrast": 1.1,
+    "exposure": 1,
     "vignetteEnabled": true,
-    "vignetteWeight": 0.7114292689732142,
+    "vignetteWeight": 1.5,
     "chromaticAberrationEnabled": false,
     "chromaticAberrationAmount": 9.750017438616071,
     "grainEnabled": true,
-    "grainIntensity": 9.857134137834823,
+    "grainIntensity": 10,
     "grainAnimated": true,
     "sharpenEnabled": true,
     "sharpenEdgeAmount": 0.5314287458147321,

@@ -18,7 +18,7 @@ export class MachineInteractions {
     // Keys must match eventTrigger names from boot-sequence.html
     this.deviceUnlockState = {
       cassette: true,          // Always unlocked at start
-      monitor: false,          // Unlocked after cassette plays audio
+      monitor: true,           // Unlocked by default for testing
       equalizer_game: false,   // Unlocked when chat reaches equalizer_game
       military_radio: false,   // Unlocked when chat reaches military_radio
       power_source: false      // Unlocked when chat reaches power_source

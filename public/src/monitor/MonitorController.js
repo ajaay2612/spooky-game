@@ -81,7 +81,48 @@ export class MonitorController {
     this.iframe.style.background = '#0a0a0a';
     document.body.appendChild(this.iframe);
     
+    // Setup MutationObserver to capture on any DOM change
+    this.iframe.addEventListener('load', () => {
+      this.setupDOMObserver();
+    });
+    
     console.log('✓ Hidden iframe created');
+  }
+  
+  /**
+   * Setup MutationObserver to watch for any DOM changes in iframe
+   */
+  setupDOMObserver() {
+    if (!this.iframe || !this.iframe.contentDocument) {
+      console.warn('⚠️ Cannot setup DOM observer - iframe not ready');
+      return;
+    }
+    
+    // Disconnect existing observer if any
+    if (this.domObserver) {
+      this.domObserver.disconnect();
+    }
+    
+    // Create new observer
+    this.domObserver = new MutationObserver((mutations) => {
+      // Capture on any change
+      if (this.isLockedOn && this.isPoweredOn) {
+        this.captureIframeToTexture();
+        console.log('📸 Captured due to DOM change');
+      }
+    });
+    
+    // Observe everything in the iframe
+    this.domObserver.observe(this.iframe.contentDocument.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      characterData: true,
+      attributeOldValue: false,
+      characterDataOldValue: false
+    });
+    
+    console.log('✓ DOM observer setup - will capture on any change');
   }
 
   /**
@@ -481,26 +522,30 @@ export class MonitorController {
    * Activate monitor (enable keyboard input)
    */
   activate() {
+    console.log('🟢 Activating monitor...');
     if (!this.isPoweredOn) {
       this.powerOn();
     }
     this.isActive = true;
     this.isLockedOn = true;
     
-    // Start auto-capture interval
-    this.startAutoCaptureInterval();
+    // Setup DOM observer if not already setup
+    if (!this.domObserver) {
+      this.setupDOMObserver();
+    }
     
-    console.log('✓ Monitor activated with auto-capture every', this.captureIntervalMs, 'ms');
+    // Do an initial capture
+    this.captureIframeToTexture();
+    
+    console.log('✓ Monitor activated with DOM change detection');
   }
 
   deactivate() {
+    console.log('🛑 Deactivating monitor...');
     this.isActive = false;
     this.isLockedOn = false;
     
-    // Stop auto-capture interval
-    this.stopAutoCaptureInterval();
-    
-    console.log('✓ Monitor deactivated');
+    console.log('✓ Monitor deactivated (DOM observer still active)');
   }
   
   /**
@@ -510,14 +555,30 @@ export class MonitorController {
     // Clear any existing interval
     this.stopAutoCaptureInterval();
     
+    console.log('🔄 Starting auto-capture interval:', {
+      captureIntervalMs: this.captureIntervalMs,
+      isLockedOn: this.isLockedOn,
+      isPoweredOn: this.isPoweredOn,
+      hasIframe: !!this.iframe
+    });
+    
     // Start new interval
     this.captureInterval = setInterval(() => {
+      console.log('📸 Auto-capture tick:', {
+        isLockedOn: this.isLockedOn,
+        isPoweredOn: this.isPoweredOn,
+        hasIframe: !!this.iframe
+      });
+      
       if (this.isLockedOn && this.isPoweredOn && this.iframe) {
         this.captureIframeToTexture();
+        console.log('✅ Captured frame');
+      } else {
+        console.log('⚠️ Skipped capture - conditions not met');
       }
     }, this.captureIntervalMs);
     
-    console.log('✓ Auto-capture interval started');
+    console.log('✓ Auto-capture interval started with ID:', this.captureInterval);
   }
   
   /**

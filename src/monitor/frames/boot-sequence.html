@@ -774,7 +774,7 @@
             border: 5px solid #D83737;
         }
         .releasing-div-progress-track{
-            width:50%;
+            width:25%;
             height: 100%;
             background-color: #D83737;
         }
@@ -796,7 +796,7 @@
             <div class="">
                 <div class="releasing-div">
                     <p>RELEASING</p>
-                    <p>50%</p>
+                    <p>25%</p>
                 </div>
                 <div class="releasing-div-progress">
                     <div class="releasing-div-progress-track">
@@ -1734,9 +1734,9 @@
                         <path d="M56 56L88 56" stroke="#A90000" stroke-width="2"/>
                         
                         <circle class="green-circle" id="green-0" cx="41" cy="41" r="5.5" fill="#7FB746" stroke="#7FB746"/>
-                        <circle class="green-circle" id="green-1" cx="103" cy="103" r="5.5" fill="#7FB746" stroke="#7FB746"/>
-                        <circle class="green-circle" id="green-2" cx="165" cy="166" r="5.5" fill="#7FB746" stroke="#7FB746"/>
-                        <circle class="green-circle" id="green-3" cx="41" cy="166" r="5.5" fill="#7FB746" stroke="#7FB746"/>
+                        <circle class="green-circle" id="green-1" cx="41" cy="72" r="5.5" fill="#7FB746" stroke="#7FB746"/>
+                        <circle class="green-circle" id="green-2" cx="165" cy="165" r="5.5" fill="#7FB746" stroke="#7FB746"/>
+                        <circle class="green-circle" id="green-3" cx="41" cy="165" r="5.5" fill="#7FB746" stroke="#7FB746"/>
                     </svg>
                 </div>
             </div>          
@@ -3475,10 +3475,18 @@
                             core2Popup.classList.remove('hidden');
                             core2Popup.style.display = 'flex';
                             
-                            // Recapture canvas in monitor
-                            if (window.parent) {
-                                window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
-                            }
+                            // Start continuous capture every second for core2exe
+                            const core2CaptureInterval = setInterval(function() {
+                                if (window.parent) {
+                                    window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                                    console.log('📸 Sending capture request (core2exe)');
+                                }
+                            }, 1000);
+                            
+                            // Store interval globally so it can be cleared when popup closes
+                            window.core2CaptureInterval = core2CaptureInterval;
+                            
+                            console.log('✓ Continuous capture started for core2exe');
                         }, 500);
                     } else {
                         // Wrong code - show WRONG popup
@@ -3739,19 +3747,45 @@
 
     <script>
         const cellCenters = [[41, 72, 103, 134, 165], [41, 72, 103, 134, 165], [41, 72, 103, 134, 165], [41, 72, 103, 134, 165], [41, 72, 103, 134, 165]];
-        const cellYs = [41, 72, 103, 134, 166];
-        let circles = [{row: 0, col: 0}, {row: 2, col: 2}, {row: 4, col: 4}, {row: 4, col: 0}];
-        const targets = [{row: 0, col: 2}, {row: 2, col: 1}, {row: 3, col: 2}, {row: 3, col: 4}];
+        const cellYs = [41, 72, 103, 134, 165];
+        
+        // Initial positions: green circles start at (0,0), (1,0), (4,4), (4,0)
+        let circles = [
+            {row: 0, col: 0},
+            {row: 1, col: 0},
+            {row: 4, col: 4},
+            {row: 4, col: 0}
+        ];
+        
+        // Target positions (white circles)
+        const targets = [
+            {row: 0, col: 2},
+            {row: 2, col: 1},
+            {row: 3, col: 2},
+            {row: 3, col: 4}
+        ];
 
+        // Horizontal barriers (between rows)
         function hasHorizontalBarrier(row, col) {
+            // Between rows 0 and 1 at column 1
             if (row === 0 && col === 1) return true;
+            // Between rows 1 and 2 at column 4
             if (row === 1 && col === 4) return true;
-            if (row === 3 && col === 4) return true;
+            // Between rows 2 and 3 at column 0
+            if (row === 2 && col === 0) return true;
+            // Between rows 2 and 3 at column 4
+            if (row === 2 && col === 4) return true;
             return false;
         }
 
+        // Vertical barriers (between columns)
         function hasVerticalBarrier(row, col) {
-            if (col === 2 && (row === 0 || row === 2 || row === 3)) return true;
+            // Between columns 1 and 2 at row 2
+            if (row === 2 && col === 1) return true;
+            // Between columns 2 and 3 at row 0
+            if (row === 0 && col === 2) return true;
+            // Between columns 2 and 3 at row 3
+            if (row === 3 && col === 2) return true;
             return false;
         }
 
@@ -3841,10 +3875,15 @@
                     if (completePopup) {
                         completePopup.classList.remove('hidden');
                         
-                        // Recapture canvas in monitor
-                        if (window.parent) {
-                            window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
-                        }
+                        // Start continuous capture every second from password correct onwards
+                        const continuousCaptureInterval = setInterval(function() {
+                            if (window.parent) {
+                                window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                                console.log('📸 Sending capture request (password complete)');
+                            }
+                        }, 1000); // Capture every 1 second
+                        
+                        console.log('✓ Continuous screen capture started (every 1s)');
                         
                         setTimeout(function() {
                             completePopup.classList.add('hidden');
@@ -3922,29 +3961,59 @@
                                                         window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
                                                     }
                                                     
-                                                    // Animate percentage from 0 to 100
+                                                    // Start continuous capture every second
+                                                    const captureInterval = setInterval(function() {
+                                                        if (window.parent) {
+                                                            window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                                                            console.log('📸 Sending capture request (releasing)');
+                                                        }
+                                                    }, 1000); // Capture every 1 second
+                                                    
+                                                    // Animate percentage: 25% -> 50% -> 100%
                                                     const percentageText = document.querySelector('.releasing-div p:nth-child(2)');
                                                     const progressTrack = document.querySelector('.releasing-div-progress-track');
                                                     
-                                                    let percentage = 0;
+                                                    const percentages = [25, 50, 100];
+                                                    let currentIndex = 0;
+                                                    
+                                                    // Set initial to 25%
+                                                    if (percentageText) {
+                                                        percentageText.textContent = percentages[0] + '%';
+                                                    }
+                                                    if (progressTrack) {
+                                                        progressTrack.style.width = percentages[0] + '%';
+                                                    }
+                                                    currentIndex = 1;
+                                                    
                                                     const interval = setInterval(function() {
-                                                        percentage++;
-                                                        if (percentageText) {
-                                                            percentageText.textContent = percentage + '%';
-                                                        }
-                                                        if (progressTrack) {
-                                                            progressTrack.style.width = percentage + '%';
-                                                        }
-                                                        
-                                                        if (percentage >= 100) {
-                                                            clearInterval(interval);
-                                                            
-                                                            // After reaching 100%, trigger device completion
-                                                            if (window.deviceTracker) {
-                                                                window.deviceTracker.completeDevice('aftercore3');
+                                                        if (currentIndex < percentages.length) {
+                                                            const percentage = percentages[currentIndex];
+                                                            if (percentageText) {
+                                                                percentageText.textContent = percentage + '%';
                                                             }
+                                                            if (progressTrack) {
+                                                                progressTrack.style.width = percentage + '%';
+                                                            }
+                                                            
+                                                            if (percentage === 100) {
+                                                                clearInterval(interval);
+                                                                clearInterval(captureInterval); // Stop continuous capture
+                                                                
+                                                                // After reaching 100%, trigger device completion
+                                                                if (window.deviceTracker) {
+                                                                    window.deviceTracker.completeDevice('aftercore3');
+                                                                }
+                                                                
+                                                                // Reveal second monitor setup
+                                                                if (window.parent && window.parent.revealMonitor2) {
+                                                                    window.parent.revealMonitor2();
+                                                                    console.log('✓ Second monitor reveal triggered');
+                                                                }
+                                                            }
+                                                            
+                                                            currentIndex++;
                                                         }
-                                                    }, 120); // 120ms per percent = 12 seconds total
+                                                    }, 4000); // 4 seconds between each step (25->50->100 = 8 seconds total)
                                                 }
                                             }, 2000); // 2 seconds for jumpscare (increased to prevent overlap)
                                         }
@@ -4048,6 +4117,20 @@
                                                 releasingScene.classList.remove('hidden');
                                                 console.log('✓ Releasing scene shown');
                                                 
+                                                // Trigger camera effects in parent window
+                                                if (window.parent && window.parent.applyCameraEffects) {
+                                                    window.parent.applyCameraEffects();
+                                                    console.log('✓ Camera effects triggered');
+                                                    
+                                                    // Stop effects after 20 seconds
+                                                    setTimeout(function() {
+                                                        if (window.parent && window.parent.stopCameraEffects) {
+                                                            window.parent.stopCameraEffects();
+                                                            console.log('✓ Camera effects stopped after 20s');
+                                                        }
+                                                    }, 20000);
+                                                }
+                                                
                                                 const releasingAudio = new Audio('v2.mp3');
                                                 releasingAudio.volume = 0.7;
                                                 const playPromise = releasingAudio.play();
@@ -4063,28 +4146,58 @@
                                                     window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
                                                 }
                                                 
+                                                // Start continuous capture every second
+                                                const captureInterval = setInterval(function() {
+                                                    if (window.parent) {
+                                                        window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                                                    }
+                                                }, 1000); // Capture every 1 second
+                                                
                                                 const percentageText = document.querySelector('.releasing-div p:nth-child(2)');
                                                 const progressTrack = document.querySelector('.releasing-div-progress-track');
                                                 
-                                                let percentage = 0;
+                                                // Animate percentage: 25% -> 50% -> 100%
+                                                const percentages = [25, 50, 100];
+                                                let currentIndex = 0;
+                                                
+                                                // Set initial to 25%
+                                                if (percentageText) {
+                                                    percentageText.textContent = percentages[0] + '%';
+                                                }
+                                                if (progressTrack) {
+                                                    progressTrack.style.width = percentages[0] + '%';
+                                                }
+                                                currentIndex = 1;
+                                                
                                                 const interval = setInterval(function() {
-                                                    percentage++;
-                                                    if (percentageText) {
-                                                        percentageText.textContent = percentage + '%';
-                                                    }
-                                                    if (progressTrack) {
-                                                        progressTrack.style.width = percentage + '%';
-                                                    }
-                                                    
-                                                    if (percentage >= 100) {
-                                                        clearInterval(interval);
-                                                        console.log('✓ Releasing complete - triggering aftercore3');
-                                                        
-                                                        if (window.deviceTracker) {
-                                                            window.deviceTracker.completeDevice('aftercore3');
+                                                    if (currentIndex < percentages.length) {
+                                                        const percentage = percentages[currentIndex];
+                                                        if (percentageText) {
+                                                            percentageText.textContent = percentage + '%';
                                                         }
+                                                        if (progressTrack) {
+                                                            progressTrack.style.width = percentage + '%';
+                                                        }
+                                                        
+                                                        if (percentage === 100) {
+                                                            clearInterval(interval);
+                                                            clearInterval(captureInterval); // Stop continuous capture
+                                                            console.log('✓ Releasing complete - triggering aftercore3');
+                                                            
+                                                            // Reveal second monitor setup
+                                                            if (window.parent && window.parent.revealMonitor2) {
+                                                                window.parent.revealMonitor2();
+                                                                console.log('✓ Second monitor reveal triggered');
+                                                            }
+                                                            
+                                                            if (window.deviceTracker) {
+                                                                window.deviceTracker.completeDevice('aftercore3');
+                                                            }
+                                                        }
+                                                        
+                                                        currentIndex++;
                                                     }
-                                                }, 120);
+                                                }, 4000); // 4 seconds between each step
                                             }
                                         }, 2000);
                                     }
@@ -4271,6 +4384,19 @@
                                 if (core2Popup) {
                                     core2Popup.classList.remove('hidden');
                                     core2Popup.style.display = 'flex';
+                                    
+                                    // Start continuous capture every second for core2exe
+                                    const core2CaptureInterval = setInterval(function() {
+                                        if (window.parent) {
+                                            window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
+                                            console.log('📸 Sending capture request (core2exe)');
+                                        }
+                                    }, 1000);
+                                    
+                                    // Store interval globally
+                                    window.core2CaptureInterval = core2CaptureInterval;
+                                    
+                                    console.log('✓ Continuous capture started for core2exe');
                                 }
                             }
                             

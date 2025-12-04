@@ -142,6 +142,7 @@ export class InteractionSystem {
       'SM_ComputerParts_C05_N1_54_StaticMeshComponent0',
       'Cube18_StaticMeshComponent0',
       'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.001',
+      'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.002',
       'monitorFrame',
       'Base_Low_Material_0',
       'SM_Radio4.001_primitive0',
@@ -345,6 +346,7 @@ export class InteractionSystem {
     
     // Disable FXAA post-processing only when locking on to monitor
     const isMonitor = this.focusedObject.name === 'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.001' || 
+                      this.focusedObject.name === 'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.002' ||
                       this.focusedObject.name === 'monitorFrame';
     
     if (isMonitor && window.postProcessingPipeline && window.postProcessingPipeline.fxaaEnabled !== undefined) {
@@ -352,8 +354,17 @@ export class InteractionSystem {
       window.postProcessingPipeline.fxaaEnabled = false;
       console.log('✓ FXAA disabled for monitor lock-on');
       
-      // Notify monitor controller that it's locked on
-      if (window.monitorController) {
+      // Notify monitor controllers that they're locked on
+      if (this.focusedObject.name === 'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.001' && window.monitorController) {
+        console.log('🎯 About to activate Monitor 1');
+        window.monitorController.isLockedOn = true;
+        window.monitorController.activate();
+        console.log('✓ Monitor 1 activated');
+      } else if (this.focusedObject.name === 'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.002' && window.monitor2Controller) {
+        window.monitor2Controller.isLockedOn = true;
+        window.monitor2Controller.activate();
+        console.log('✓ Monitor 2 activated');
+      } else if (window.monitorController) {
         window.monitorController.isLockedOn = true;
       }
     }
@@ -417,7 +428,14 @@ export class InteractionSystem {
       } else {
         // Check if this is the monitor and if it's powered on
         const isMonitor = machineConfig.id === 'computer_monitor' || machineConfig.id === 'monitor_frame';
-        const monitorPoweredOn = window.monitorController && window.monitorController.isActive;
+        const monitorPoweredOn = window.monitorController && window.monitorController.isPoweredOn;
+        
+        console.log('🔍 Monitor check:', {
+          isMonitor,
+          monitorExists: !!window.monitorController,
+          isPoweredOn: window.monitorController?.isPoweredOn,
+          hasPoweredOnConfig: !!machineConfig.cameraPositionPoweredOn
+        });
         
         // Use powered-on position if monitor is on and has that config
         if (isMonitor && monitorPoweredOn && machineConfig.cameraPositionPoweredOn) {
@@ -431,7 +449,7 @@ export class InteractionSystem {
             machineConfig.cameraRotationPoweredOn.y,
             machineConfig.cameraRotationPoweredOn.z
           );
-          console.log('Using POWERED-ON camera config for machine:', machineConfig.displayName);
+          console.log('✅ Using POWERED-ON camera config for machine:', machineConfig.displayName);
         } else {
           targetPosition = new BABYLON.Vector3(
             machineConfig.cameraPosition.x,
@@ -574,8 +592,18 @@ export class InteractionSystem {
     // Re-enable FXAA post-processing only if it was disabled (monitor lock-on)
     const isMonitor = this.focusedObject && (
       this.focusedObject.name === 'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.001' || 
+      this.focusedObject.name === 'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.002' ||
       this.focusedObject.name === 'monitorFrame'
     );
+    
+    // Deactivate monitor controllers
+    if (this.focusedObject && this.focusedObject.name === 'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.001' && window.monitorController) {
+      window.monitorController.deactivate();
+      console.log('✓ Monitor 1 deactivated');
+    } else if (this.focusedObject && this.focusedObject.name === 'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.002' && window.monitor2Controller) {
+      window.monitor2Controller.deactivate();
+      console.log('✓ Monitor 2 deactivated');
+    }
     
     if (isMonitor && window.postProcessingPipeline && this.fxaaWasEnabled !== undefined) {
       window.postProcessingPipeline.fxaaEnabled = this.fxaaWasEnabled;

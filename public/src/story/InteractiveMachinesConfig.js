@@ -159,6 +159,19 @@ export const INTERACTIVE_MACHINES = {
     interactiveElements: {}
   },
   
+  // Machine 4b: Computer Monitor 2
+  'computer_monitor_2': {
+    displayName: 'Computer Monitor 2',
+    meshName: 'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.002',
+    
+    // Camera lock-on position
+    cameraPosition: { x: -2.514, y: 2.290, z: 0.408 },
+    cameraRotation: { x: 0.090, y: 4.714, z: 0.000 },
+    
+    // Interactive elements on this machine
+    interactiveElements: {}
+  },
+  
   // Machine 5: Base Low Material Machine
   'base_low_material_machine': {
     displayName: 'Base Low Material Machine',

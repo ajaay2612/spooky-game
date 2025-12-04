@@ -8,6 +8,7 @@ import { SceneHierarchy } from './src/editor/SceneHierarchy.js';
 import { SettingsPanel } from './src/editor/SettingsPanel.js';
 import { HtmlMeshAlignPanel } from './src/editor/HtmlMeshAlignPanel.js';
 import { MonitorController } from './src/monitor/MonitorController.js';
+import { Monitor2Controller } from './src/monitor/Monitor2Controller.js';
 import { MachineInteractions } from './src/story/MachineInteractions.js';
 
 // Global variables
@@ -67,31 +68,44 @@ window.applyCameraEffects = function() {
       ? 2 * progress * progress 
       : 1 - Math.pow(-2 * progress + 2, 2) / 2;
 
-    // Very subtle tremor - reduced intensity for better performance
-    const maxIntensity = 0.003; // Reduced from 0.015 (5x less shaky)
+    // Tremor-like shake - irregular and jittery
+    const maxIntensity = 0.008; // Medium shake intensity
     const intensity = maxIntensity * easedProgress * window.tremorFadeMultiplier;
-    const speed = 3; // Reduced from 8 (slower, smoother)
+    const speed = 12; // Fast, jittery tremor
 
-    const offsetX = Math.sin(tremorTime * speed) * intensity;
-    const offsetY = Math.cos(tremorTime * speed * 1.3) * intensity;
-    const offsetZ = Math.sin(tremorTime * speed * 0.7) * intensity;
+    // Irregular tremor pattern using multiple frequencies
+    const offsetX = (Math.sin(tremorTime * speed) + Math.sin(tremorTime * speed * 2.3) * 0.5) * intensity;
+    const offsetY = (Math.cos(tremorTime * speed * 1.3) + Math.sin(tremorTime * speed * 3.1) * 0.5) * intensity;
+    const offsetZ = (Math.sin(tremorTime * speed * 0.7) + Math.cos(tremorTime * speed * 1.9) * 0.5) * intensity;
 
     camera.position.x = originalPosition.x + offsetX;
     camera.position.y = originalPosition.y + offsetY;
     camera.position.z = originalPosition.z + offsetZ;
 
-    // Very subtle rotation tremor
-    const maxRotIntensity = 0.001; // Reduced from 0.005 (5x less)
+    // Jittery rotation tremor (only X axis, leave Z alone)
+    const maxRotIntensity = 0.003; // Medium rotation shake
     const rotIntensity = maxRotIntensity * easedProgress * window.tremorFadeMultiplier;
     if (camera.rotation) {
-      camera.rotation.x = originalRotation.x + Math.sin(tremorTime * speed * 1.1) * rotIntensity;
-      camera.rotation.z = originalRotation.z + Math.cos(tremorTime * speed * 0.9) * rotIntensity;
+      // Irregular rotation tremor with multiple frequencies
+      camera.rotation.x = originalRotation.x + (Math.sin(tremorTime * speed * 1.1) + Math.cos(tremorTime * speed * 2.7) * 0.5) * rotIntensity;
+      // Don't touch Z rotation at all
     }
 
     // Update original position slowly (so tremor follows camera movement)
     originalPosition.x += (camera.position.x - originalPosition.x - offsetX) * 0.1;
     originalPosition.y += (camera.position.y - originalPosition.y - offsetY) * 0.1;
     originalPosition.z += (camera.position.z - originalPosition.z - offsetZ) * 0.1;
+  });
+
+  // RED LIGHT FLICKERING - Store original light colors for flickering effect
+  const originalLightData = [];
+  scene.lights.forEach(light => {
+    originalLightData.push({
+      light: light,
+      intensity: light.intensity,
+      diffuse: light.diffuse ? light.diffuse.clone() : null,
+      specular: light.specular ? light.specular.clone() : null
+    });
   });
 
   // HAZY VISION EFFECT - Blur and desaturation with smooth transition
@@ -104,19 +118,15 @@ window.applyCameraEffects = function() {
     const originalExposure = postProcessingPipeline.imageProcessing ? postProcessingPipeline.imageProcessing.exposure : 1.0;
     const originalVignetteWeight = postProcessingPipeline.imageProcessing?.vignetteEnabled ? postProcessingPipeline.imageProcessing.vignetteWeight : 1.5;
 
-    // Target values
+    // Target values - NO blur, minimal greyscale
     const targetGrainIntensity = 30;
     const targetContrast = 0.8;
     const targetExposure = 0.7;
     const targetVignetteWeight = 3.0;
-    const targetSaturation = -15; // Reduced from -30 (less greyscale)
-    const targetFStop = 5.0; // Increased from 1.5 (even less blur)
+    const targetSaturation = -5; // Minimal greyscale so red is visible
 
-    // Enable effects immediately but at zero intensity
-    postProcessingPipeline.depthOfFieldEnabled = true;
-    postProcessingPipeline.depthOfField.focalLength = 50;
-    postProcessingPipeline.depthOfField.fStop = 20; // Start sharp
-    postProcessingPipeline.depthOfField.focusDistance = 2000;
+    // Disable depth of field blur completely
+    postProcessingPipeline.depthOfFieldEnabled = false;
 
     if (postProcessingPipeline.imageProcessing) {
       postProcessingPipeline.imageProcessing.colorCurvesEnabled = true;
@@ -137,6 +147,28 @@ window.applyCameraEffects = function() {
       const easedProgress = progress < 0.5 
         ? 2 * progress * progress 
         : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+      // RED LIGHT FLICKERING - Subtle red tint flicker
+      const flickerSpeed = 4; // Moderate flicker speed
+      const flickerTime = hazyTransitionTime * flickerSpeed;
+      const flickerValue = Math.sin(flickerTime * 3.7) * 0.5 + 0.5; // 0 to 1
+      const redTintAmount = 0.3 * easedProgress * flickerValue; // Max 30% red tint
+      
+      const redTint = new BABYLON.Color3(
+        1.0,
+        0.3 + (0.7 * (1 - redTintAmount)), // Reduce green
+        0.3 + (0.7 * (1 - redTintAmount))  // Reduce blue
+      );
+
+      // Apply red tint to lights
+      originalLightData.forEach(data => {
+        if (data.diffuse) {
+          data.light.diffuse = BABYLON.Color3.Lerp(data.diffuse, redTint, redTintAmount);
+        }
+        if (data.specular) {
+          data.light.specular = BABYLON.Color3.Lerp(data.specular, redTint, redTintAmount * 0.5);
+        }
+      });
 
       // Interpolate all values
       if (postProcessingPipeline.grainEnabled) {
@@ -159,14 +191,107 @@ window.applyCameraEffects = function() {
         }
       }
 
-      // Interpolate depth of field blur
-      postProcessingPipeline.depthOfField.fStop = 20 + (targetFStop - 20) * easedProgress;
+      // No blur interpolation - blur is disabled
     });
   }
 
   console.log('✓ Camera effects applied (tremor + hazy vision)');
   console.log('  Effects will fade in over 2 seconds');
   console.log('  Call stopCameraEffects() to remove effects');
+};
+
+/**
+ * Reveal second monitor and table with light fade-in
+ * Call from console: revealMonitor2()
+ */
+window.revealMonitor2 = function() {
+  console.log('🔦 Revealing second monitor setup...');
+  
+  if (!scene) {
+    console.error('Scene not available');
+    return 'Scene not available';
+  }
+  
+  // Find and unhide the second monitor
+  const monitor2 = scene.getMeshByName('SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.002');
+  if (monitor2) {
+    monitor2.setEnabled(true);
+    monitor2.isVisible = true;
+    console.log('✓ Monitor 2 revealed');
+  } else {
+    console.warn('Monitor 2 mesh not found');
+  }
+  
+  // Find and unhide the second table
+  const table2 = scene.getMeshByName('SM_NeosDesk_A01_N2_StaticMeshComponent0.001');
+  if (table2) {
+    table2.setEnabled(true);
+    table2.isVisible = true;
+    console.log('✓ Table 2 revealed');
+  } else {
+    console.warn('Table 2 mesh not found');
+  }
+  
+  // Find and unhide monitor 2 power button
+  const monitor2Power = scene.getMeshByName('SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.power.001');
+  if (monitor2Power) {
+    monitor2Power.setEnabled(true);
+    monitor2Power.isVisible = true;
+    console.log('✓ Monitor 2 power button revealed');
+  } else {
+    console.warn('Monitor 2 power button not found');
+  }
+  
+  // Find and unhide monitor 2 LED
+  const monitor2LED = scene.getMeshByName('SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.powerled.001');
+  if (monitor2LED) {
+    monitor2LED.setEnabled(true);
+    monitor2LED.isVisible = true;
+    console.log('✓ Monitor 2 LED revealed');
+  } else {
+    console.warn('Monitor 2 LED not found');
+  }
+  
+  // Find and unhide monitor 2 screen
+  const monitor2Screen = scene.getMeshByName('SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.screen.001');
+  if (monitor2Screen) {
+    monitor2Screen.setEnabled(true);
+    monitor2Screen.isVisible = true;
+    console.log('✓ Monitor 2 screen revealed');
+  } else {
+    console.warn('Monitor 2 screen not found');
+  }
+  
+  // Find PointLight_2 and fade it in
+  const pointLight2 = scene.lights.find(light => light.name === 'PointLight_2');
+  if (pointLight2) {
+    const targetIntensity = 7.25;
+    const fadeDuration = 2.0; // 2 seconds
+    let fadeTime = 0;
+    
+    const fadeInterval = setInterval(() => {
+      fadeTime += 0.016; // ~60fps
+      const progress = Math.min(fadeTime / fadeDuration, 1.0);
+      
+      // Smooth easing
+      const easedProgress = progress < 0.5 
+        ? 2 * progress * progress 
+        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+      
+      pointLight2.intensity = targetIntensity * easedProgress;
+      
+      if (progress >= 1.0) {
+        clearInterval(fadeInterval);
+        console.log('✓ PointLight_2 faded to intensity:', targetIntensity);
+      }
+    }, 16);
+    
+    console.log('✓ PointLight_2 fade started');
+  } else {
+    console.warn('PointLight_2 not found');
+  }
+  
+  return '✓ Monitor 2 setup revealed';
 };
 
 /**
@@ -233,7 +358,7 @@ window.skipToCore3 = function() {
 };
 
 /**
- * Blackout - instantly turn off point light
+ * Blackout - flicker lights then blackout
  * Call from console: applyBlackout()
  * Restore with: restoreBlackout()
  */
@@ -243,21 +368,61 @@ window.applyBlackout = function() {
     return;
   }
 
-  console.log('Available lights:', scene.lights.map(l => `${l.name} (${l.getClassName()})`));
+  console.log('✓ Starting blackout sequence with flicker...');
 
   // Find point light by type
   const pointLight = scene.lights.find(light => light.getClassName() === 'PointLight');
   
-  if (pointLight) {
-    // Store original intensity if not already stored
-    if (window.blackoutOriginalIntensity === undefined) {
-      window.blackoutOriginalIntensity = pointLight.intensity;
-    }
-    pointLight.intensity = 1.15;
-    console.log(`✓ Blackout applied - ${pointLight.name} turned off (was ${window.blackoutOriginalIntensity})`);
-  } else {
+  if (!pointLight) {
     console.warn('Point light not found in scene');
+    return;
   }
+
+  // Store original intensity if not already stored
+  if (window.blackoutOriginalIntensity === undefined) {
+    window.blackoutOriginalIntensity = pointLight.intensity;
+  }
+
+  const originalIntensity = window.blackoutOriginalIntensity;
+  const flickerDuration = 0.5; // 0.5 seconds of flickering
+  let flickerTime = 0;
+  let isFlickering = true;
+
+  // Create flickering animation before blackout
+  const flickerAnimation = scene.onBeforeRenderObservable.add(() => {
+    if (!isFlickering) return;
+
+    flickerTime += engine.getDeltaTime() / 1000;
+
+    // Fast, erratic flickering
+    const flickerSpeed = 25; // Very fast flicker
+    const flicker1 = Math.sin(flickerTime * flickerSpeed * 4.3) * 0.5 + 0.5;
+    const flicker2 = Math.sin(flickerTime * flickerSpeed * 6.7) * 0.5 + 0.5;
+    const flicker3 = Math.random() * 0.4; // More randomness
+    
+    const flickerValue = (flicker1 * 0.3 + flicker2 * 0.3 + flicker3 * 0.4);
+    
+    // Flicker between 20% and 100% intensity
+    pointLight.intensity = originalIntensity * (0.2 + flickerValue * 0.8);
+
+    // Occasionally go completely dark for dramatic effect
+    if (Math.random() < 0.1) { // 10% chance per frame
+      pointLight.intensity = 0;
+    }
+
+    // After flicker duration, apply blackout
+    if (flickerTime >= flickerDuration) {
+      isFlickering = false;
+      
+      // Final blackout
+      pointLight.intensity = 1.15;
+      
+      // Remove animation
+      scene.onBeforeRenderObservable.remove(flickerAnimation);
+      
+      console.log(`✓ Blackout applied after flicker - ${pointLight.name} dimmed to 1.15 (was ${originalIntensity})`);
+    }
+  });
 };
 
 /**
@@ -389,6 +554,9 @@ window.stopCameraEffects = function() {
   const fadeOutDuration = 2.0; // 2 seconds fade out
   let fadeOutTime = 0;
 
+  // Get camera reference
+  const camera = scene.activeCamera;
+
   // Get current values to fade from
   const currentGrainIntensity = hazyVisionPipeline?.grainEnabled ? hazyVisionPipeline.grain.intensity : 10;
   const currentContrast = hazyVisionPipeline?.imageProcessing ? hazyVisionPipeline.imageProcessing.contrast : 1.1;
@@ -423,6 +591,11 @@ window.stopCameraEffects = function() {
       // Tremor will naturally fade as we interpolate back to normal
       // The tremor animation will use a decreasing multiplier
       window.tremorFadeMultiplier = 1.0 - easedProgress;
+    }
+
+    // Ensure camera rotation Z stays at 0
+    if (camera && camera.rotation) {
+      camera.rotation.z = 0;
     }
 
     // Interpolate post-processing back to normal
@@ -475,6 +648,11 @@ window.stopCameraEffects = function() {
       if (hazyVisionPipeline) {
         hazyVisionPipeline.depthOfFieldEnabled = false;
         hazyVisionPipeline = null;
+      }
+
+      // Final reset camera rotation Z axis to 0 (should already be there from interpolation)
+      if (scene && scene.activeCamera && scene.activeCamera.rotation) {
+        scene.activeCamera.rotation.z = 0;
       }
 
       console.log('✓ Camera effects fully stopped');
@@ -614,12 +792,24 @@ window.addEventListener('message', (event) => {
       console.error('❌ machineInteractions not available!');
     }
   }
+  
+  // Handle screen capture requests from monitor iframe
+  if (event.data.type === 'recaptureCanvas') {
+    console.log('📥 Received recaptureCanvas message');
+    if (window.monitorController) {
+      window.monitorController.captureCanvasToTexture();
+      console.log('✅ Screen captured successfully');
+    } else {
+      console.warn('⚠️ monitorController not available for capture');
+    }
+  }
 });
 
 let loadStartTime = Date.now();
 let editorManager = null;
 let postProcessingPipeline = null;
 let monitorController = null;
+let monitor2Controller = null;
 let machineInteractions = null;
 
 // Wait for DOM to be fully loaded
@@ -1061,9 +1251,12 @@ async function initializeGame() {
     const settingsPanel = new SettingsPanel(guiTexture, postProcessingPipeline);
     window.settingsPanel = settingsPanel; // Make globally accessible for refresh
 
-    // Initialize Monitor Controller with GUI (non-blocking)
+    // Initialize Monitor Controllers (non-blocking)
     monitorController = new MonitorController(scene);
     window.monitorController = monitorController; // Make globally accessible for debugging
+    
+    monitor2Controller = new Monitor2Controller(scene);
+    window.monitor2Controller = monitor2Controller; // Make globally accessible for debugging
     
     // Setup keyboard shortcuts
     window.addEventListener('keydown', (event) => {
@@ -1099,8 +1292,71 @@ async function initializeGame() {
         machineInteractions = new MachineInteractions(scene);
         window.machineInteractions = machineInteractions;
         
-        // Initialize monitor controller after scene is loaded
+        // Initialize monitor controllers after scene is loaded
         await monitorController.initialize();
+        await monitor2Controller.initialize();
+        
+        // Hide second monitor and table at startup
+        const monitor2 = scene.getMeshByName('SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.002');
+        if (monitor2) {
+          monitor2.setEnabled(false);
+          monitor2.isVisible = false;
+          console.log('✓ Monitor 2 hidden at startup');
+        }
+        
+        const table2 = scene.getMeshByName('SM_NeosDesk_A01_N2_StaticMeshComponent0.001');
+        if (table2) {
+          table2.setEnabled(false);
+          table2.isVisible = false;
+          console.log('✓ Table 2 hidden at startup');
+        }
+        
+        const monitor2Power = scene.getMeshByName('SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.power.001');
+        if (monitor2Power) {
+          monitor2Power.setEnabled(false);
+          monitor2Power.isVisible = false;
+          console.log('✓ Monitor 2 power button hidden at startup');
+        }
+        
+        const monitor2LED = scene.getMeshByName('SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.powerled.001');
+        if (monitor2LED) {
+          monitor2LED.setEnabled(false);
+          monitor2LED.isVisible = false;
+          console.log('✓ Monitor 2 LED hidden at startup');
+        }
+        
+        const monitor2Screen = scene.getMeshByName('SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.screen.001');
+        if (monitor2Screen) {
+          monitor2Screen.setEnabled(false);
+          monitor2Screen.isVisible = false;
+          console.log('✓ Monitor 2 screen hidden at startup');
+        }
+        
+        // Double-check hiding after delays (in case meshes load late)
+        const hideMonitor2Meshes = () => {
+          const meshesToHide = [
+            'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.002',
+            'SM_NeosDesk_A01_N2_StaticMeshComponent0.001',
+            'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.power.001',
+            'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.powerled.001',
+            'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.screen.001'
+          ];
+          
+          meshesToHide.forEach(meshName => {
+            const mesh = scene.getMeshByName(meshName);
+            if (mesh) {
+              mesh.setEnabled(false);
+              mesh.isVisible = false;
+              console.log('✓ Hidden mesh:', meshName);
+            }
+          });
+        };
+        
+        // Hide multiple times to catch late-loading meshes
+        setTimeout(hideMonitor2Meshes, 500);
+        setTimeout(hideMonitor2Meshes, 1500);
+        setTimeout(hideMonitor2Meshes, 3000);
+        
         console.log('All interactive systems ready');
       } catch (error) {
         console.error('Initialization error:', error);
@@ -1127,9 +1383,12 @@ async function initializeGame() {
         scene.render();
         updateFPSCounter();
         
-        // Update monitor controller
+        // Update monitor controllers
         if (monitorController) {
           monitorController.update();
+        }
+        if (monitor2Controller) {
+          monitor2Controller.update();
         }
         
         // Update interaction system (only in play mode)
