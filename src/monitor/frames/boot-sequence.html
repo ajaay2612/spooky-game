@@ -3905,6 +3905,20 @@
                                         if (jumpscare) {
                                             jumpscare.classList.remove('hidden');
                                             
+                                            // Play jumpscare audio
+                                            const jumpscareAudio = new Audio('../../../jumpscare.mp3');
+                                            jumpscareAudio.volume = 0.4;
+                                            jumpscareAudio.play().then(() => {
+                                                console.log('🔊 Jumpscare audio playing successfully');
+                                            }).catch(err => {
+                                                console.error('❌ Jumpscare audio failed:', err);
+                                                // Try alternate path
+                                                const altAudio = new Audio('/public/jumpscare.mp3');
+                                                altAudio.volume = 0.4;
+                                                altAudio.play().catch(e => console.error('Alt path also failed:', e));
+                                            });
+                                            
+                                            
                                             if (window.parent) {
                                                 window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
                                             }
@@ -3959,7 +3973,7 @@
                                                     const percentageText = document.querySelector('.releasing-div p:nth-child(2)');
                                                     const progressTrack = document.querySelector('.releasing-div-progress-track');
                                                     
-                                                    const percentages = [25, 50, 100];
+                                                    const percentages = [25, 50, 95];
                                                     let currentIndex = 0;
                                                     
                                                     // Set initial to 25%
@@ -4092,6 +4106,12 @@
                                     if (jumpscare) {
                                         jumpscare.classList.remove('hidden');
                                         console.log('✓ Jumpscare shown');
+                                        
+                                        // Play jumpscare audio
+                                        const jumpscareAudio = new Audio('../../public/jumpscare.mp3');
+                                        jumpscareAudio.volume = 0.7;
+                                        jumpscareAudio.play().catch(err => console.warn('Jumpscare audio failed:', err));
+                                        console.log('🔊 Jumpscare audio playing');
                                         
                                         if (window.parent) {
                                             window.parent.postMessage({ type: 'recaptureCanvas' }, '*');

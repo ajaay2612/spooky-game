@@ -11,22 +11,47 @@ let kiroCorrupted = false; // Track if Kiro has turned red
 // Music elements
 const introMusic = document.getElementById('introMusic');
 
-// Try to start music on page load
-window.addEventListener('load', () => {
-    if (introMusic) {
-        introMusic.volume = 0.5;
-        introMusic.play().catch(e => {
-            console.log('Autoplay blocked, will play on user interaction');
-            // If autoplay is blocked, play on first user interaction
-            document.addEventListener('click', () => {
-                introMusic.play().catch(err => console.log('Music play failed:', err));
-            }, { once: true });
-        });
-    }
-});
+// Check if we should show Kiroween ending screen
+const urlParams = new URLSearchParams(window.location.search);
+const isEndingScreen = urlParams.get('showKiroween') === 'true';
+
+if (isEndingScreen) {
+    // Show only the Kiroween content - STAY ON THIS SCREEN (ending)
+    window.addEventListener('load', () => {
+        const titleContent = document.getElementById('titleContent');
+        const kiroweenContent = document.getElementById('kiroweenContent');
+        const kiroweenImg = kiroweenContent.querySelector('.kiroween-img');
+        
+        titleContent.style.display = 'none';
+        kiroweenContent.style.display = 'flex';
+        kiroweenImg.style.opacity = '1'; // Show immediately, no animation
+        
+        console.log('✓ Showing Kiroween ending screen (permanent)');
+    });
+} else {
+    // Normal Part 1 flow - Try to start music on page load
+    window.addEventListener('load', () => {
+        if (introMusic) {
+            introMusic.volume = 0.5;
+            introMusic.play().catch(e => {
+                console.log('Autoplay blocked, will play on user interaction');
+                // If autoplay is blocked, play on first user interaction
+                document.addEventListener('click', () => {
+                    introMusic.play().catch(err => console.log('Music play failed:', err));
+                }, { once: true });
+            });
+        }
+    });
+}
 
 // Title Screen Functions
 function startGame() {
+    // Don't run if this is the ending screen
+    if (isEndingScreen) {
+        console.log('Ending screen - startGame() blocked');
+        return;
+    }
+    
     const titleContent = document.getElementById('titleContent');
     const kiroweenContent = document.getElementById('kiroweenContent');
     const kiroweenImg = kiroweenContent.querySelector('.kiroween-img');

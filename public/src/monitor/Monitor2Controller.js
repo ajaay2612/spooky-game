@@ -66,7 +66,43 @@ export class Monitor2Controller {
       this.setupDOMObserver();
     });
     
+    // Listen for part2Complete message from iframe
+    window.addEventListener('message', (event) => {
+      if (event.data.type === 'part2Complete') {
+        console.log('✅ Part 2 completed - received from monitor 2 iframe');
+        
+        // Wait 1 second then show ending screen
+        setTimeout(() => {
+          this.showEndingScreen();
+        }, 1000);
+      }
+    });
+    
     console.log('✓ Monitor2 hidden iframe created');
+  }
+  
+  /**
+   * Show the ending screen (Part 3)
+   */
+  showEndingScreen() {
+    console.log('🎉 Showing ending screen...');
+    
+    // Create and show Part 3 ending screen
+    const part3Iframe = document.createElement('iframe');
+    part3Iframe.id = 'part3Iframe';
+    part3Iframe.src = 'public/part-3/index.html';
+    part3Iframe.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      z-index: 9999;
+      background: #000;
+    `;
+    document.body.appendChild(part3Iframe);
+    console.log('✓ Part 3 ending screen displayed');
   }
   
   /**

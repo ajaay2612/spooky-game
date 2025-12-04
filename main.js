@@ -453,7 +453,7 @@ window.restoreBlackout = function() {
 };
 
 /**
- * Apply light flickering effect for 2 seconds
+ * Apply light flickering effect for 5 seconds
  * Call from console: applyLightFlicker()
  */
 window.applyLightFlicker = function() {
@@ -464,7 +464,7 @@ window.applyLightFlicker = function() {
 
   console.log('✓ Light flickering effect started');
 
-  const duration = 2.0; // 2 seconds
+  const duration = 8.0; // 5 seconds
   let flickerTime = 0;
   let isFlickering = true;
 
@@ -1283,6 +1283,12 @@ async function initializeGame() {
     // Start in play mode (sitting in chair)
     editorManager.enterPlayMode();
     
+    // Disable interaction system initially (will be enabled after camera animation)
+    if (editorManager.interactionSystem) {
+      editorManager.interactionSystem.enabled = false;
+      console.log('🔒 InteractionSystem disabled - waiting for camera animation to complete');
+    }
+    
     // Auto-load saved scene, then initialize interactive systems
     setTimeout(async () => {
       try {
@@ -1305,11 +1311,17 @@ async function initializeGame() {
             }
           };
           
-          // Request pointer lock on first click
-          canvas.addEventListener('click', requestPointerLock, { once: true });
+          // Store globally so it can be called when Part 1 ends
+          window.requestPointerLock = requestPointerLock;
           
-          // Also try to request immediately (may work if user already interacted)
-          requestPointerLock();
+          // Request pointer lock on canvas click when not in locked-on state
+          canvas.addEventListener('click', () => {
+            // Only request pointer lock if not in locked-on mode
+            if (window.interactionSystem && !window.interactionSystem.isLockedOn) {
+              requestPointerLock();
+              console.log('🖱️ Canvas clicked - requesting pointer lock');
+            }
+          });
         }
         
         // Store the original camera position for later animation
@@ -1320,10 +1332,10 @@ async function initializeGame() {
           window.cameraOriginalPosition = camera.position.clone();
           window.cameraOriginalRotation = camera.rotation ? camera.rotation.clone() : new BABYLON.Vector3(0, 0, 0);
           
-          // Set camera inside the monitor screen (facing out) and keep it there
-          camera.position = new BABYLON.Vector3(0.32, 2.3, -0.1); // Inside monitor screen
+          // Set camera at monitor lock-on position (looking at monitor)
+          camera.position = new BABYLON.Vector3(0.704, 2.239, 0.407);
           if (camera.rotation) {
-            camera.rotation = new BABYLON.Vector3(0, Math.PI, 0); // Facing out from screen
+            camera.rotation = new BABYLON.Vector3(0.013, 1.572, 0.000);
           }
           
           // Set all lights to 0 intensity initially (dark)
@@ -1346,82 +1358,115 @@ async function initializeGame() {
             const originalPosition = window.cameraOriginalPosition;
             const originalRotation = window.cameraOriginalRotation;
             
-            console.log('🎬 Animating camera from monitor to starting position...');
+            console.log('🎬 Part 1 ended - Starting background music and camera sequence...');
             
-            const animationDuration = 120; // 2 seconds at 60fps
+            // Request pointer lock automatically when Part 1 ends
+            if (window.requestPointerLock) {
+              window.requestPointerLock();
+              console.log('🖱️ Pointer lock requested automatically');
+            }
             
-            const positionAnimation = new BABYLON.Animation(
-              'cameraStartPosition',
-              'position',
-              60,
-              BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
-              BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
-            );
-            
-            positionAnimation.setKeys([
-              { frame: 0, value: camera.position.clone() },
-              { frame: animationDuration, value: originalPosition }
-            ]);
-            
-            const easingFunction = new BABYLON.CubicEase();
-            easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
-            positionAnimation.setEasingFunction(easingFunction);
-            
-            const rotationAnimation = new BABYLON.Animation(
-              'cameraStartRotation',
-              'rotation',
-              60,
-              BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
-              BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
-            );
-            
-            rotationAnimation.setKeys([
-              { frame: 0, value: camera.rotation ? camera.rotation.clone() : new BABYLON.Vector3(0, Math.PI, 0) },
-              { frame: animationDuration, value: originalRotation }
-            ]);
-            
-            rotationAnimation.setEasingFunction(easingFunction);
-            
-            camera.animations = [positionAnimation, rotationAnimation];
-            
-            // Fade in lights during camera animation
-            let animTime = 0;
-            const lightFadeObserver = scene.onBeforeRenderObservable.add(() => {
-              animTime += scene.getEngine().getDeltaTime() / 1000;
-              const progress = Math.min(animTime / 2.0, 1.0); // 2 second fade
+            // Initialize and play background music when Part 1 ends
+            if (!window.backgroundMusic) {
+              const backgroundMusic = new Audio('public/overalll.mp3');
+              backgroundMusic.volume = 0.3; // Set volume to 30%
+              backgroundMusic.loop = true; // Loop the music
               
-              // Ease in
-              const easedProgress = progress < 0.5 
-                ? 2 * progress * progress 
-                : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+              // Play background music
+              backgroundMusic.play().catch(error => {
+                console.warn('Background music autoplay blocked:', error);
+              });
               
-              // Fade in all lights
-              if (window.originalLightIntensities) {
-                window.originalLightIntensities.forEach(data => {
-                  data.light.intensity = data.intensity * easedProgress;
-                });
-              }
-              
-              if (progress >= 1.0) {
-                scene.onBeforeRenderObservable.remove(lightFadeObserver);
-              }
-            });
+              // Store globally for control
+              window.backgroundMusic = backgroundMusic;
+              console.log('🎵 Background music started');
+            }
             
-            scene.beginAnimation(camera, 0, animationDuration, false, 1, () => {
-              camera.position.copyFrom(originalPosition);
-              if (camera.rotation) {
-                camera.rotation.copyFrom(originalRotation);
-              }
+            // Wait 10 seconds before starting camera zoom out and light brightening
+            setTimeout(() => {
+              console.log('🎬 10 seconds elapsed - Starting camera zoom out and light brightening...');
               
-              // Ensure lights are at full intensity
-              if (window.originalLightIntensities) {
-                window.originalLightIntensities.forEach(data => {
-                  data.light.intensity = data.intensity;
-                });
-              }
+              const animationDuration = 120; // 2 seconds at 60fps
               
-              console.log('✓ Camera animation complete - player control enabled');
-            });
+              const positionAnimation = new BABYLON.Animation(
+                'cameraStartPosition',
+                'position',
+                60,
+                BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+                BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+              );
+              
+              positionAnimation.setKeys([
+                { frame: 0, value: camera.position.clone() },
+                { frame: animationDuration, value: originalPosition }
+              ]);
+              
+              const easingFunction = new BABYLON.CubicEase();
+              easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
+              positionAnimation.setEasingFunction(easingFunction);
+              
+              const rotationAnimation = new BABYLON.Animation(
+                'cameraStartRotation',
+                'rotation',
+                60,
+                BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+                BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+              );
+              
+              rotationAnimation.setKeys([
+                { frame: 0, value: camera.rotation ? camera.rotation.clone() : new BABYLON.Vector3(0, Math.PI, 0) },
+                { frame: animationDuration, value: originalRotation }
+              ]);
+              
+              rotationAnimation.setEasingFunction(easingFunction);
+              
+              camera.animations = [positionAnimation, rotationAnimation];
+              
+              // Fade in lights during camera animation
+              let animTime = 0;
+              const lightFadeObserver = scene.onBeforeRenderObservable.add(() => {
+                animTime += scene.getEngine().getDeltaTime() / 1000;
+                const progress = Math.min(animTime / 2.0, 1.0); // 2 second fade
+                
+                // Ease in
+                const easedProgress = progress < 0.5 
+                  ? 2 * progress * progress 
+                  : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+                
+                // Fade in all lights
+                if (window.originalLightIntensities) {
+                  window.originalLightIntensities.forEach(data => {
+                    data.light.intensity = data.intensity * easedProgress;
+                  });
+                }
+                
+                if (progress >= 1.0) {
+                  scene.onBeforeRenderObservable.remove(lightFadeObserver);
+                }
+              });
+              
+              scene.beginAnimation(camera, 0, animationDuration, false, 1, () => {
+                camera.position.copyFrom(originalPosition);
+                if (camera.rotation) {
+                  camera.rotation.copyFrom(originalRotation);
+                }
+                
+                // Ensure lights are at full intensity
+                if (window.originalLightIntensities) {
+                  window.originalLightIntensities.forEach(data => {
+                    data.light.intensity = data.intensity;
+                  });
+                }
+                
+                // Enable interaction system after animation completes
+                if (window.interactionSystem) {
+                  window.interactionSystem.enabled = true;
+                  console.log('🔓 InteractionSystem enabled - player can now interact');
+                }
+                
+                console.log('✓ Camera animation complete - player control enabled');
+              });
+            }, 10000); // 10 second delay
           };
         }
         

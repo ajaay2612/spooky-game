@@ -454,7 +454,20 @@
             
             function addNextMessage() {
                 if (conversationIndex >= chatData.conversation.length) {
-                    console.log('✓ All chat messages rendered');
+                    console.log('✓ All chat messages rendered - Part 2 complete');
+                    
+                    // Wait 1 second then notify top window that Part 2 is complete
+                    setTimeout(() => {
+                        console.log('🎉 Sending part2Complete message...');
+                        console.log('window.parent:', window.parent);
+                        console.log('window.top:', window.top);
+                        
+                        // Send to both parent and top window to ensure it reaches
+                        window.parent.postMessage({ type: 'part2Complete' }, '*');
+                        window.top.postMessage({ type: 'part2Complete' }, '*');
+                        
+                        console.log('✓ Part 2 completion message sent');
+                    }, 1000);
                     return;
                 }
                 

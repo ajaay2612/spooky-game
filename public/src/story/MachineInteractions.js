@@ -916,7 +916,12 @@ export class MachineInteractions {
         dialData.lastMouseX = this.scene.pointerX;
         
         // Update angle based on horizontal mouse movement
-        dialData.currentAngle += deltaX * dialData.sensitivity;
+        // Invert for volume dial, normal for power source knobs
+        if (dialData.action === 'adjustVolume') {
+          dialData.currentAngle -= deltaX * dialData.sensitivity; // Inverted for volume
+        } else {
+          dialData.currentAngle += deltaX * dialData.sensitivity; // Normal for power source
+        }
         
         // Clamp angle for volume control (-π/2 to +π/2 range: left 90° = 0%, center = 50%, right 90° = 100%)
         if (dialData.action === 'adjustVolume') {
@@ -979,10 +984,14 @@ export class MachineInteractions {
       
       // Check if all knobs are solved
       const allSolved = Object.values(this.powerSourcePuzzle.knobs).every(k => k.solved);
-      if (allSolved && !this.powerSourcePuzzle.allSolved) {
-        this.powerSourcePuzzle.allSolved = true;
-        console.log('🎉 POWER SOURCE PUZZLE SOLVED! All lights are on!');
-        this.onPowerSourcePuzzleSolved();
+      if (allSolved && !this.powerSourcePuzzle.allSolved && !this.powerSourcePuzzle.solveTimer) {
+        // All lights are on - start timer with timestamp
+        console.log('⏱️ All lights on! Starting 1.5-second verification timer...');
+        this.powerSourcePuzzle.timerStartTime = Date.now();
+        this.powerSourcePuzzle.solveTimer = true; // Mark that timer is active
+        
+        // Start continuous check
+        this.startPowerSourceVerification();
       }
     } else if (angleDiff > knobData.tolerance && knobData.solved) {
       // Knob moved away from target - turn off light
@@ -990,7 +999,51 @@ export class MachineInteractions {
       this.turnOffLight(knobData.lightMesh);
       this.powerSourcePuzzle.allSolved = false;
       console.log(`✗ ${knobKey} moved away from target. Light ${knobData.lightMesh} turned off`);
+      
+      // Cancel the solve timer if it's running
+      if (this.powerSourcePuzzle.solveTimer) {
+        this.powerSourcePuzzle.solveTimer = false;
+        this.powerSourcePuzzle.timerStartTime = null;
+        console.log('⏱️ Timer cancelled - light turned off');
+      }
     }
+  }
+  
+  startPowerSourceVerification() {
+    // Continuous check every frame
+    const checkInterval = setInterval(() => {
+      if (!this.powerSourcePuzzle.solveTimer) {
+        clearInterval(checkInterval);
+        return;
+      }
+      
+      // Check if all lights are still on
+      const allSolved = Object.values(this.powerSourcePuzzle.knobs).every(k => k.solved);
+      
+      if (!allSolved) {
+        // A light turned off - cancel timer
+        clearInterval(checkInterval);
+        this.powerSourcePuzzle.solveTimer = false;
+        this.powerSourcePuzzle.timerStartTime = null;
+        console.log('⏱️ Timer cancelled - light turned off during verification');
+        return;
+      }
+      
+      // Check if 1.5 seconds have passed
+      const elapsed = Date.now() - this.powerSourcePuzzle.timerStartTime;
+      if (elapsed >= 1500) {
+        // Success! All lights stayed on for 1.5 seconds
+        clearInterval(checkInterval);
+        this.powerSourcePuzzle.solveTimer = false;
+        this.powerSourcePuzzle.timerStartTime = null;
+        
+        if (!this.powerSourcePuzzle.allSolved) {
+          this.powerSourcePuzzle.allSolved = true;
+          console.log('🎉 POWER SOURCE PUZZLE SOLVED! All lights stayed on for 1.5 seconds!');
+          this.onPowerSourcePuzzleSolved();
+        }
+      }
+    }, 100); // Check every 100ms
   }
   
   initializePowerSourceLights() {
