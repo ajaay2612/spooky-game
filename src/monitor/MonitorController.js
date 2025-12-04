@@ -105,8 +105,26 @@ export class MonitorController {
     
     // Create new observer
     this.domObserver = new MutationObserver((mutations) => {
-      // Capture on any change
-      if (this.isLockedOn && this.isPoweredOn) {
+      // Filter out cursor-related mutations
+      const relevantMutations = mutations.filter(mutation => {
+        const target = mutation.target;
+        
+        // Ignore if target is cursor element
+        if (target.classList && (target.classList.contains('cursorMain') || target.classList.contains('hidden'))) {
+          return false;
+        }
+        
+        // Ignore if target's parent is cursor element
+        if (target.parentElement && target.parentElement.classList && 
+            (target.parentElement.classList.contains('cursorMain') || target.parentElement.classList.contains('hidden'))) {
+          return false;
+        }
+        
+        return true;
+      });
+      
+      // Only capture if there are relevant changes
+      if (relevantMutations.length > 0 && this.isLockedOn && this.isPoweredOn) {
         this.captureIframeToTexture();
         console.log('📸 Captured due to DOM change');
       }
@@ -535,7 +553,20 @@ export class MonitorController {
     }
     
     // Do an initial capture
+    console.log('📸 Immediate capture on activation');
     this.captureIframeToTexture();
+    
+    // Capture again after 500ms to ensure everything is loaded
+    console.log('⏱️ Scheduling delayed capture in 500ms...');
+    setTimeout(() => {
+      console.log('⏱️ Delayed capture timer fired, isLockedOn:', this.isLockedOn);
+      if (this.isLockedOn) {
+        this.captureIframeToTexture();
+        console.log('📸 Delayed capture after lock-on completed');
+      } else {
+        console.log('⚠️ Skipped delayed capture - not locked on');
+      }
+    }, 500);
     
     console.log('✓ Monitor activated with DOM change detection');
   }
@@ -548,49 +579,7 @@ export class MonitorController {
     console.log('✓ Monitor deactivated (DOM observer still active)');
   }
   
-  /**
-   * Start automatic capture interval
-   */
-  startAutoCaptureInterval() {
-    // Clear any existing interval
-    this.stopAutoCaptureInterval();
-    
-    console.log('🔄 Starting auto-capture interval:', {
-      captureIntervalMs: this.captureIntervalMs,
-      isLockedOn: this.isLockedOn,
-      isPoweredOn: this.isPoweredOn,
-      hasIframe: !!this.iframe
-    });
-    
-    // Start new interval
-    this.captureInterval = setInterval(() => {
-      console.log('📸 Auto-capture tick:', {
-        isLockedOn: this.isLockedOn,
-        isPoweredOn: this.isPoweredOn,
-        hasIframe: !!this.iframe
-      });
-      
-      if (this.isLockedOn && this.isPoweredOn && this.iframe) {
-        this.captureIframeToTexture();
-        console.log('✅ Captured frame');
-      } else {
-        console.log('⚠️ Skipped capture - conditions not met');
-      }
-    }, this.captureIntervalMs);
-    
-    console.log('✓ Auto-capture interval started with ID:', this.captureInterval);
-  }
-  
-  /**
-   * Stop automatic capture interval
-   */
-  stopAutoCaptureInterval() {
-    if (this.captureInterval) {
-      clearInterval(this.captureInterval);
-      this.captureInterval = null;
-      console.log('✓ Auto-capture interval stopped');
-    }
-  }
+
 
   /**
    * Setup mouse event forwarding from 3D scene to iframe
@@ -687,9 +676,6 @@ export class MonitorController {
       
       console.log('Sending wheel event to iframe:', evt.deltaY);
       
-      // Temporarily stop auto-capture during scrolling
-      this.stopAutoCaptureInterval();
-      
       // Send wheel event to iframe via postMessage
       this.iframe.contentWindow.postMessage({
         type: 'wheel',
@@ -710,12 +696,6 @@ export class MonitorController {
           });
         });
       }
-      
-      // Restart auto-capture after scrolling stops (500ms delay)
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
-        this.startAutoCaptureInterval();
-      }, 500);
     }, { passive: false });
     
     // Listen for capture requests from iframe

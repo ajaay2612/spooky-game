@@ -291,6 +291,12 @@ window.revealMonitor2 = function() {
     console.warn('PointLight_2 not found');
   }
   
+  // Unlock monitor2 device for interaction
+  if (machineInteractions) {
+    machineInteractions.unlockDevice('monitor2');
+    console.log('🔓 Monitor 2 device unlocked');
+  }
+  
   return '✓ Monitor 2 setup revealed';
 };
 

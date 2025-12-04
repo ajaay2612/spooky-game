@@ -269,10 +269,14 @@ export class InteractionSystem {
     
     // Check if device is unlocked before showing prompt
     const deviceName = this.getDeviceNameFromMesh(mesh);
-    if (deviceName && !this.isDeviceUnlocked(deviceName)) {
+    const isUnlocked = this.isDeviceUnlocked(deviceName);
+    console.log(`👁️ Looking at mesh: ${mesh.name} → deviceName: ${deviceName}, unlocked: ${isUnlocked}`);
+    if (deviceName && !isUnlocked) {
+      console.log(`🔒 Device ${deviceName} is locked - hiding prompt`);
       // Device is locked, don't show prompt or highlight
       return;
     }
+    console.log(`✅ Device ${deviceName} is unlocked - showing prompt`);
     
     // Set new focused object
     this.focusedObject = mesh;
@@ -294,6 +298,8 @@ export class InteractionSystem {
     const meshName = mesh.name.toLowerCase();
     if (meshName.includes('c05') || meshName.includes('computerparts')) {
       return 'cassette';
+    } else if (meshName.includes('monitor') && meshName.includes('.002')) {
+      return 'monitor2'; // Second monitor (check before 'monitor')
     } else if (meshName.includes('monitor') || meshName.includes('monitorframe')) {
       return 'monitor';
     } else if (meshName.includes('cube18')) {
@@ -357,10 +363,37 @@ export class InteractionSystem {
       // Set monitor lock-on state
       if (this.focusedObject.name === 'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.001' && window.monitorController) {
         window.monitorController.isLockedOn = true;
+        // Capture screen on lock-on
+        if (window.monitorController.captureIframeToTexture) {
+          window.monitorController.captureIframeToTexture();
+          setTimeout(() => {
+            if (window.monitorController.isLockedOn) {
+              window.monitorController.captureIframeToTexture();
+            }
+          }, 1000);
+        }
       } else if (this.focusedObject.name === 'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.002' && window.monitor2Controller) {
         window.monitor2Controller.isLockedOn = true;
+        // Capture screen on lock-on
+        if (window.monitor2Controller.captureIframeToTexture) {
+          window.monitor2Controller.captureIframeToTexture();
+          setTimeout(() => {
+            if (window.monitor2Controller.isLockedOn) {
+              window.monitor2Controller.captureIframeToTexture();
+            }
+          }, 1000);
+        }
       } else if (window.monitorController) {
         window.monitorController.isLockedOn = true;
+        // Capture screen on lock-on
+        if (window.monitorController.captureIframeToTexture) {
+          window.monitorController.captureIframeToTexture();
+          setTimeout(() => {
+            if (window.monitorController.isLockedOn) {
+              window.monitorController.captureIframeToTexture();
+            }
+          }, 1000);
+        }
       }
     }
     

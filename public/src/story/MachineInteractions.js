@@ -18,7 +18,8 @@ export class MachineInteractions {
     // Keys must match eventTrigger names from boot-sequence.html
     this.deviceUnlockState = {
       cassette: true,          // Always unlocked at start
-      monitor: true,           // Unlocked by default for testing
+      monitor: false,          // Locked initially, unlocked after cassette plays
+      monitor2: false,         // Locked initially, unlocked when revealed
       equalizer_game: false,   // Unlocked when chat reaches equalizer_game
       military_radio: false,   // Unlocked when chat reaches military_radio
       power_source: false      // Unlocked when chat reaches power_source
@@ -75,6 +76,8 @@ export class MachineInteractions {
     // Map button/dial/lever IDs to device names (must match eventTrigger names)
     if (buttonId.includes('computer_audio') || buttonId.includes('cassette')) {
       return 'cassette';
+    } else if (buttonId.includes('monitor_2')) {
+      return 'monitor2'; // Second monitor (check before 'monitor')
     } else if (buttonId.includes('monitor') || buttonId.includes('cube16')) {
       return 'monitor';
     } else if (buttonId.includes('cube18')) {
@@ -182,10 +185,13 @@ export class MachineInteractions {
         () => { 
           // Check device unlock state before allowing interaction
           const deviceName = this.getDeviceNameFromButtonId(buttonId);
+          console.log(`🔘 Button clicked: ${buttonId} → deviceName: ${deviceName}`);
+          console.log(`   Device unlock state:`, this.deviceUnlockState);
           if (deviceName && !this.isDeviceUnlocked(deviceName)) {
-            console.log(`🔒 Device locked: ${deviceName}`);
+            console.log(`🔒 Device locked: ${deviceName} - interaction blocked`);
             return;
           }
+          console.log(`✅ Device unlocked: ${deviceName} - allowing interaction`);
           this.pressButton(buttonId); 
         }
       )
@@ -205,6 +211,11 @@ export class MachineInteractions {
     const button = buttonData.mesh;
     
     console.log(`🔘 Button pressed: ${buttonId}`);
+    
+    // Play sound immediately for radio buttons
+    if (buttonData.action && buttonData.action.startsWith('radioButton')) {
+      this.playMilitaryKeypadSound();
+    }
     
     // Calculate press position
     const pressOffset = new BABYLON.Vector3(
@@ -263,6 +274,11 @@ export class MachineInteractions {
     
     // Handle different button actions
     if (action === 'togglePower') {
+      // Play power button sound for cassette player and equalizer
+      if (buttonId.includes('computer_audio_machine') || buttonId.includes('cube18_machine')) {
+        this.playPowerButtonSound();
+      }
+      
       // Check which machine this button belongs to
       if (buttonId.includes('computer_monitor')) {
         this.toggleMonitorPower();
@@ -277,11 +293,47 @@ export class MachineInteractions {
     }
   }
   
+  /**
+   * Play power button sound effect
+   */
+  playPowerButtonSound() {
+    const audio = new Audio('textures/casseteplayer/powerbutton.mp3');
+    audio.volume = 0.5;
+    audio.play().catch(error => {
+      console.warn('Could not play power button sound:', error);
+    });
+  }
+  
+  /**
+   * Play monitor power button sound effect
+   */
+  playMonitorPowerSound() {
+    const audio = new Audio('src/monitor/frames/monitorOn.mp3');
+    audio.volume = 0.5;
+    audio.play().catch(error => {
+      console.warn('Could not play monitor power sound:', error);
+    });
+  }
+  
+  /**
+   * Play military keypad sound effect
+   */
+  playMilitaryKeypadSound() {
+    const audio = new Audio('textures/military/military_keypad.mp3');
+    audio.volume = 0.5;
+    audio.play().catch(error => {
+      console.warn('Could not play military keypad sound:', error);
+    });
+  }
+  
   toggleMonitorPower() {
     if (!window.monitorController) {
       console.warn('Monitor controller not found');
       return;
     }
+    
+    // Play monitor power button sound
+    this.playMonitorPowerSound();
     
     // Toggle monitor power
     if (window.monitorController.isActive) {
@@ -988,6 +1040,15 @@ export class MachineInteractions {
     // Turn on light with green emission (increased brightness)
     lightMesh.material.emissiveColor = new BABYLON.Color3(0, 0.6, 0);
     lightMesh.material.diffuseColor = new BABYLON.Color3(0, 0.5, 0);
+    
+    // Play voltmeter light on sound
+    try {
+      const voltmeterSound = new Audio('textures/powerMachine/voltmeter_light_on.mp3');
+      voltmeterSound.volume = 0.5;
+      voltmeterSound.play().catch(err => console.warn('Could not play voltmeter sound:', err));
+    } catch (err) {
+      console.warn('Error loading voltmeter sound:', err);
+    }
     
     console.log(`💡 Light ${lightMeshName} turned ON`);
   }

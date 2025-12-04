@@ -169,7 +169,14 @@ export const INTERACTIVE_MACHINES = {
     cameraRotation: { x: 0.090, y: 4.714, z: 0.000 },
     
     // Interactive elements on this machine
-    interactiveElements: {}
+    interactiveElements: {
+      powerButton: {
+        type: 'button',
+        meshName: 'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.power.001',
+        pressOffset: { x: 0.004, y: 0.000, z: 0.000 },
+        action: 'togglePower'
+      }
+    }
   },
   
   // Machine 5: Base Low Material Machine

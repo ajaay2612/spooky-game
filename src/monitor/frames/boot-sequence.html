@@ -3475,18 +3475,7 @@
                             core2Popup.classList.remove('hidden');
                             core2Popup.style.display = 'flex';
                             
-                            // Start continuous capture every second for core2exe
-                            const core2CaptureInterval = setInterval(function() {
-                                if (window.parent) {
-                                    window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
-                                    console.log('📸 Sending capture request (core2exe)');
-                                }
-                            }, 1000);
-                            
-                            // Store interval globally so it can be cleared when popup closes
-                            window.core2CaptureInterval = core2CaptureInterval;
-                            
-                            console.log('✓ Continuous capture started for core2exe');
+                            // DOM observer will handle captures automatically
                         }, 500);
                     } else {
                         // Wrong code - show WRONG popup
@@ -3875,15 +3864,7 @@
                     if (completePopup) {
                         completePopup.classList.remove('hidden');
                         
-                        // Start continuous capture every second from password correct onwards
-                        const continuousCaptureInterval = setInterval(function() {
-                            if (window.parent) {
-                                window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
-                                console.log('📸 Sending capture request (password complete)');
-                            }
-                        }, 1000); // Capture every 1 second
-                        
-                        console.log('✓ Continuous screen capture started (every 1s)');
+                        // DOM observer will handle captures automatically
                         
                         setTimeout(function() {
                             completePopup.classList.add('hidden');
@@ -3961,13 +3942,7 @@
                                                         window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
                                                     }
                                                     
-                                                    // Start continuous capture every second
-                                                    const captureInterval = setInterval(function() {
-                                                        if (window.parent) {
-                                                            window.parent.postMessage({ type: 'recaptureCanvas' }, '*');
-                                                            console.log('📸 Sending capture request (releasing)');
-                                                        }
-                                                    }, 1000); // Capture every 1 second
+                                                    // DOM observer will handle captures automatically
                                                     
                                                     // Animate percentage: 25% -> 50% -> 100%
                                                     const percentageText = document.querySelector('.releasing-div p:nth-child(2)');
@@ -3997,7 +3972,6 @@
                                                             
                                                             if (percentage === 100) {
                                                                 clearInterval(interval);
-                                                                clearInterval(captureInterval); // Stop continuous capture
                                                                 
                                                                 // After reaching 100%, trigger device completion
                                                                 if (window.deviceTracker) {
@@ -4048,7 +4022,12 @@
                 console.log('Core 3 puzzle reset');
                 
                 // Reset circles to initial positions
-                circles = [{row: 0, col: 0}, {row: 2, col: 2}, {row: 4, col: 4}, {row: 4, col: 0}];
+                circles = [
+                    {row: 0, col: 0},
+                    {row: 1, col: 0},
+                    {row: 4, col: 4},
+                    {row: 4, col: 0}
+                ];
                 
                 // Update all circle positions
                 for (let i = 0; i < circles.length; i++) {
