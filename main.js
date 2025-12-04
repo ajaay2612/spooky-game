@@ -1294,6 +1294,137 @@ async function initializeGame() {
         // Additional delay to ensure all GLTF meshes are fully processed
         await new Promise(resolve => setTimeout(resolve, 500));
         
+        // Enable pointer lock on canvas click
+        const canvas = engine.getRenderingCanvas();
+        if (canvas) {
+          const requestPointerLock = () => {
+            canvas.requestPointerLock = canvas.requestPointerLock || canvas.msRequestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock;
+            if (canvas.requestPointerLock) {
+              canvas.requestPointerLock();
+              console.log('✓ Pointer lock enabled - cursor locked to canvas');
+            }
+          };
+          
+          // Request pointer lock on first click
+          canvas.addEventListener('click', requestPointerLock, { once: true });
+          
+          // Also try to request immediately (may work if user already interacted)
+          requestPointerLock();
+        }
+        
+        // Store the original camera position for later animation
+        if (scene.activeCamera) {
+          const camera = scene.activeCamera;
+          
+          // Store original position
+          window.cameraOriginalPosition = camera.position.clone();
+          window.cameraOriginalRotation = camera.rotation ? camera.rotation.clone() : new BABYLON.Vector3(0, 0, 0);
+          
+          // Set camera inside the monitor screen (facing out) and keep it there
+          camera.position = new BABYLON.Vector3(0.32, 2.3, -0.1); // Inside monitor screen
+          if (camera.rotation) {
+            camera.rotation = new BABYLON.Vector3(0, Math.PI, 0); // Facing out from screen
+          }
+          
+          // Set all lights to 0 intensity initially (dark)
+          window.originalLightIntensities = [];
+          scene.lights.forEach(light => {
+            window.originalLightIntensities.push({
+              light: light,
+              intensity: light.intensity
+            });
+            light.intensity = 0;
+          });
+          
+          console.log('📷 Camera positioned inside monitor - lights dimmed - waiting for part 1 to complete');
+          
+          // Create global function to animate camera out
+          window.animateCameraFromMonitor = function() {
+            if (!scene.activeCamera) return;
+            
+            const camera = scene.activeCamera;
+            const originalPosition = window.cameraOriginalPosition;
+            const originalRotation = window.cameraOriginalRotation;
+            
+            console.log('🎬 Animating camera from monitor to starting position...');
+            
+            const animationDuration = 120; // 2 seconds at 60fps
+            
+            const positionAnimation = new BABYLON.Animation(
+              'cameraStartPosition',
+              'position',
+              60,
+              BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+              BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+            );
+            
+            positionAnimation.setKeys([
+              { frame: 0, value: camera.position.clone() },
+              { frame: animationDuration, value: originalPosition }
+            ]);
+            
+            const easingFunction = new BABYLON.CubicEase();
+            easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
+            positionAnimation.setEasingFunction(easingFunction);
+            
+            const rotationAnimation = new BABYLON.Animation(
+              'cameraStartRotation',
+              'rotation',
+              60,
+              BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+              BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+            );
+            
+            rotationAnimation.setKeys([
+              { frame: 0, value: camera.rotation ? camera.rotation.clone() : new BABYLON.Vector3(0, Math.PI, 0) },
+              { frame: animationDuration, value: originalRotation }
+            ]);
+            
+            rotationAnimation.setEasingFunction(easingFunction);
+            
+            camera.animations = [positionAnimation, rotationAnimation];
+            
+            // Fade in lights during camera animation
+            let animTime = 0;
+            const lightFadeObserver = scene.onBeforeRenderObservable.add(() => {
+              animTime += scene.getEngine().getDeltaTime() / 1000;
+              const progress = Math.min(animTime / 2.0, 1.0); // 2 second fade
+              
+              // Ease in
+              const easedProgress = progress < 0.5 
+                ? 2 * progress * progress 
+                : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+              
+              // Fade in all lights
+              if (window.originalLightIntensities) {
+                window.originalLightIntensities.forEach(data => {
+                  data.light.intensity = data.intensity * easedProgress;
+                });
+              }
+              
+              if (progress >= 1.0) {
+                scene.onBeforeRenderObservable.remove(lightFadeObserver);
+              }
+            });
+            
+            scene.beginAnimation(camera, 0, animationDuration, false, 1, () => {
+              camera.position.copyFrom(originalPosition);
+              if (camera.rotation) {
+                camera.rotation.copyFrom(originalRotation);
+              }
+              
+              // Ensure lights are at full intensity
+              if (window.originalLightIntensities) {
+                window.originalLightIntensities.forEach(data => {
+                  data.light.intensity = data.intensity;
+                });
+              }
+              
+              console.log('✓ Camera animation complete - player control enabled');
+            });
+          };
+        }
+        
         // Initialize Machine Interactions after scene is loaded
         machineInteractions = new MachineInteractions(scene);
         window.machineInteractions = machineInteractions;

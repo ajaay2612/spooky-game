@@ -38,10 +38,93 @@
       touch-action: none;
       display: block;
     }
+    
+    /* Part 1 fullscreen iframe overlay */
+    #part1Iframe {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      z-index: 9999;
+      background: #000;
+    }
   </style>
 </head>
 <body>
+  <!-- Part 1 iframe overlay (removed when part 1 completes) -->
+  <iframe id="part1Iframe" src="public/part-1/index.html"></iframe>
+  
   <canvas id="renderCanvas"></canvas>
+  
+  <!-- Listen for part 1 completion -->
+  <script>
+    window.addEventListener('message', (event) => {
+      if (event.data.type === 'part1Complete') {
+        console.log('✅ Part 1 completed - removing iframe and animating camera');
+        const iframe = document.getElementById('part1Iframe');
+        if (iframe) {
+          iframe.remove();
+          console.log('✓ Iframe removed');
+          
+          // Trigger camera animation from monitor
+          if (window.animateCameraFromMonitor) {
+            window.animateCameraFromMonitor();
+          } else {
+            console.warn('⚠️ Camera animation function not ready yet');
+          }
+        }
+      }
+    });
+    
+    // Console function to skip part 1 for testing
+    window.skipPart1 = function() {
+      console.log('⏩ Skipping Part 1 - going straight to Babylon.js');
+      const iframe = document.getElementById('part1Iframe');
+      if (iframe) {
+        iframe.remove();
+        console.log('✅ Part 1 iframe removed - Babylon.js game visible');
+        
+        // Move camera to normal position immediately (no animation)
+        if (window.scene && window.scene.activeCamera && window.cameraOriginalPosition) {
+          window.scene.activeCamera.position.copyFrom(window.cameraOriginalPosition);
+          if (window.scene.activeCamera.rotation && window.cameraOriginalRotation) {
+            window.scene.activeCamera.rotation.copyFrom(window.cameraOriginalRotation);
+          }
+          
+          // Restore lights immediately
+          if (window.originalLightIntensities) {
+            window.originalLightIntensities.forEach(data => {
+              data.light.intensity = data.intensity;
+            });
+          }
+          
+          console.log('✓ Camera moved to starting position - lights restored');
+        }
+        
+        // Check if canvas is visible
+        const canvas = document.getElementById('renderCanvas');
+        if (canvas) {
+          console.log('✓ Canvas is visible');
+          console.log('  Canvas size:', canvas.width, 'x', canvas.height);
+        }
+        
+        // Check if scene exists
+        if (window.scene) {
+          console.log('✓ Babylon.js scene exists');
+          console.log('  Active camera:', window.scene.activeCamera ? 'Yes' : 'No');
+        } else {
+          console.log('⚠️ Babylon.js scene not initialized yet - wait a moment and it should appear');
+        }
+      } else {
+        console.log('⚠️ Part 1 iframe already removed');
+      }
+    };
+    
+    console.log('💡 Tip: Call skipPart1() to skip Part 1 and test the transition');
+  </script>
+  
   <!-- Babylon.js CDN -->
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
   <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>

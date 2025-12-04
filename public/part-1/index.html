@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat UI</title>
+    <link href="https://db.onlinewebfonts.com/c/5752cf357360bd4a4af8a0d7b2a6824a?family=Print+Char+21" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Title Page Container -->
+    <div id="introContainer" class="intro-container">
+        <div class="title-background"></div>
+        <div id="introContent" class="intro-content">
+            <!-- Title Screen Content -->
+            <div id="titleContent" class="title-content-wrapper">
+                <div class="title-main">
+                    <img src="assets/titlepage/main_screen_title.png" alt="Containment" class="title-content">
+                    <div class="title-subtitle">A GAME BY BLACK NOVA</div>
+                </div>
+                <div class="title-buttons">
+                    <button class="title-button" onclick="startGame()">[ START ]</button>
+                    <button class="title-button">[ CREDITS ]</button>
+                </div>
+            </div>
+            
+            <!-- Happy Kiroween Content -->
+            <div id="kiroweenContent" class="kiroween-content-wrapper" style="display: none;">
+                <img src="assets/titlepage/happy_kiroween.png" alt="Happy Kiroween" class="kiroween-img">
+            </div>
+            
+            <!-- Disclaimer Content -->
+            <div id="disclaimerContent" class="disclaimer-content-wrapper" style="display: none;">
+                <div class="disclaimer-title">DISCLAIMER</div>
+                <div class="disclaimer-text">
+                    <p>This is a cinematic, story-driven experience.</p>
+                    <p>The pace begins intentionally slow to build<br>atmosphere, tension, and meaning. Relax.<br>Settle in. Breathe.</p>
+                    <p>Let the world unfold around you.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Left Sidebar -->
+    <div class="sidebar" style="display: none;">
+        <div class="sidebar-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/>
+            </svg>
+        </div>
+        <div class="sidebar-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+        </div>
+        <div class="sidebar-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+            </svg>
+        </div>
+        <div class="sidebar-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+        </div>
+        <div class="sidebar-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+            </svg>
+        </div>
+        <div class="sidebar-spacer"></div>
+        <div class="sidebar-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
+            </svg>
+        </div>
+        <div class="sidebar-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" style="display: none;">
+        <div class="center-content" id="centerContent">
+            <div class="logo">👻</div>
+            <h1 class="title">Let's build</h1>
+            <p class="subtitle">Plan, search, or build anything</p>
+            
+            <div class="cards">
+                <div class="card vibe-card">
+                    <div class="card-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        <span>Vibe</span>
+                    </div>
+                    <p class="card-description">Chat free, then build. Explore ideas and iterate as you discover needs.</p>
+                </div>
+                
+                <div class="card spec-card">
+                    <div class="card-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                        <span>Spec</span>
+                    </div>
+                    <p class="card-description">Plan first, then build. Create requirements and design before coding starts.</p>
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <div class="info-title">Great for:</div>
+                <ul class="info-list">
+                    <li>Rapid exploration and testing</li>
+                    <li>Building when requirements are unclear</li>
+                    <li>Implementing a task</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Chat Messages (hidden initially) -->
+        <div class="chat-messages" id="chatMessages" style="display: none;">
+            <!-- Messages will be added here -->
+        </div>
+        
+        <!-- Bottom Input -->
+        <div class="chat-input-container">
+            <div class="input-wrapper">
+                <div class="input-top-row">
+                    <textarea 
+                        id="messageInput" 
+                        class="chat-input" 
+                        placeholder="Ask a question or describe a task..."
+                        rows="1"
+                    ></textarea>
+                    <button id="sendButton" class="send-button">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="input-bottom-row">
+                    <div class="input-left-icons">
+                        <button id="hashButton" class="icon-button">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/>
+                                <line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/>
+                            </svg>
+                        </button>
+                        <button id="imageButton" class="icon-button">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                <polyline points="21 15 16 10 5 21"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="input-right-section">
+                        <div class="model-dropdown">
+                            <span>Auto</span>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"/>
+                            </svg>
+                        </div>
+                        <label class="toggle">
+                            <span>Autopilot</span>
+                            <input type="checkbox" id="autopilotToggleInput">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Bar -->
+        <div class="bottom-bar">
+            <div class="bottom-left">
+                <span class="status-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+                    </svg>
+                    Kiro Go Live
+                </span>
+                <span class="status-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    Autocomplete
+                </span>
+                <span class="status-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    Recent Issues
+                </span>
+                <span class="status-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                    </svg>
+                    Kiro Free Bonus: $7.00 / 100 (13 days left, updated just now)
+                </span>
+            </div>
+            <div class="bottom-right">
+                <span class="model-selector">Claude Sonnet 4.5</span>
+                <label class="toggle">
+                    <span>Autopilot</span>
+                    <input type="checkbox" id="autopilotToggle">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Popup -->
+    <div id="gamePopup" class="game-popup" style="display: none;">
+        <div class="game-popup-content">
+            <!-- Main Screen with Animated Frames -->
+            <div id="popupMainScreen" class="popup-main-screen">
+                <img id="popupAnimatedFrame" class="popup-animated-frame" src="assets/game/frame1.png" alt="Game Start">
+            </div>
+            
+            <!-- Game Screen -->
+            <div id="popupGameContainer" class="popup-game-wrapper" style="display: none;">
+                <!-- Candy Game Elements -->
+                <div id="candyPlayer" class="candy-player"></div>
+                <div id="candySkeletons" class="candy-skeletons"></div>
+                <div id="candyItems" class="candy-items"></div>
+                <div id="candyGrass" class="candy-grass"></div>
+                <div id="candyHair" class="candy-hair"></div>
+                <div id="candyHealth" class="candy-health"></div>
+                <div id="candyScore" class="candy-score">Candies: 0/5</div>
+                <div id="candyWin" class="candy-win-screen" style="display: none;">
+                    <div class="win-message">YOU WIN!</div>
+                    <div class="win-score">All candies collected!</div>
+                    <div class="win-restart">Click to play again</div>
+                </div>
+                <div id="candyLose" class="candy-lose-screen" style="display: none;">
+                    <div class="lose-message">GAME OVER</div>
+                    <div class="lose-score">Better luck next time!</div>
+                    <div class="lose-restart">Click to play again</div>
+                </div>
+                <div id="wasdControls" class="wasd-controls">
+                    <img src="assets/game/wasd.png" alt="Controls" class="wasd-image">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Background Music -->
+    <audio id="introMusic" loop autoplay>
+        <source src="assets/music/intro_music2.mp3" type="audio/mpeg">
+    </audio>
+    
+    <script src="script.js"></script>
+    <script src="shooter-game.js"></script>
+</body>
+</html>

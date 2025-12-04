@@ -1,0 +1,31 @@
+{
+  "typingSpeed": 70,
+  "responseDelay": 2500,
+  "initialDelay": 3000,
+  "showIntroScreens": false,
+  "conversations": [
+    {
+      "user": ["Hi there!", "Can you create a game for me?"],
+      "bot": "Sure! Let me build a candy collecting game for you...",
+      "game": true,
+      "files": [
+        {
+          "name": "index.html",
+          "text": "Created the main HTML structure with game container"
+        },
+        {
+          "name": "styles.css",
+          "text": "Added styling for the game interface and animations"
+        },
+        {
+          "name": "script.js",
+          "text": "Implemented game logic and player controls"
+        }
+      ]
+    },
+    {
+      "user": "This looks great!",
+      "bot": "Glad you like it! Feel free to play the game."
+    }
+  ]
+}

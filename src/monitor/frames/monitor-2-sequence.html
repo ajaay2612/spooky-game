@@ -389,6 +389,40 @@
             ]
         }
 
+        // Custom scroll system for chat
+        let scrollOffset = 0;
+        const chatMessagesContainer = document.getElementById('chatMessages');
+        
+        window.chatScrollOffset = 0;
+        window.getChatScrollData = function() {
+            const chatContent = document.getElementById('chatContent');
+            return {
+                container: chatMessagesContainer,
+                content: chatContent,
+                offset: scrollOffset
+            };
+        };
+        window.setChatScroll = function(newOffset) {
+            scrollOffset = newOffset;
+            applyScroll();
+        };
+        
+        function applyScroll() {
+            const chatContent = document.getElementById('chatContent');
+            if (chatContent) {
+                chatContent.style.transform = `translateY(-${scrollOffset}px)`;
+            }
+        }
+        
+        function scrollToBottom() {
+            const chatContent = document.getElementById('chatContent');
+            if (chatContent && chatMessagesContainer) {
+                const maxScroll = Math.max(0, chatContent.scrollHeight - chatMessagesContainer.clientHeight);
+                scrollOffset = maxScroll + 200; // Add 200px offset for better visibility
+                applyScroll();
+            }
+        }
+
         // Render chat messages one by one
         function renderChat() {
             const chatContent = document.getElementById('chatContent');
@@ -408,7 +442,7 @@
                 typingIndicator.className = 'bot';
                 typingIndicator.textContent = 'Kiro: typing...';
                 chatContent.appendChild(typingIndicator);
-                chatContent.parentElement.scrollTop = chatContent.parentElement.scrollHeight;
+                scrollToBottom();
             }
             
             function removeTyping() {
@@ -449,7 +483,7 @@
                         kiroIndex++;
                         
                         // Scroll to bottom
-                        chatContent.parentElement.scrollTop = chatContent.parentElement.scrollHeight;
+                        scrollToBottom();
                         
                         setTimeout(addNextMessage, 800);
                     }, 600); // Typing indicator shows for 600ms
@@ -470,7 +504,7 @@
                     userIndex++;
                     
                     // Scroll to bottom
-                    chatContent.parentElement.scrollTop = chatContent.parentElement.scrollHeight;
+                    scrollToBottom();
                     
                     setTimeout(addNextMessage, 800);
                     return;

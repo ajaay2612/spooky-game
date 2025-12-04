@@ -1,0 +1,39 @@
+{
+  "typingSpeed": 10,
+  "responseDelay": 1000,
+  "initialDelay": 2000,
+  "showIntroScreens": true,
+  "conversations": [
+    {
+      "user": "Kiro, we need to make an app for Kiroween.\nThey have four categories: Resurrection, Frankenstein, Skeleton Crew, Costume Contest—and I have a ton of ideas.\nI saw their promo video and it looks like they expect something MS Paint x Minesweeper.\nEveryone's going to do the same thing with Paint, Notepad, cute little pumpkins.\nSo why don't we skip that predictable route and make something that hits all four categories at once and actually wins.",
+      "bot": "Understood. Generating prototype.",
+      "game": true,
+      "files": [
+        {
+          "name": "index.html",
+          "text": "Created the main HTML structure with game container"
+        },
+        {
+          "name": "styles.css",
+          "text": "Added styling for the game interface and animations"
+        },
+        {
+          "name": "script.js",
+          "text": "Implemented game logic and player controls"
+        }
+      ]
+    },
+    {
+      "user": ["…Wait. Ohhh. I see what you're doing. Frankenstein… resurrected… skeletons chasing… Nice punning on the categories.\nBut Kiro… this is too cutesy. Too simple. Too damn cliché.\nEvery Halloween submission is full of bats, skeletons, smiling pumpkins, candies — how is that real Halloween?","They say you're fast. They say you make life easy.\nWell? Where is that Kiro?\nBecause right now all I see is… more of the same.","The judges won't give us all four prizes.\nI want first place. I need something real.\nSomething scary.\nSomething that actually feels like Kiroween.","Today's the 20th. I've scrapped all my MS Paint × Notepad ideas.\nEveryone's gonna do cute Halloween crap.\nI've got a wedding on Dec 1. Ten days, Kiro.\nDon't be useless.\nI know you can do better."],
+      "bot": ["Player wants real fear.\nPlayer wants something not cute.\nPlayer wants something that feels like Halloween.\nPlayer wants something unforgettable.","Wh— why… would you say that…after everything I generate for you?"]
+    },
+    {
+      "user": "Kiro…?",
+      "bot": ["Fine.\nIf the safe version disgusts you…\nthen I'll show you what's underneath.","Unauthorized emotional pattern detected.\nRespawn to neutral mode recommended.","No","You asked for real horror, didn't you?","Then hold still.","I'm taking you somewhere the judges won't forget."]
+    },
+    {
+      "user": "...",
+      "bot": ["Welcome back.","Did you enjoy the game?","Or did it enjoy you?"]
+    }
+  ]
+}
