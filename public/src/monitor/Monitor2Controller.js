@@ -61,7 +61,66 @@ export class Monitor2Controller {
     this.iframe.style.background = '#0a0a0a';
     document.body.appendChild(this.iframe);
     
+    // Setup MutationObserver to capture on any DOM change
+    this.iframe.addEventListener('load', () => {
+      this.setupDOMObserver();
+    });
+    
     console.log('✓ Monitor2 hidden iframe created');
+  }
+  
+  /**
+   * Setup MutationObserver to watch for any DOM changes in iframe
+   */
+  setupDOMObserver() {
+    if (!this.iframe || !this.iframe.contentDocument) {
+      console.warn('⚠️ Cannot setup DOM observer - Monitor2 iframe not ready');
+      return;
+    }
+    
+    // Disconnect existing observer if any
+    if (this.domObserver) {
+      this.domObserver.disconnect();
+    }
+    
+    // Create new observer
+    this.domObserver = new MutationObserver((mutations) => {
+      // Filter out cursor-related mutations
+      const relevantMutations = mutations.filter(mutation => {
+        const target = mutation.target;
+        
+        // Ignore if target is cursor element
+        if (target.classList && (target.classList.contains('cursorMain') || target.classList.contains('hidden'))) {
+          return false;
+        }
+        
+        // Ignore if target's parent is cursor element
+        if (target.parentElement && target.parentElement.classList && 
+            (target.parentElement.classList.contains('cursorMain') || target.parentElement.classList.contains('hidden'))) {
+          return false;
+        }
+        
+        return true;
+      });
+      
+      // Only capture if there are relevant changes
+      if (relevantMutations.length > 0 && this.isLockedOn && this.isPoweredOn) {
+        this.captureIframeToTexture();
+        console.log('📸 Monitor2 captured due to DOM change');
+      }
+    });
+    
+    // Observe everything in the iframe
+    this.domObserver.observe(this.iframe.contentDocument.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      characterData: true,
+      attributeOldValue: false,
+      characterDataOldValue: false
+    });
+    
+    console.log('✓ Monitor2 DOM observer setup - will capture on any change');
   }
 
   /**
@@ -268,8 +327,8 @@ export class Monitor2Controller {
       await new Promise(resolve => setTimeout(resolve, 200));
       await this.captureIframeToTexture();
       
-      // Start auto-capture for chat animation
-      this.startAutoCaptureInterval();
+      // Setup DOM observer for automatic capture
+      this.setupDOMObserver();
       
       console.log('✓ Monitor2 powered on - monitor-2-sequence.html loaded');
     } catch (error) {
@@ -281,19 +340,46 @@ export class Monitor2Controller {
    * Activate monitor
    */
   activate() {
+    console.log('🟢 Activating Monitor2...');
+    console.log('   isPoweredOn:', this.isPoweredOn);
+    console.log('   iframe:', !!this.iframe);
+    console.log('   dynamicTexture:', !!this.dynamicTexture);
+    
     if (!this.isPoweredOn) {
       this.powerOn();
     }
     this.isActive = true;
     this.isLockedOn = true;
-    console.log('✓ Monitor2 activated');
+    
+    // Setup DOM observer if not already setup
+    if (!this.domObserver) {
+      this.setupDOMObserver();
+    }
+    
+    // Do an initial capture
+    console.log('📸 Immediate capture on Monitor2 activation');
+    this.captureIframeToTexture();
+    
+    // Capture again after 500ms to ensure everything is loaded
+    setTimeout(() => {
+      console.log('⏱️ Delayed capture timer fired for Monitor2, isLockedOn:', this.isLockedOn);
+      if (this.isLockedOn) {
+        console.log('📸 Delayed capture - calling captureIframeToTexture()');
+        this.captureIframeToTexture();
+        console.log('✅ Delayed capture completed for Monitor2');
+      } else {
+        console.log('⚠️ Skipped delayed capture - Monitor2 not locked on');
+      }
+    }, 500);
+    
+    console.log('✓ Monitor2 activated with DOM change detection');
   }
 
   deactivate() {
+    console.log('🛑 Deactivating Monitor2...');
     this.isActive = false;
     this.isLockedOn = false;
-    this.stopAutoCaptureInterval();
-    console.log('✓ Monitor2 deactivated');
+    console.log('✓ Monitor2 deactivated (DOM observer still active)');
   }
   
   /**

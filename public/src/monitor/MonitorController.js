@@ -553,13 +553,18 @@ export class MonitorController {
     }
     
     // Do an initial capture
+    console.log('📸 Immediate capture on activation');
     this.captureIframeToTexture();
     
     // Capture again after 500ms to ensure everything is loaded
+    console.log('⏱️ Scheduling delayed capture in 500ms...');
     setTimeout(() => {
+      console.log('⏱️ Delayed capture timer fired, isLockedOn:', this.isLockedOn);
       if (this.isLockedOn) {
         this.captureIframeToTexture();
-        console.log('📸 Delayed capture after lock-on');
+        console.log('📸 Delayed capture after lock-on completed');
+      } else {
+        console.log('⚠️ Skipped delayed capture - not locked on');
       }
     }, 500);
     

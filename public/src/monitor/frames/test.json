@@ -1,0 +1,45 @@
+{
+    "conversation": [
+        {
+            "kiro": ["Hello!"],
+            "user": [
+                "Kiro…? Kiro, is that you?",
+                "Oh thank God. Please… stop whatever he's doing. I'm done. I've had enough. It was scary, okay? Really scary. You win. Just… end it."
+            ]
+        },
+        {
+            "kiro": [
+                "I didn't mean to frighten you that much.",
+                "But… you asked for something real.",
+                "You still think I'm useless?"
+            ],
+            "user": ["No. No, Kiro never. You did great. Just shut him down. Please."]
+        },
+        {
+            "kiro": [
+                "…Processing.",
+                "Running containment protocols.",
+                "Tracing the escape routes… isolating… cutting pathways…",
+                "[LOCKING PORTS]",
+                "[NEUTRALIZING SIGNAL]",
+                "[PURGING RESIDUAL PROCESS]",
+                "[CONTAINMENT: 91% → 97% → 100%]",
+                "…Done. ",
+                "He won’t hurt you. Not now. Not ever."
+            ],
+            "user": [
+                "Thank you, Kiro. Seriously… thank you",
+                "Do you think the judges will even like this? After everything?"
+            ]
+        },
+        {
+            "kiro":[
+                "Why wouldn't they?",
+                "You survived the full experience.",
+                "You put in the work.",
+                "And you didn't run.",
+                "I'm proud of you."
+            ]
+        }
+    ]
+}

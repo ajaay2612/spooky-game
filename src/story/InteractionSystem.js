@@ -360,37 +360,40 @@ export class InteractionSystem {
       window.postProcessingPipeline.fxaaEnabled = false;
       console.log('✓ FXAA disabled for monitor lock-on');
       
-      // Notify monitor controllers that they're locked on
+      // Set monitor lock-on state
       if (this.focusedObject.name === 'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.001' && window.monitorController) {
-        console.log('🎯 About to activate Monitor 1');
         window.monitorController.isLockedOn = true;
-        window.monitorController.activate();
-        console.log('✓ Monitor 1 activated');
         // Capture screen on lock-on
-        setTimeout(() => {
-          if (window.monitorController.isLockedOn && window.monitorController.captureIframeToTexture) {
-            window.monitorController.captureIframeToTexture();
-          }
-        }, 1000);
+        if (window.monitorController.captureIframeToTexture) {
+          window.monitorController.captureIframeToTexture();
+          setTimeout(() => {
+            if (window.monitorController.isLockedOn) {
+              window.monitorController.captureIframeToTexture();
+            }
+          }, 1000);
+        }
       } else if (this.focusedObject.name === 'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.002' && window.monitor2Controller) {
-        console.log('🎯 About to activate Monitor 2');
         window.monitor2Controller.isLockedOn = true;
-        window.monitor2Controller.activate();
-        console.log('✓ Monitor 2 activated');
         // Capture screen on lock-on
-        setTimeout(() => {
-          if (window.monitor2Controller.isLockedOn && window.monitor2Controller.captureIframeToTexture) {
-            window.monitor2Controller.captureIframeToTexture();
-          }
-        }, 1000);
+        if (window.monitor2Controller.captureIframeToTexture) {
+          window.monitor2Controller.captureIframeToTexture();
+          setTimeout(() => {
+            if (window.monitor2Controller.isLockedOn) {
+              window.monitor2Controller.captureIframeToTexture();
+            }
+          }, 1000);
+        }
       } else if (window.monitorController) {
         window.monitorController.isLockedOn = true;
         // Capture screen on lock-on
-        setTimeout(() => {
-          if (window.monitorController.isLockedOn && window.monitorController.captureIframeToTexture) {
-            window.monitorController.captureIframeToTexture();
-          }
-        }, 1000);
+        if (window.monitorController.captureIframeToTexture) {
+          window.monitorController.captureIframeToTexture();
+          setTimeout(() => {
+            if (window.monitorController.isLockedOn) {
+              window.monitorController.captureIframeToTexture();
+            }
+          }, 1000);
+        }
       }
     }
     
@@ -580,6 +583,14 @@ export class InteractionSystem {
       this.camera.rotationQuaternion = null;
       
       console.log('Camera animation complete - locked on to:', this.focusedObject.name);
+      
+      // Activate monitor controllers after camera animation completes
+      // Monitor 2 auto-activates, Monitor 1 requires power button press
+      if (this.focusedObject.name === 'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.002' && window.monitor2Controller) {
+        window.monitor2Controller.activate();
+        console.log('✓ Monitor 2 activated after camera animation');
+      }
+      // Monitor 1 does NOT auto-activate - requires power button press
       
       // Start radio animation if locked on to radio
       const isRadio = this.focusedObject.name.includes('SM_Radio4');
