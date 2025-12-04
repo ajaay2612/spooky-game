@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <base href="/part-1/">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat UI</title>
@@ -8,6 +9,10 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <script>
+        // Fix asset paths for production build
+        window.ASSET_BASE = '/part-1/';
+    </script>
     <!-- Title Page Container -->
     <div id="introContainer" class="intro-container">
         <div class="title-background"></div>
