@@ -475,11 +475,18 @@
                 
                 // Add Kiro messages
                 if (isKiroTurn && currentConvo.kiro && kiroIndex < currentConvo.kiro.length) {
-                    // Show typing indicator
-                    showTyping();
+                    // Check if this is the very first message
+                    const isFirstMessage = conversationIndex === 0 && kiroIndex === 0;
+                    
+                    // Show typing indicator (skip for first message)
+                    if (!isFirstMessage) {
+                        showTyping();
+                    }
                     
                     setTimeout(() => {
-                        removeTyping();
+                        if (!isFirstMessage) {
+                            removeTyping();
+                        }
                         
                         const p = document.createElement('p');
                         p.className = 'bot';
@@ -498,8 +505,8 @@
                         // Scroll to bottom
                         scrollToBottom();
                         
-                        setTimeout(addNextMessage, 800);
-                    }, 600); // Typing indicator shows for 600ms
+                        setTimeout(addNextMessage, 1000);
+                    }, isFirstMessage ? 0 : 800); // First message instant, others 800ms
                     return;
                 }
                 
@@ -519,7 +526,7 @@
                     // Scroll to bottom
                     scrollToBottom();
                     
-                    setTimeout(addNextMessage, 800);
+                    setTimeout(addNextMessage, 1000);
                     return;
                 }
                 
@@ -528,11 +535,11 @@
                 kiroIndex = 0;
                 userIndex = 0;
                 isKiroTurn = true;
-                setTimeout(addNextMessage, 1200);
+                setTimeout(addNextMessage, 1400);
             }
             
-            // Start rendering after 500ms
-            setTimeout(addNextMessage, 500);
+            // Start rendering after 700ms
+            setTimeout(addNextMessage, 700);
         }
         
         // Auto-start when page loads

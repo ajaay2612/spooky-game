@@ -2396,8 +2396,8 @@
                             setTimeout(resolve, 100);
                         });
                         
-                        // Wait before entity responds (TODO: Change back to 1500ms for production)
-                        await new Promise(resolve => setTimeout(resolve, 100));
+                        // Wait before entity responds
+                        await new Promise(resolve => setTimeout(resolve, 1500));
                     }
                     
                     // Add entity messages - first one instant, rest with delay
@@ -2412,9 +2412,9 @@
                             playerOptionsContainer.classList.add('hidden');
                         }
                         
-                        // Wait before showing message (except for first message) (TODO: Change back to 1500ms for production)
+                        // Wait before showing message (except for first message)
                         if (j > 0) {
-                            await new Promise(resolve => setTimeout(resolve, 100));
+                            await new Promise(resolve => setTimeout(resolve, 1500));
                         }
                         
                         // Show "typing..." indicator
@@ -2433,8 +2433,8 @@
                             setTimeout(resolve, 100);
                         });
                         
-                        // Wait while showing typing indicator (TODO: Change back to 1000ms for production)
-                        await new Promise(resolve => setTimeout(resolve, 100));
+                        // Wait while showing typing indicator
+                        await new Promise(resolve => setTimeout(resolve, 1000));
                         
                         // Remove typing indicator
                         typingMsg.remove();

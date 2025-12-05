@@ -175,11 +175,11 @@ export class EditorManager {
   
   setupKeyboardShortcuts() {
     window.addEventListener('keydown', (evt) => {
-      // E key - Toggle editor/play mode
-      if (evt.key === 'e' || evt.key === 'E') {
-        this.toggleMode();
-        return;
-      }
+      // E key - Toggle editor/play mode (DISABLED FOR PRODUCTION)
+      // if (evt.key === 'e' || evt.key === 'E') {
+      //   this.toggleMode();
+      //   return;
+      // }
       
       // Only process editor shortcuts when in editor mode
       if (!this.isEditorMode) {

@@ -1247,6 +1247,9 @@ async function initializeGame() {
     // Initialize Editor Manager
     editorManager = new EditorManager(scene, canvas);
     editorManager.initialize(guiTexture);
+    
+    // Expose editorManager globally for console access
+    window.editorManager = editorManager;
 
     // Initialize UI components
     editorManager.objectPalette = new ObjectPalette(editorManager, guiTexture);
@@ -1567,8 +1570,8 @@ async function initializeGame() {
 
     console.log('Spooky Game - Engine and scene initialized successfully');
 
-    // Create FPS counter (optional - can be toggled)
-    fpsDisplay = createFPSCounter();
+    // Create FPS counter (DISABLED FOR PRODUCTION)
+    // fpsDisplay = createFPSCounter();
 
     // Measure and log load time
     measureLoadTime();
@@ -1578,7 +1581,7 @@ async function initializeGame() {
     engine.runRenderLoop(() => {
       try {
         scene.render();
-        updateFPSCounter();
+        // updateFPSCounter(); // DISABLED FOR PRODUCTION
         
         // Update monitor controllers
         if (monitorController) {
