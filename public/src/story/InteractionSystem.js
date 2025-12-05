@@ -54,16 +54,29 @@ export class InteractionSystem {
     // Register interactable objects (initial scan)
     this.registerInteractableObjects();
     
-    // Re-scan after delays to catch late-loading models
-    setTimeout(() => {
-      console.log('Re-scanning for interactables after 1 second...');
-      this.registerInteractableObjects();
-    }, 1000);
+    // NETWORK FIX: Extended retry schedule for slow network connections
+    // Retry at 1s, 2s, 3s, 5s, 7s, 10s to catch late-loading meshes
+    const retrySchedule = [1000, 2000, 3000, 5000, 7000, 10000];
+    retrySchedule.forEach(delay => {
+      setTimeout(() => {
+        console.log(`Re-scanning for interactables after ${delay/1000} seconds...`);
+        this.registerInteractableObjects();
+      }, delay);
+    });
     
+    // NETWORK FIX: Continuous monitoring for new meshes (every 2 seconds for first 30 seconds)
+    this.meshMonitoringInterval = setInterval(() => {
+      this.checkForNewMeshes();
+    }, 2000);
+    
+    // Stop continuous monitoring after 30 seconds
     setTimeout(() => {
-      console.log('Re-scanning for interactables after 3 seconds...');
-      this.registerInteractableObjects();
-    }, 3000);
+      if (this.meshMonitoringInterval) {
+        clearInterval(this.meshMonitoringInterval);
+        this.meshMonitoringInterval = null;
+        console.log('✓ Mesh monitoring stopped after 30 seconds');
+      }
+    }, 30000);
     
     // Setup keyboard listener for F key
     this.setupKeyboardListener();
@@ -187,6 +200,45 @@ export class InteractionSystem {
       this.scene.meshes.slice(0, 20).forEach(m => {
         console.log('  -', m.name, '| Pickable:', m.isPickable);
       });
+    }
+  }
+  
+  checkForNewMeshes() {
+    // NETWORK FIX: Check if any expected meshes are missing and try to add them
+    const allowedMeshNames = [
+      'SM_ComputerParts_C05_N1_54_StaticMeshComponent0',
+      'Cube18_StaticMeshComponent0',
+      'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.001',
+      'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.002',
+      'monitorFrame',
+      'Base_Low_Material_0',
+      'SM_Radio4.001_primitive0',
+      'SM_Radio4.001_primitive1',
+      'SM_Radio4_primitive0',
+      'SM_Radio4_primitive1'
+    ];
+    
+    let newMeshesFound = false;
+    
+    allowedMeshNames.forEach(meshName => {
+      // Check if this mesh is already registered
+      const alreadyRegistered = this.interactableObjects.some(m => m.name === meshName);
+      
+      if (!alreadyRegistered) {
+        // Try to find it in the scene
+        const mesh = this.scene.getMeshByName(meshName);
+        if (mesh) {
+          // Found a new mesh! Register it
+          mesh.isPickable = true;
+          this.interactableObjects.push(mesh);
+          console.log(`🆕 NEW MESH DETECTED: ${meshName} - added to interactables`);
+          newMeshesFound = true;
+        }
+      }
+    });
+    
+    if (newMeshesFound) {
+      console.log(`✓ Total interactable objects now: ${this.interactableObjects.length}`);
     }
   }
   
@@ -975,6 +1027,12 @@ export class InteractionSystem {
     
     if (this.crosshairElement) {
       this.crosshairElement.remove();
+    }
+    
+    // NETWORK FIX: Clean up mesh monitoring interval
+    if (this.meshMonitoringInterval) {
+      clearInterval(this.meshMonitoringInterval);
+      this.meshMonitoringInterval = null;
     }
     
     console.log('InteractionSystem disposed');
