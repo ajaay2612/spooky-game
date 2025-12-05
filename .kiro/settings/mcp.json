@@ -48,7 +48,7 @@
       "command": "figma-mcp",
       "args": [],
       "env": {
-        "FIGMA_API_KEY": "figd_ST-OVMNcyqQRj48y92fJDXZe1Oybo1AX5ptKu6uA"
+        "FIGMA_API_KEY": "mykey"
       },
       "disabled": false,
       "autoApprove": [
