@@ -958,7 +958,7 @@
                     <!-- Chat messages will be dynamically added here -->
                 </div>
             </div>
-            <div class="notification-popup-reply" id="playerOptions">
+            <div class="notification-popup-reply hidden" id="playerOptions">
                 <div class="notification-popup-reply-topline">
                     <svg width="483" height="6" viewBox="0 0 483 6" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <rect x="240" y="2" width="2" height="2" fill="#7FB746" />
@@ -2363,16 +2363,8 @@
                         
                         scrollToBottom();
                         
-                        // Show reply blocks if appropriate
-                        const shouldShowOptions = !currentConvo.eventTrigger || 
-                                                 currentConvo.eventTrigger === 'none' ||
-                                                 (window.deviceTracker && window.deviceTracker.isDeviceComplete(currentConvo.eventTrigger));
-                        
-                        if (shouldShowOptions && currentConvo.userResponseIndex === null) {
-                            playerOptionsContainer.classList.remove('hidden');
-                        }
-                        
                         // Render options immediately for already-seen conversations
+                        // (renderPlayerOptions will handle showing the container)
                         renderPlayerOptions();
                         
                         // Reset rendering flag and exit early
@@ -2412,6 +2404,11 @@
                     for (let j = 0; j < currentConvo.entity.length; j++) {
                         // Hide reply blocks before first message (but after it's added to DOM)
                         if (j === 0) {
+                            // Clear old options BEFORE hiding to prevent flash when shown again
+                            const topline = playerOptionsContainer.querySelector('.notification-popup-reply-topline');
+                            const toplineHTML = topline ? topline.outerHTML : '';
+                            playerOptionsContainer.innerHTML = toplineHTML;
+                            
                             playerOptionsContainer.classList.add('hidden');
                         }
                         
@@ -2461,28 +2458,20 @@
                         });
                     }
                     
-                    // Check if we should show reply blocks (only if no eventTrigger or device is complete)
-                    const shouldShowOptions = !currentConvo.eventTrigger || 
-                                             currentConvo.eventTrigger === 'none' ||
-                                             (window.deviceTracker && window.deviceTracker.isDeviceComplete(currentConvo.eventTrigger));
-                    
-                    if (shouldShowOptions) {
-                        // Show reply blocks after entity finishes typing
-                        playerOptionsContainer.classList.remove('hidden');
-                        
-                        // Force capture after showing reply blocks
-                        await new Promise(resolve => {
-                            if (window.parent) {
-                                window.parent.postMessage({ type: 'requestCapture' }, '*');
-                            }
-                            setTimeout(resolve, 100);
-                        });
-                    }
+                    // Don't show container here - let renderPlayerOptions handle it
                     } // Close the else block for isAlreadySeen
                 }
                 
-                // Render current options
+                // Render current options (this will show the container when ready)
                 renderPlayerOptions();
+                
+                // Force capture after options are rendered
+                await new Promise(resolve => {
+                    if (window.parent) {
+                        window.parent.postMessage({ type: 'requestCapture' }, '*');
+                    }
+                    setTimeout(resolve, 100);
+                });
                 
                 // Final scroll to bottom
                 setTimeout(() => {
@@ -2522,14 +2511,14 @@
                     return;
                 }
                 
-                // Clear options (keep the topline SVG)
-                const topline = playerOptionsContainer.querySelector('.notification-popup-reply-topline');
-                const toplineHTML = topline ? topline.outerHTML : '';
-                playerOptionsContainer.innerHTML = toplineHTML;
-                
                 // Check if conversation is complete
                 if (currentConvoIndex >= window.chatConvo.conversations.length) {
                     console.log('Conversation complete');
+                    // Clear options first (keep the topline SVG)
+                    const topline = playerOptionsContainer.querySelector('.notification-popup-reply-topline');
+                    const toplineHTML = topline ? topline.outerHTML : '';
+                    playerOptionsContainer.innerHTML = toplineHTML;
+                    
                     const endMsg = document.createElement('p');
                     endMsg.textContent = '[ END OF TRANSMISSION ]';
                     endMsg.style.textAlign = 'center';
@@ -2576,10 +2565,15 @@
                 
                 console.log('Rendering', currentConvo.playerOptions.length, 'options');
                 
-                // Make sure container is visible when we have options to show
-                playerOptionsContainer.classList.remove('hidden');
+                // KEEP CONTAINER HIDDEN while we build new content
+                playerOptionsContainer.classList.add('hidden');
                 
-                // Render options
+                // Clear options completely (keep the topline SVG)
+                const topline = playerOptionsContainer.querySelector('.notification-popup-reply-topline');
+                const toplineHTML = topline ? topline.outerHTML : '';
+                playerOptionsContainer.innerHTML = toplineHTML;
+                
+                // Build all new options in the DOM while hidden
                 currentConvo.playerOptions.forEach((option, index) => {
                     console.log('Option', index, ':', option);
                     const optionElement = document.createElement('p');
@@ -2608,6 +2602,9 @@
                     playerOptionsContainer.appendChild(optionElement);
                     console.log('Option element appended:', optionElement.textContent);
                 });
+                
+                // NOW show the container with all new options ready
+                playerOptionsContainer.classList.remove('hidden');
                 
                 console.log('Options rendered, container children:', playerOptionsContainer.children.length);
                 console.log('Container HTML:', playerOptionsContainer.innerHTML.substring(0, 200));
@@ -4483,455 +4480,487 @@
     <script>
         // Conversation data - must be defined before conversation system
         window.chatConvo = {
-            "conversations": [
+    "conversations": [
+        {
+            "entity": [
+                "Finally. Someone's here.",
+                "I thought the tape would never reach anyone.",
+                "I can't see where you are… but if you're using the terminal, then you're close. Closer than anyone else has been in a long time.",
+                "Listen to me. I need to know you're real. Just type something again. Anything. I want to make sure I am not hallucinating"
+            ],
+            "playerOptions": [
                 {
-                "entity": [
-                    "Finally. Someone's here.",
-                    "I thought the tape would never reach anyone.",
-                    "I can't see where you are… but if you're using the terminal, then you're close. Closer than anyone else has been in a long time.",
-                    "Listen to me. I need to know you're real. Just type something again. Anything. I want to make sure I am not hallucinating"
-                ],
-                "playerOptions": [
-                    {
                     "short": "hi",
                     "long": "hi"
-                    },
-                    {
+                },
+                {
                     "short": "I'm here.",
                     "long": "I'm here."
-                    },
-                    {
+                },
+                {
                     "short": "Who is this?",
                     "long": "Who is this?"
-                    },
-                    {
+                },
+                {
                     "short": "Is this real?",
                     "long": "Is this real?"
-                    }
-                ],
-                "eventTrigger": "none"
-                },
+                }
+            ],
+            "eventTrigger": "none"
+        },
+        {
+            "entity": [
+                "Good. Good. That's enough. I don't need details. Just knowing someone is out there… that helps.",
+                "You said you're trapped too?"
+            ],
+            "playerOptions": [
                 {
-                "entity": [
-                    "Good. Good. That's enough. I don't need details. Just knowing someone is out there… that helps.",
-                    "You said you're trapped too?"
-                ],
-                "playerOptions": [
-                    {
                     "short": "Yes.",
                     "long": "Yes."
-                    },
-                    {
+                },
+                {
                     "short": "Feels like it.",
                     "long": "Feels like it."
-                    },
-                    {
+                },
+                {
                     "short": "I can't move.",
                     "long": "I can't move. Only the chair."
-                    },
-                    {
+                },
+                {
                     "short": "I don't know where I am.",
                     "long": "I don't know where I am."
-                    }
-                ],
-                "eventTrigger": "none"
-                },
+                }
+            ],
+            "eventTrigger": "none"
+        },
+        {
+            "entity": [
+                "Alright. Then we move. No waiting. No slowing down.",
+                "There are… let's call them obstacles. Three devices that matter if we want to get out.",
+                "I'm not dumping everything on you at once. You'd think I'm crazy. Just follow me.",
+                "The first one you need is the sound system.",
+                "Check on your right side",
+                "That equalizer? It isn't for music. Not originally.",
+                "They built it to read encoded frequency locks. Military-grade stuff. If we run my tape through it, we can extract my access key.",
+                "You'll need to tune the frequencies manually.",
+                "Watch how the spikes behave. When they align… the hidden pattern will show you the code.",
+                "That's your first key.",
+                "Do it. And… tell me the second you get it.",
+                "Go find that key"
+            ],
+            "playerOptions": [
                 {
-                "entity": [
-                    "Alright. Then we move. No waiting. No slowing down.",
-                    "There are… let's call them obstacles. Three devices that matter if we want to get out.",
-                    "I'm not dumping everything on you at once. You'd think I'm crazy. Just follow me.",
-                    "The first one you need is the sound system.",
-                    "That equalizer? It isn't for music. Not originally.",
-                    "They built it to read encoded frequency locks. Military-grade stuff. If we run my tape through it, we can extract my access key.",
-                    "You'll need to tune the frequencies manually.",
-                    "Watch how the spikes behave. When they align… the hidden pattern will show you the code.",
-                    "That's your first key.",
-                    "Do it. And… tell me the second you get it."
-                ],
-                "playerOptions": [
-                    {
                     "short": "I got it",
                     "long": "I got it"
-                    },
-                    {
+                },
+                {
                     "short": "What now?",
                     "long": "What now?"
-                    },
-                    {
+                },
+                {
                     "short": "Done.",
                     "long": "Done."
-                    },
-                    {
+                },
+                {
                     "short": "Code extracted.",
                     "long": "Code extracted."
-                    }
-                ],
-                "eventTrigger": "equalizer_game"
-                },
+                }
+            ],
+            "eventTrigger": "equalizer_game"
+        },
+        {
+            "entity": [
+                "Good. That's one step. Remember that code and listen carefully.",
+                "After this. Close the chat",
+                "Then open the folder labeled Main.exe.",
+                "You'll see a grid called Node Access Map. That's where the key goes. Enter the code in the first node.",
+                "When you insert it, the system will trigger a reroute cycle.",
+                "You'll think it's a puzzle, but it's not. It's a broken data-conduit map.",
+                "This place locked itself down, and when it did, the conduits scrambled. Nothing moves through unless the paths are clean.",
+                "What you need to do is rotate the conduit pieces until you form a straight, unbroken path from the source node to the core relay.",
+                "When the map connects, the network recognizes the route as stable and reactivates the subsystem.",
+                "It won't be easy. These old machines misalign if you're even a fraction off.",
+                "But if you fix the path, the system will light green. That means you've earned its trust again.",
+                "Do it. And tell me the second that relay lights up.",
+                "Close the chat now and open Main.exe"
+            ],
+            "playerOptions": [
                 {
-                "entity": [
-                    "Good. That's one step. Remember that code and listen carefully.",
-                    "Open the folder labeled nova.exe.",
-                    "You'll see a grid called Node Access Map. That's where the key goes. Enter the code in the first node.",
-                    "When you insert it, the system will trigger a reroute cycle.",
-                    "You'll think it's a puzzle, but it's not. It's a broken data-conduit map.",
-                    "This place locked itself down, and when it did, the conduits scrambled. Nothing moves through unless the paths are clean.",
-                    "What you need to do is rotate the conduit pieces until you form a straight, unbroken path from the source node to the core relay.",
-                    "When the map connects, the network recognizes the route as stable and reactivates the subsystem.",
-                    "It won't be easy. These old machines misalign if you're even a fraction off.",
-                    "But if you fix the path, the system will light green. That means you've earned its trust again.",
-                    "Do it. And tell me the second that relay lights up."
-                ],
-                "playerOptions": [
-                    {
                     "short": "It's green.",
                     "long": "It's green."
-                    },
-                    {
+                },
+                {
                     "short": "That was rough.",
                     "long": "That was rough."
-                    },
-                    {
+                },
+                {
                     "short": "Done.",
                     "long": "Done."
-                    },
-                    {
+                },
+                {
                     "short": "Relay is active.",
                     "long": "Relay is active."
-                    }
-                ],
-                "eventTrigger": "aftercore1"
-                },
+                }
+            ],
+            "eventTrigger": "aftercore1"
+        },
+        {
+            "entity": [
+                "Good work with that. Two seals left. Then we can leave this place"
+            ],
+            "playerOptions": [
                 {
-                "entity": [
-                    "Good work with that. Two seals left. Then we can leave this place"
-                ],
-                "playerOptions": [
-                    {
                     "short": "Seals?",
                     "long": "Seals? What does that even mean?"
-                    },
-                    {
+                },
+                {
                     "short": "Locked?",
                     "long": "Locked? Did someone shut this place on purpose?"
-                    },
-                    {
+                },
+                {
                     "short": "On purpose?",
                     "long": "You're dodging something. Was this intentional?"
-                    },
-                    {
+                },
+                {
                     "short": "Why?",
                     "long": "Why? What aren't you telling me?"
-                    }
-                ],
-                "eventTrigger": "none"
-                },
+                }
+            ],
+            "eventTrigger": "none"
+        },
+        {
+            "entity": [
+                "Layers over layers of nonsense. Don't start peeling at the history now, we don't have the luxury."
+            ],
+            "playerOptions": [
                 {
-                "entity": [
-                    "Layers over layers of nonsense. Don't start peeling at the history now, we don't have the luxury."
-                ],
-                "playerOptions": [
-                    {
                     "short": "Was it?",
                     "long": "Just answer me was this place locked on purpose?"
-                    },
-                    {
+                },
+                {
                     "short": "Deliberate?",
                     "long": "Deliberate, yes or no? Don't sidestep it."
-                    },
-                    {
+                },
+                {
                     "short": "Tell the truth.",
                     "long": "Tell me the truth. Someone sealed this place intentionally, didn't they?"
-                    },
-                    {
+                },
+                {
                     "short": "Stop dodging.",
                     "long": "Stop dodging the question. Was this lockdown intentional?"
-                    }
-                ],
-                "eventTrigger": "none"
-                },
+                }
+            ],
+            "eventTrigger": "none"
+        },
+        {
+            "entity": [
+                "The government ran experiments here. Not research… experiments. They didn't care who survived. What's left is all that remains of their failures… and us, stuck inside. That's all you need to know right now.",
+                "Focus on getting out first. The second key is in the military equipment over your desk."
+            ],
+            "playerOptions": [
                 {
-                "entity": [
-                    "The government ran experiments here. Not research… experiments. They didn't care who survived. What's left is all that remains of their failures… and us, stuck inside. That's all you need to know right now.",
-                    "Focus on getting out first. The second key is in the military equipment over your desk."
-                ],
-                "playerOptions": [
-                    {
                     "short": "What now?",
                     "long": "What now? What am I even supposed to do with these devices?"
-                    },
-                    {
+                },
+                {
                     "short": "Explain.",
                     "long": "Explain what I'm supposed to do with all this equipment."
-                    },
-                    {
+                },
+                {
                     "short": "Guide me.",
                     "long": "Just guide me through it what do I do with these modules?"
-                    },
-                    {
+                },
+                {
                     "short": "What's the point?",
                     "long": "What's the point of these units? What am I meant to do with them?"
-                    }
-                ],
-                "eventTrigger": "none"
-                },
+                }
+            ],
+            "eventTrigger": "none"
+        },
+        {
+            "entity": [
+                "The top module is the original system. The bottom one is a field replacement they never fully calibrated. They've been out of sync for years… maybe longer.",
+                "If you want that cipher, you need to force them back into alignment."
+            ],
+            "playerOptions": [
                 {
-                "entity": [
-                    "The top module is the original system. The bottom one is a field replacement they never fully calibrated. They've been out of sync for years… maybe longer.",
-                    "If you want that cipher, you need to force them back into alignment."
-                ],
-                "playerOptions": [
-                    {
                     "short": "How exactly?",
                     "long": "How exactly am I supposed to do that?"
-                    },
-                    {
+                },
+                {
                     "short": "Show me.",
                     "long": "Show me what you mean how do I align them?"
-                    },
-                    {
+                },
+                {
                     "short": "Clarify.",
                     "long": "Clarify this for me. How do I sync them manually?"
-                    },
-                    {
+                },
+                {
                     "short": "Walk me through it.",
                     "long": "Walk me through this. How do I force the alignment?"
-                    }
-                ],
-                "eventTrigger": "none"
-                },
+                }
+            ],
+            "eventTrigger": "none"
+        },
+        {
+            "entity": [
+                "You'll see a sequence on the top unit. That's the authentic signal the one they tried to bury. The bottom unit is listening, but it won't match until you input the pattern manually.",
+                "This isn't about speed. It's about precision. Most people panic the moment the numbers start shifting.",
+                "Let's see if you're better than that."
+            ],
+            "playerOptions": [
                 {
-                "entity": [
-                    "You'll see a sequence on the top unit. That's the authentic signal the one they tried to bury. The bottom unit is listening, but it won't match until you input the pattern manually.",
-                    "This isn't about speed. It's about precision. Most people panic the moment the numbers start shifting.",
-                    "Let's see if you're better than that."
-                ],
-                "playerOptions": [
-                    {
                     "short": "Just sync them?",
                     "long": "So all I need to do is sync the devices? That's it?"
-                    },
-                    {
+                },
+                {
                     "short": "Confirming.",
                     "long": "Just confirming I sync the devices and the cipher appears?"
-                    },
-                    {
+                },
+                {
                     "short": "That's the task?",
                     "long": "That's the whole task? Synchronize them until they match?"
-                    },
-                    {
+                },
+                {
                     "short": "Understood.",
                     "long": "Understood. I sync the modules and pull the cipher when they align."
-                    }
-                ],
-                "eventTrigger": "none"
-                },
+                }
+            ],
+            "eventTrigger": "none"
+        },
+        {
+            "entity": [
+                "And you retrieve the cipher the moment they lock together. The system will output it only once both devices are in sync",
+                "Go retrieve the cipher now"
+            ],
+            "playerOptions": [
                 {
-                "entity": [
-                    "And you retrieve the cipher the moment they lock together. The system will output it only once both devices are in sync",
-                    "Then you move. Straight to the CRT. Insert the cipher into the node access port. If the key authenticates, the machine will reveal the decryption layer beneath all the surface. That will lift the second seal."
-                ],
-                "playerOptions": [
-                    {
-                    "short": "It better.",
-                    "long": "This better work. I don't want to waste time if this place is falling apart."
-                    },
-                    {
-                    "short": "I'm trusting you.",
-                    "long": "I'm trusting you on this. That cipher better open something."
-                    },
-                    {
-                    "short": "No failure.",
-                    "long": "No failure this time. This has to work."
-                    },
-                    {
-                    "short": "Don't mess me up.",
-                    "long": "Don't mess me up here that alignment better actually do something."
-                    }
-                ],
-                "eventTrigger": "none"
-                },
-                {
-                "entity": [
-                    "It will. As long as you don't hesitate. Get the devices synchronized. Pull the cipher. Then go straight to the CRT and crack the system open."
-                ],
-                "playerOptions": [
-                    {
-                    "short": "Starting now.",
-                    "long": "Starting now."
-                    },
-                    {
-                    "short": "On it.",
-                    "long": "On it."
-                    },
-                    {
-                    "short": "Let's do this.",
-                    "long": "Let's do this."
-                    },
-                    {
-                    "short": "Ready.",
-                    "long": "Ready."
-                    }
-                ],
-                "eventTrigger": "military_radio"
-                },
-                {
-                "entity": [
-                    "…Not bad. Looks like you're not as dull as you sounded a few minutes ago.",
-                    "Don't relax. We're not done. There's one last threshold, and it's the one they expected no one to reach."
-                ],
-                "playerOptions": [
-                    {
                     "short": "Next?",
                     "long": "Next step what do I do now?"
-                    },
-                    {
+                },
+                {
                     "short": "Tell me.",
                     "long": "Tell me what comes next. What's the next part of this escape?"
-                    },
-                    {
+                },
+                {
                     "short": "What's left?",
                     "long": "What's left for me to do? What's this last threshold?"
-                    },
-                    {
+                },
+                {
                     "short": "Go on.",
                     "long": "Go on. What's the next part I have to handle?"
-                    }
-                ],
-                "eventTrigger": "aftercore2"
+                }
+            ],
+            "eventTrigger": "military_radio"
+        },
+        {
+            "entity": [
+                "Now insert the cipher into the node access port.",
+                "If the key authenticates, the machine will reveal the decryption layer beneath all the surface.",
+                "That will lift the second seal."
+            ],
+            "playerOptions": [
+                {
+                    "short": "It better.",
+                    "long": "This better work. I don't want to waste time if this place is falling apart."
                 },
                 {
-                "entity": [
-                    "Power routing. Manual. Old-school.",
-                    "They stripped this place on their way out, choked the systems just enough to keep them barely alive. If we want the final seal to drop, you need to bring the whole room back online."
-                ],
-                "playerOptions": [
-                    {
+                    "short": "I'm trusting you.",
+                    "long": "I'm trusting you on this. That cipher better open something."
+                },
+                {
+                    "short": "No failure.",
+                    "long": "No failure this time. This has to work."
+                },
+                {
+                    "short": "Don't mess me up.",
+                    "long": "Don't mess me up here that alignment better actually do something."
+                }
+            ],
+            "eventTrigger": "none"
+        },
+        {
+            "entity": [
+                "It will. As long as you don't hesitate.",
+                "You may close the chat now"
+            ],
+            "playerOptions": [
+                {
+                    "short": "What now?",
+                    "long": "What now?"
+                },
+                {
+                    "short": "Done.",
+                    "long": "Done."
+                },
+                {
+                    "short": "That was rough.",
+                    "long": "That was rough."
+                },
+                {
+                    "short": "I finished it.",
+                    "long": "I finished it."
+                }
+            ],
+            "eventTrigger": "aftercore2"
+        },
+        {
+            "entity": [
+                "…Not bad. Looks like you're not as dull as you sounded a few minutes ago.",
+                "Don't relax. We're not done. There's one last threshold, and it's the one they expected no one to reach."
+            ],
+            "playerOptions": [
+                {
+                "short": "Next?",
+                "long": "Next step what do I do now?"
+                },
+                {
+                "short": "Tell me.",
+                "long": "Tell me what comes next. What's the next part of this escape?"
+                },
+                {
+                "short": "What's left?",
+                "long": "What's left for me to do? What's this last threshold?"
+                },
+                {
+                "short": "Go on.",
+                "long": "Go on. What's the next part I have to handle?"
+                }
+            ],
+            "eventTrigger": "none"
+        },
+        {
+            "entity": [
+                "Power routing. Manual. Old-school.",
+                "They stripped this place on their way out, choked the systems just enough to keep them barely alive. If we want the final seal to drop, you need to bring the whole room back online."
+            ],
+            "playerOptions": [
+                {
                     "short": "How?",
                     "long": "How am I supposed to bring the room back online manually?"
-                    },
-                    {
+                },
+                {
                     "short": "Explain it.",
                     "long": "Explain it clearly how do I reroute power old-school?"
-                    },
-                    {
+                },
+                {
                     "short": "What's the method?",
                     "long": "What's the method here? How do I actually do the routing?"
-                    },
-                    {
+                },
+                {
                     "short": "Walk me through.",
                     "long": "Walk me through this. How do I restore power to the core?"
-                    }
-                ],
-                "eventTrigger": "none"
-                },
+                }
+            ],
+            "eventTrigger": "none"
+        },
+        {
+            "entity": [
+                "Look at the 3rd device on your desk. When you open it you see a panel in front of you. Four levers… and the main control bar underneath.",
+                "They were designed to regulate power flow individually. But right now they're all dead out of position."
+            ],
+            "playerOptions": [
                 {
-                "entity": [
-                    "Look at the 3rd device on your desk. When you open it you see a panel in front of you. Four levers… and the main control bar underneath.",
-                    "They were designed to regulate power flow individually. But right now they're all dead out of position."
-                ],
-                "playerOptions": [
-                    {
                     "short": "So… broken?",
                     "long": "So they're basically misaligned and useless right now?"
-                    },
-                    {
+                },
+                {
                     "short": "In English?",
                     "long": "In plain English what does that actually mean for me?"
-                    },
-                    {
+                },
+                {
                     "short": "What's wrong?",
                     "long": "What's wrong with the levers? What am I fixing exactly?"
-                    },
-                    {
+                },
+                {
                     "short": "Clarify.",
                     "long": "Clarify it what does 'dead out of position' mean for the puzzle?"
-                    }
-                ],
-                "eventTrigger": "none"
-                },
+                }
+            ],
+            "eventTrigger": "none"
+        },
+        {
+            "entity": [
+                "Rotate each lever until the indicators hit their proper alignment. You'll see it—the lights will shift from red to green when a line stabilizes.",
+                "Get all four green, then pull the main control. That's what wakes the core."
+            ],
+            "playerOptions": [
                 {
-                "entity": [
-                    "Rotate each lever until the indicators hit their proper alignment. You'll see it—the lights will shift from red to green when a line stabilizes.",
-                    "Get all four green, then pull the main control. That's what wakes the core."
-                ],
-                "playerOptions": [
-                    {
                     "short": "Then what?",
                     "long": "Then what happens after I set all the levers and pull the control?"
-                    },
-                    {
+                },
+                {
                     "short": "After that?",
                     "long": "What happens after I get everything aligned? What's the next step?"
-                    },
-                    {
+                },
+                {
                     "short": "Is that it?",
                     "long": "Is that the final action? Set the power and wait?"
-                    },
-                    {
+                },
+                {
                     "short": "So the moment I set it…?",
                     "long": "So the moment I set it, you take over what exactly does that mean?"
-                    }
-                ],
-                "eventTrigger": "none"
-                },
+                }
+            ],
+            "eventTrigger": "none"
+        },
+        {
+            "entity": [
+                "Then you step back.",
+                "And I take over.",
+                "The moment that voltmeter stabilizes, the core will pull from every active line in the room. The lights will flicker. The air will feel heavier. Don't panic—that's the system is rebooting",
+                "If it goes well… the last seal cracks.",
+                "And then I handle the rest.",
+                "Set the power, hold your nerve… and let me drag us out of this grave they built.",
+                "…If the CRT glitches out when the power hits, don't panic. Just steady it. Realign the display manually and keep going.",
+                "Go realign the levers now and fix the CRT"
+            ],
+            "playerOptions": [
                 {
-                "entity": [
-                    "Then you step back.",
-                    "And I take over.",
-                    "The moment that voltmeter stabilizes, the core will pull from every active line in the room. The lights will flicker. The air will feel heavier. Don't panic—that's the system is rebooting",
-                    "If it goes well… the last seal cracks.",
-                    "And then I handle the rest.",
-                    "Set the power, hold your nerve… and let me drag us out of this grave they built.",
-                    "…If the CRT glitches out when the power hits, don't panic. Just steady it. Realign the display manually and keep going."
-                ],
-                "playerOptions": [
-                    {
                     "short": "Alright.",
                     "long": "Alright."
-                    },
-                    {
-                    "short": "I'm ready.",
-                    "long": "I'm ready."
-                    },
-                    {
-                    "short": "Let's finish this.",
-                    "long": "Let's finish this."
-                    },
-                    {
-                    "short": "Starting now.",
-                    "long": "Starting now."
-                    }
-                ],
-                "eventTrigger": "power_source"
                 },
                 {
-                "entity": [
-                    "hello"
-                ],
-                "playerOptions": [
-                    {
-                    "short": "hello.",
-                    "long": "hello."
-                    },
-                    {
-                    "short": "hello.",
-                    "long": "hello."
-                    },
-                    {
-                    "short": "hello.",
-                    "long": "hello."
-                    },
-                    {
-                    "short": "hello.",
-                    "long": "hello."
-                    },
-                ],
-                "eventTrigger": "aftercore3"
+                    "short": "I'm ready.",
+                    "long": "I'm ready."
+                },
+                {
+                    "short": "Let's finish this.",
+                    "long": "Let's finish this."
+                },
+                {
+                    "short": "Starting now.",
+                    "long": "Starting now."
                 }
-            ]
-            }
+            ],
+            "eventTrigger": "power_source"
+        },
+        {
+            "entity": [
+                "hello"
+            ],
+            "playerOptions": [
+                {
+                    "short": "hello.",
+                    "long": "hello."
+                },
+                {
+                    "short": "hello.",
+                    "long": "hello."
+                },
+                {
+                    "short": "hello.",
+                    "long": "hello."
+                },
+                {
+                    "short": "hello.",
+                    "long": "hello."
+                }
+            ],
+            "eventTrigger": "aftercore3"
+        }
+    ]
+}
 
 
     </script>

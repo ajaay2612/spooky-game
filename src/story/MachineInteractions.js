@@ -986,7 +986,23 @@ export class MachineInteractions {
     }
     
     const knobData = this.powerSourcePuzzle.knobs[knobKey];
-    const angleDiff = Math.abs(currentAngle - knobData.targetAngle);
+    
+    // Normalize angles to handle wrapping (e.g., 2π = 0, -π = π)
+    const normalizeAngle = (angle) => {
+      let normalized = angle % (2 * Math.PI);
+      if (normalized > Math.PI) normalized -= 2 * Math.PI;
+      if (normalized < -Math.PI) normalized += 2 * Math.PI;
+      return normalized;
+    };
+    
+    const normalizedCurrent = normalizeAngle(currentAngle);
+    const normalizedTarget = normalizeAngle(knobData.targetAngle);
+    
+    // Calculate shortest angular distance (handles wrapping)
+    let angleDiff = Math.abs(normalizedCurrent - normalizedTarget);
+    if (angleDiff > Math.PI) {
+      angleDiff = 2 * Math.PI - angleDiff;
+    }
     
     // Check if knob is at target angle (within tolerance)
     if (angleDiff <= knobData.tolerance && !knobData.solved) {

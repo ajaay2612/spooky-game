@@ -36,9 +36,14 @@ export class InteractionSystem {
   }
   
   initialize() {
-    // Disable HighlightLayer for maximum performance - use CSS crosshair instead
-    this.highlightLayer = null;
+    // Create HighlightLayer for interactive element outlines
+    this.highlightLayer = new BABYLON.HighlightLayer('interactiveHighlight', this.scene, {
+      isStroke: true,
+      blurHorizontalSize: 0.01,
+      blurVerticalSize: 0.01
+    });
     this.originalMaterials = new Map();
+    this.highlightedMeshes = [];
     
     // Create interaction prompt UI
     this.createPromptUI();
@@ -221,8 +226,8 @@ export class InteractionSystem {
       return;
     }
     
-    // Show crosshair when effects are not playing (regardless of lock-on state)
-    if (this.crosshairElement && this.crosshairElement.style.display === 'none') {
+    // Show crosshair when effects are not playing AND not locked on
+    if (this.crosshairElement && this.crosshairElement.style.display === 'none' && !this.isLockedOn) {
       this.crosshairElement.style.display = 'block';
     }
     
@@ -369,6 +374,9 @@ export class InteractionSystem {
     
     this.isLockedOn = true;
     
+    // Hide center cursor when locked on
+    this.updateCursorVisibility();
+    
     // Show exit prompt
     if (this.exitPromptElement) {
       this.exitPromptElement.style.display = 'block';
@@ -419,11 +427,6 @@ export class InteractionSystem {
           }, 1000);
         }
       }
-    }
-    
-    // Hide crosshair when locked on
-    if (this.crosshairElement) {
-      this.crosshairElement.style.display = 'none';
     }
     
     // Hide interaction prompt
@@ -608,6 +611,9 @@ export class InteractionSystem {
       
       console.log('Camera animation complete - locked on to:', this.focusedObject.name);
       
+      // Highlight interactive elements after camera animation completes
+      this.highlightInteractiveElements();
+      
       // Activate monitor controllers after camera animation completes
       // Monitor 2 auto-activates, Monitor 1 requires power button press
       if (this.focusedObject.name === 'SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.002' && window.monitor2Controller) {
@@ -635,6 +641,9 @@ export class InteractionSystem {
       return;
     }
     
+    // Clear all highlights when exiting lock-on
+    this.clearHighlights();
+    
     // Stop radio animation if exiting from radio
     const isRadio = this.focusedObject && this.focusedObject.name.includes('SM_Radio4');
     if (isRadio && window.machineInteractions) {
@@ -643,6 +652,9 @@ export class InteractionSystem {
     }
     
     this.isLockedOn = false;
+    
+    // Show center cursor when exiting lock-on
+    this.updateCursorVisibility();
     
     // Hide exit prompt
     if (this.exitPromptElement) {
@@ -790,11 +802,6 @@ export class InteractionSystem {
           // Request pointer lock again
           this.canvas.requestPointerLock();
           
-          // Show crosshair again
-          if (this.crosshairElement) {
-            this.crosshairElement.style.display = 'block';
-          }
-          
           // Show prompt again if still looking at object
           if (this.focusedObject) {
             this.promptElement.style.display = 'block';
@@ -809,11 +816,6 @@ export class InteractionSystem {
       this.camera.attachControl(this.canvas, true);
       this.canvas.requestPointerLock();
       
-      // Show crosshair again
-      if (this.crosshairElement) {
-        this.crosshairElement.style.display = 'block';
-      }
-      
       if (this.focusedObject) {
         this.promptElement.style.display = 'block';
       }
@@ -825,6 +827,25 @@ export class InteractionSystem {
     console.log('Exited lock-on mode');
   }
   
+  updateCursorVisibility() {
+    // New function to manage cursor visibility based on lock-on state
+    if (!this.crosshairElement) {
+      return;
+    }
+    
+    if (this.isLockedOn) {
+      // Hide crosshair when locked on
+      this.crosshairElement.style.display = 'none';
+      console.log('✓ Center cursor hidden (locked on)');
+    } else {
+      // Show crosshair when not locked on (unless effects are playing)
+      if (!window.effectsPlaying) {
+        this.crosshairElement.style.display = 'block';
+        console.log('✓ Center cursor shown (not locked on)');
+      }
+    }
+  }
+  
   onObjectInteract(mesh) {
     // This method can be extended to trigger specific interactions
     // For example, activate monitor, open UI, etc.
@@ -832,6 +853,107 @@ export class InteractionSystem {
     
     // Monitor activation is now handled by M key only
     // F key just locks camera view
+  }
+  
+  highlightInteractiveElements() {
+    // Get the machine config for the focused object
+    const machineConfig = getMachineByMeshName(this.focusedObject.name);
+    
+    if (!machineConfig) {
+      console.warn('No machine config found for highlighting');
+      return;
+    }
+    
+    console.log('🌟 Highlighting interactive elements for:', machineConfig.displayName);
+    
+    // Get all interactive elements from the config
+    const interactiveElements = machineConfig.interactiveElements;
+    
+    if (!interactiveElements) {
+      console.warn('No interactive elements defined in config');
+      return;
+    }
+    
+    // Highlight each interactive element
+    Object.entries(interactiveElements).forEach(([elementId, elementConfig]) => {
+      const mesh = this.scene.getMeshByName(elementConfig.meshName);
+      
+      if (!mesh) {
+        console.warn(`Interactive element mesh not found: ${elementConfig.meshName}`);
+        return;
+      }
+      
+      // Create a subtle glow effect
+      this.createGlowEffect(mesh);
+      
+      console.log(`✨ Highlighted: ${elementConfig.meshName}`);
+    });
+  }
+  
+  createGlowEffect(mesh) {
+    if (!this.highlightLayer) {
+      console.warn('HighlightLayer not available');
+      return;
+    }
+    
+    // Add mesh to highlight layer with full white color (full opacity)
+    this.highlightLayer.addMesh(mesh, new BABYLON.Color3(1.0, 1.0, 1.0));
+    this.highlightedMeshes.push(mesh);
+    
+    // Fade out after 1 second
+    setTimeout(() => {
+      this.fadeOutHighlight(mesh);
+    }, 1000);
+    
+    console.log(`✨ Outline glow applied to: ${mesh.name}`);
+  }
+  
+  fadeOutHighlight(mesh) {
+    if (!this.highlightLayer) {
+      return;
+    }
+    
+    // Animate the highlight color alpha to 0 over 500ms
+    const startColor = new BABYLON.Color3(1.0, 1.0, 1.0);
+    const endColor = new BABYLON.Color3(0, 0, 0);
+    const duration = 500; // ms
+    const startTime = Date.now();
+    
+    const fadeInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Lerp between start and end color
+      const currentColor = BABYLON.Color3.Lerp(startColor, endColor, progress);
+      
+      // Update highlight color
+      this.highlightLayer.removeMesh(mesh);
+      this.highlightLayer.addMesh(mesh, currentColor);
+      
+      if (progress >= 1) {
+        clearInterval(fadeInterval);
+        this.highlightLayer.removeMesh(mesh);
+        const index = this.highlightedMeshes.indexOf(mesh);
+        if (index > -1) {
+          this.highlightedMeshes.splice(index, 1);
+        }
+      }
+    }, 16); // ~60fps
+  }
+  
+  clearHighlights() {
+    if (!this.highlightLayer) {
+      return;
+    }
+    
+    // Remove all highlighted meshes
+    this.highlightedMeshes.forEach(mesh => {
+      this.highlightLayer.removeMesh(mesh);
+    });
+    
+    this.highlightedMeshes = [];
+    
+    console.log('✓ Cleared all highlights');
   }
   
   dispose() {

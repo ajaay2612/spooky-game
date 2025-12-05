@@ -51,7 +51,7 @@
       background: #000;
     }
   </style>
-  <script type="module" crossorigin src="/assets/index-DCqPq1xw.js"></script>
+  <script type="module" crossorigin src="/assets/index-BYMcExko.js"></script>
 </head>
 <body>
   <!-- Part 1 iframe overlay (removed when part 1 completes) -->
@@ -59,7 +59,7 @@
   
   <canvas id="renderCanvas"></canvas>
   
-  <!-- Listen for part 1 completion -->
+  <!-- Listen for part 1 and part 2 completion -->
   <script>
     window.addEventListener('message', (event) => {
       if (event.data.type === 'part1Complete') {
@@ -77,6 +77,9 @@
           }
         }
       }
+      
+      // part2Complete is now handled by Monitor2Controller.js
+      // Removed duplicate handler to prevent showing ending screen twice
     });
     
     // Console function to skip part 1 for testing
@@ -124,6 +127,36 @@
     };
     
     console.log('💡 Tip: Call skipPart1() to skip Part 1 and test the transition');
+    
+    // Console function to trigger Part 3 ending screen for testing
+    window.showEndingScreen = function() {
+      console.log('🎉 Manually triggering ending screen...');
+      
+      // Stop background music
+      if (window.backgroundMusic) {
+        window.backgroundMusic.pause();
+        console.log('🎵 Background music stopped');
+      }
+      
+      // Create and show Part 3 (ending screen) iframe
+      const part3Iframe = document.createElement('iframe');
+      part3Iframe.id = 'part3Iframe';
+      part3Iframe.src = 'part-3/index.html';
+      part3Iframe.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+        z-index: 9999;
+        background: #000;
+      `;
+      document.body.appendChild(part3Iframe);
+      console.log('✓ Part 3 ending screen displayed');
+    };
+    
+    console.log('💡 Tip: Call showEndingScreen() to test the ending screen');
   </script>
   
   <!-- Babylon.js CDN -->

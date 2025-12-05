@@ -1333,27 +1333,31 @@ async function initializeGame() {
           });
         }
         
-        // Store the original camera position for later animation
+        // Store the original camera position and light intensities
         if (scene.activeCamera) {
           const camera = scene.activeCamera;
           
-          // Store original position
+          // Store original position FIRST (before any modifications)
           window.cameraOriginalPosition = camera.position.clone();
           window.cameraOriginalRotation = camera.rotation ? camera.rotation.clone() : new BABYLON.Vector3(0, 0, 0);
           
-          // Set camera at monitor lock-on position (looking at monitor)
-          camera.position = new BABYLON.Vector3(0.704, 2.239, 0.407);
-          if (camera.rotation) {
-            camera.rotation = new BABYLON.Vector3(0.013, 1.572, 0.000);
-          }
-          
-          // Set all lights to 0 intensity initially (dark)
+          // Store original light intensities FIRST
           window.originalLightIntensities = [];
           scene.lights.forEach(light => {
             window.originalLightIntensities.push({
               light: light,
               intensity: light.intensity
             });
+          });
+          
+          // Set camera at monitor and dim lights for Part 1
+          camera.position = new BABYLON.Vector3(0.704, 2.239, 0.407);
+          if (camera.rotation) {
+            camera.rotation = new BABYLON.Vector3(0.013, 1.572, 0.000);
+          }
+          
+          // Dim all lights
+          scene.lights.forEach(light => {
             light.intensity = 0;
           });
           
@@ -1377,7 +1381,7 @@ async function initializeGame() {
             
             // Initialize and play background music when Part 1 ends
             if (!window.backgroundMusic) {
-              const backgroundMusic = new Audio('public/overalll.mp3');
+              const backgroundMusic = new Audio('/overalll.mp3');
               backgroundMusic.volume = 0.3; // Set volume to 30%
               backgroundMusic.loop = true; // Loop the music
               
@@ -1486,6 +1490,8 @@ async function initializeGame() {
         // Initialize monitor controllers after scene is loaded
         await monitorController.initialize();
         await monitor2Controller.initialize();
+        
+
         
         // Hide second monitor and table at startup
         const monitor2 = scene.getMeshByName('SM_Prop_ComputerMonitor_B_32_StaticMeshComponent0.002');
