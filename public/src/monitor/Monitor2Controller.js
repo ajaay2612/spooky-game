@@ -90,7 +90,7 @@ export class Monitor2Controller {
     // Create and show Part 3 ending screen
     const part3Iframe = document.createElement('iframe');
     part3Iframe.id = 'part3Iframe';
-    part3Iframe.src = 'public/part-3/index.html';
+    part3Iframe.src = 'part-3/index.html';
     part3Iframe.style.cssText = `
       position: fixed;
       top: 0;
