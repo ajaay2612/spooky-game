@@ -2314,3 +2314,67 @@ body.chromatic-glitch button {
 .message-avatar.red-avatar::after {
     background-color: #000000 !important;
 }
+
+
+.credits-wrapper {
+    letter-spacing: -2px;
+    color: #7FB746;
+    padding: 40px 20px;
+    font-family: 'Print Char 21', monospace;
+    margin: 0 auto;
+    line-height: 1.1;
+    position: absolute;
+    z-index: 1;
+    height: 90vh;
+    overflow-y: auto;
+    width: 100%;
+}
+
+
+
+.credit-block {
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.credit-heading {
+    font-size: 16px;
+    font-weight: normal;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+}
+
+.credit-text {
+    font-size: 14px;
+    margin: 8px 0;
+    font-weight: normal;
+}
+
+.credit-title {
+    letter-spacing: -2px;
+    font-size: 24px;
+    font-weight: normal;
+    text-align: center;
+    margin: 60px 0;
+    text-transform: uppercase;
+}
+
+.credits-wrapper-backbutton{
+    cursor: pointer;
+}
+
+.credits-wrapper-backbutton:hover{
+  opacity: 0.8;
+  transform: scale(1.1);
+}
+
+.credit-link {
+    color: #7FB746;
+    text-decoration: underline;
+    transition: opacity 0.2s;
+}
+
+.credit-link:hover {
+    opacity: 0.7;
+}

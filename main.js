@@ -19,6 +19,9 @@ let fpsDisplay = null;
 // Expose scene globally for debugging tools
 window.scene = null;
 
+// UI effects state - controls visibility of crosshair and interaction prompts
+window.effectsPlaying = false;
+
 // Camera effects state
 let cameraEffectsActive = false;
 let tremorAnimation = null;
@@ -461,10 +464,13 @@ window.applyLightFlicker = function() {
     console.error('Scene not available');
     return;
   }
+  
+  // Hide UI during light flicker
+  window.effectsPlaying = true;
 
   console.log('✓ Light flickering effect started');
 
-  const duration = 8.0; // 5 seconds
+  const duration = 5.0; // 5 seconds
   let flickerTime = 0;
   let isFlickering = true;
 
@@ -538,6 +544,9 @@ window.applyLightFlicker = function() {
 
       // Remove animation
       scene.onBeforeRenderObservable.remove(flickerAnimation);
+      
+      // Restore UI after light flicker
+      window.effectsPlaying = false;
 
       console.log('✓ Light flickering effect completed');
     }

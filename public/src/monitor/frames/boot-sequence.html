@@ -3881,6 +3881,12 @@
                                 if (errorScene) {
                                     errorScene.classList.remove('hidden');
                                     
+                                    // Hide UI when error scene appears
+                                    if (window.parent && window.parent.effectsPlaying !== undefined) {
+                                        window.parent.effectsPlaying = true;
+                                        console.log('✓ UI hidden for error scene');
+                                    }
+                                    
                                     // Animate warning elements appearing one by one
                                     const warningElements = document.querySelectorAll('.warning-animation.hidden');
                                     warningElements.forEach(function(element, index) {
@@ -3926,6 +3932,13 @@
                                             setTimeout(function() {
                                                 jumpscare.classList.add('hidden');
                                                 
+                                                // Stop jumpscare audio
+                                                if (jumpscareAudio) {
+                                                    jumpscareAudio.pause();
+                                                    jumpscareAudio.currentTime = 0;
+                                                    console.log('🔇 Jumpscare audio stopped');
+                                                }
+                                                
                                                 const releasingScene = document.querySelector('.releasing-scene');
                                                 if (releasingScene) {
                                                     releasingScene.classList.remove('hidden');
@@ -3947,6 +3960,15 @@
                                                     // Play audio when releasing scene starts
                                                     const releasingAudio = new Audio('v2.mp3');
                                                     releasingAudio.volume = 0.7;
+                                                    
+                                                    // Restore UI when audio finishes
+                                                    releasingAudio.addEventListener('ended', function() {
+                                                        if (window.parent && window.parent.effectsPlaying !== undefined) {
+                                                            window.parent.effectsPlaying = false;
+                                                            console.log('✓ UI restored after v2.mp3 audio finished');
+                                                        }
+                                                    });
+                                                    
                                                     const playPromise = releasingAudio.play();
                                                     if (playPromise !== undefined) {
                                                         playPromise.then(function() {
@@ -3972,7 +3994,7 @@
                                                     const percentageText = document.querySelector('.releasing-div p:nth-child(2)');
                                                     const progressTrack = document.querySelector('.releasing-div-progress-track');
                                                     
-                                                    const percentages = [25, 50, 100];
+                                                    const percentages = [25, 50, 95];
                                                     let currentIndex = 0;
                                                     
                                                     // Set initial to 25%
@@ -3994,9 +4016,15 @@
                                                                 progressTrack.style.width = percentage + '%';
                                                             }
                                                             
-                                                            if (percentage === 100) {
+                                                            if (percentage === 95) {
                                                                 clearInterval(interval);
                                                                 clearInterval(captureInterval); // Stop continuous capture
+                                                                
+                                                                // Stop camera effects
+                                                                if (window.parent && window.parent.stopCameraEffects) {
+                                                                    window.parent.stopCameraEffects();
+                                                                    console.log('✓ Camera effects stopped');
+                                                                }
                                                                 
                                                                 // Reveal second monitor setup
                                                                 if (window.parent && window.parent.revealMonitor2) {
@@ -4004,7 +4032,7 @@
                                                                     console.log('✓ Second monitor reveal triggered');
                                                                 }
                                                                 
-                                                                // After reaching 100%, trigger device completion
+                                                                // After reaching 95%, trigger device completion
                                                                 if (window.deviceTracker) {
                                                                     window.deviceTracker.completeDevice('aftercore3');
                                                                 }
@@ -4088,6 +4116,12 @@
                                 errorScene.classList.remove('hidden');
                                 console.log('✓ Error scene shown');
                                 
+                                // Hide UI when error scene appears
+                                if (window.parent && window.parent.effectsPlaying !== undefined) {
+                                    window.parent.effectsPlaying = true;
+                                    console.log('✓ UI hidden for error scene');
+                                }
+                                
                                 const warningElements = document.querySelectorAll('.warning-animation.hidden');
                                 console.log('✓ Animating', warningElements.length, 'warning elements');
                                 warningElements.forEach(function(element, index) {
@@ -4108,14 +4142,14 @@
                                         
                                         // Play jumpscare audio
                                         const jumpscareAudio = new Audio('../../../jumpscare.mp3');
-                                        jumpscareAudio.volume = 0.4;
+                                        jumpscareAudio.volume = 0.7;
                                         jumpscareAudio.play().then(() => {
                                             console.log('🔊 Jumpscare audio playing successfully');
                                         }).catch(err => {
                                             console.error('❌ Jumpscare audio failed:', err);
                                             // Try alternate path
                                             const altAudio = new Audio('/public/jumpscare.mp3');
-                                            altAudio.volume = 0.4;
+                                            altAudio.volume = 0.7;
                                             altAudio.play().catch(e => console.error('Alt path also failed:', e));
                                         });
                                         
@@ -4126,6 +4160,13 @@
                                         setTimeout(function() {
                                             jumpscare.classList.add('hidden');
                                             console.log('✓ Jumpscare hidden');
+                                            
+                                            // Stop jumpscare audio
+                                            if (jumpscareAudio) {
+                                                jumpscareAudio.pause();
+                                                jumpscareAudio.currentTime = 0;
+                                                console.log('🔇 Jumpscare audio stopped');
+                                            }
                                             
                                             const releasingScene = document.querySelector('.releasing-scene');
                                             if (releasingScene) {
@@ -4148,6 +4189,15 @@
                                                 
                                                 const releasingAudio = new Audio('v2.mp3');
                                                 releasingAudio.volume = 0.7;
+                                                
+                                                // Restore UI when audio finishes
+                                                releasingAudio.addEventListener('ended', function() {
+                                                    if (window.parent && window.parent.effectsPlaying !== undefined) {
+                                                        window.parent.effectsPlaying = false;
+                                                        console.log('✓ UI restored after v2.mp3 audio finished');
+                                                    }
+                                                });
+                                                
                                                 const playPromise = releasingAudio.play();
                                                 if (playPromise !== undefined) {
                                                     playPromise.then(function() {
@@ -4189,9 +4239,9 @@
                                                             progressTrack.style.width = percentage + '%';
                                                         }
                                                         
-                                                        if (percentage === 100) {
+                                                        if (percentage === 95) {
                                                             clearInterval(interval);
-                                                            console.log('✓ Releasing complete - triggering aftercore3');
+                                                            console.log('✓ Releasing complete at 95% - triggering aftercore3');
                                                             
                                                             // Reveal second monitor setup
                                                             if (window.parent && window.parent.revealMonitor2) {

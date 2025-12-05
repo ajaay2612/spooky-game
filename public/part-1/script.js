@@ -81,6 +81,28 @@ function startGame() {
     }, 7500);
 }
 
+function showCredits() {
+    const titleContent = document.getElementById('titleContent');
+    const creditsWrapper = document.querySelector('.credits-wrapper');
+    
+    // Hide title content
+    titleContent.style.display = 'none';
+    
+    // Show credits
+    creditsWrapper.style.display = 'block';
+}
+
+function backToTitle() {
+    const titleContent = document.getElementById('titleContent');
+    const creditsWrapper = document.querySelector('.credits-wrapper');
+    
+    // Hide credits
+    creditsWrapper.style.display = 'none';
+    
+    // Show title content
+    titleContent.style.display = 'flex';
+}
+
 function showDisclaimer() {
     const kiroweenContent = document.getElementById('kiroweenContent');
     const disclaimerContent = document.getElementById('disclaimerContent');

@@ -72,7 +72,7 @@ export class InteractionSystem {
     this.promptElement.id = 'interaction-prompt';
     this.promptElement.style.cssText = `
       position: fixed;
-      bottom: 30px;
+      bottom: 1.7vw;
       left: 50%;
       transform: translateX(-50%);
       background: transparent;
@@ -80,7 +80,7 @@ export class InteractionSystem {
       padding: 10px 0;
       border: none;
       font-family: Arial, sans-serif;
-      font-size: 24px;
+      font-size: 1.5vw;
       font-weight: normal;
       display: none;
       z-index: 1000;
@@ -94,7 +94,7 @@ export class InteractionSystem {
     this.exitPromptElement.id = 'exit-prompt';
     this.exitPromptElement.style.cssText = `
       position: fixed;
-      bottom: 30px;
+      bottom: 1.7vw;
       left: 50%;
       transform: translateX(-50%);
       background: transparent;
@@ -102,7 +102,7 @@ export class InteractionSystem {
       padding: 10px 0;
       border: none;
       font-family: Arial, sans-serif;
-      font-size: 24px;
+      font-size: 1.5vw;
       font-weight: normal;
       display: none;
       z-index: 1000;
@@ -205,6 +205,30 @@ export class InteractionSystem {
     // Don't update if system is disabled
     if (!this.enabled) {
       return;
+    }
+    
+    // Don't update if effects are playing - hide all UI
+    if (window.effectsPlaying) {
+      this.clearFocusedObject();
+      // Hide crosshair
+      if (this.crosshairElement) {
+        this.crosshairElement.style.display = 'none';
+      }
+      // Hide exit prompt
+      if (this.exitPromptElement) {
+        this.exitPromptElement.style.display = 'none';
+      }
+      return;
+    }
+    
+    // Show crosshair when effects are not playing (regardless of lock-on state)
+    if (this.crosshairElement && this.crosshairElement.style.display === 'none') {
+      this.crosshairElement.style.display = 'block';
+    }
+    
+    // Show exit prompt when effects are not playing and locked on
+    if (this.exitPromptElement && this.exitPromptElement.style.display === 'none' && this.isLockedOn) {
+      this.exitPromptElement.style.display = 'block';
     }
     
     // Don't update if camera is not available

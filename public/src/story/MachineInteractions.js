@@ -747,6 +747,12 @@ export class MachineInteractions {
           console.log('🎵 Audio playing successfully!');
           this.startTimeUpdate();
           
+          // Lower background music volume when cassette plays
+          if (window.backgroundMusic) {
+            window.backgroundMusic.volume = 0.15; // Lower from 0.3 to 0.15 (50% reduction)
+            console.log('🔉 Background music volume lowered to 15%');
+          }
+          
           // Unlock monitor device when cassette starts playing
           console.log('🔓 Unlocking monitor device');
           const monitorIframe = document.querySelector('iframe');
@@ -797,6 +803,12 @@ export class MachineInteractions {
       console.log('🎵 Cassette audio stopped');
     }
     this.stopTimeUpdate();
+    
+    // Restore background music volume when cassette stops
+    if (window.backgroundMusic) {
+      window.backgroundMusic.volume = 0.3; // Restore to 30%
+      console.log('🔊 Background music volume restored to 30%');
+    }
   }
   
 
