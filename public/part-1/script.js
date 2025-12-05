@@ -761,7 +761,7 @@ function openGamePopup() {
             if (currentFrame > 3) {
                 currentFrame = 1;
             }
-            animatedFrame.src = `assets/game/FRAME${currentFrame}.png`;
+            animatedFrame.src = `assets/game/frame${currentFrame}.png`;
         }, 100);
     };
     
