@@ -1,5 +1,5 @@
 {
-  "typingSpeed": 10,
+  "typingSpeed": 60,
   "responseDelay": 1000,
   "initialDelay": 2000,
   "showIntroScreens": true,
